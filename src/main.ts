@@ -67,9 +67,5 @@ export default class GalleryPlugin extends Plugin {
   showPanel = async function () {
     const workspace = this.app.workspace
     workspace.getLeaf(false).setViewState({ type: OB_GALLERY })
-    const leftCollapseButton = workspace.leftRibbon.collapseButtonEl
-    // if (leftCollapseButton.ariaLabel === "Collapse") {
-    // 	leftCollapseButton.click();
-    // }
   }
 }
