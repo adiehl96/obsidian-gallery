@@ -1,15 +1,18 @@
 import { type App, PluginSettingTab, Setting, TFolder } from 'obsidian'
 import type GalleryPlugin from './main'
 
-export class GallerySettingTab extends PluginSettingTab {
+export class GallerySettingTab extends PluginSettingTab
+{
   plugin: GalleryPlugin
 
-  constructor (app: App, plugin: GalleryPlugin) {
+  constructor(app: App, plugin: GalleryPlugin)
+  {
     super(app, plugin)
     this.plugin = plugin
   }
 
-  display (): void {
+  display(): void
+  {
     const { containerEl } = this
     let resourcesPathInput = ''
     let onOpenPathInput = ''
@@ -22,9 +25,11 @@ export class GallerySettingTab extends PluginSettingTab {
       .setDesc('')
       .addButton(text => text
         .setButtonText('Save')
-        .onClick(() => {
-          if (resourcesPathInput === '/' || !(this.plugin.app.vault.getAbstractFileByPath(resourcesPathInput) instanceof TFolder)) {
-            return
+        .onClick(() =>
+        {
+          if (resourcesPathInput === '/' || !(this.plugin.app.vault.getAbstractFileByPath(resourcesPathInput) instanceof TFolder))
+          {
+            return;
           }
 
           this.plugin.settings.imgDataFolder = resourcesPathInput
@@ -33,7 +38,8 @@ export class GallerySettingTab extends PluginSettingTab {
         }))
       .addText(text => text
         .setPlaceholder(this.plugin.settings.imgDataFolder)
-        .onChange(async (value) => {
+        .onChange(async (value) =>
+        {
           resourcesPathInput = value.trim()
         }))
 
@@ -48,10 +54,12 @@ export class GallerySettingTab extends PluginSettingTab {
       .setDesc('Display default image width in `pixels`. integer, placeholder shows current value. (change this value to change the display in the main gallery')
       .addText(text => text
         .setPlaceholder(`${this.plugin.settings.width}`)
-        .onChange(async (value) => {
+        .onChange(async (value) =>
+        {
           const numValue = parseInt(value)
-          if (isNaN(numValue)) {
-            return
+          if (isNaN(numValue))
+          {
+            return;
           }
 
           this.plugin.settings.width = Math.abs(numValue)
@@ -61,12 +69,14 @@ export class GallerySettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Main Gallery Display Order')
       .setDesc('Toggle this option to reverse the order in which the main gallery displays images.')
-      .addToggle((toggle) => {
+      .addToggle((toggle) =>
+      {
         toggle.setValue(this.plugin.settings.reverseDisplay)
-        toggle.onChange(async (value) => {
+        toggle.onChange(async (value) =>
+        {
           this.plugin.settings.reverseDisplay = value
           await this.plugin.saveSettings()
-        })
+        });
       })
 
     new Setting(containerEl)
@@ -78,14 +88,16 @@ export class GallerySettingTab extends PluginSettingTab {
             Setting it to an invalid path to have no images shown when gallery is opened.`)
       .addButton(text => text
         .setButtonText('Save')
-        .onClick(() => {
+        .onClick(() =>
+        {
           this.plugin.settings.galleryLoadPath = onOpenPathInput
           onOpenPathInput = ''
           this.plugin.saveSettings()
         }))
       .addText(text => text
         .setPlaceholder(this.plugin.settings.galleryLoadPath)
-        .onChange(async (value) => {
+        .onChange(async (value) =>
+        {
           onOpenPathInput = value.trim()
         }))
   }

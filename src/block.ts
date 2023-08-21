@@ -2,20 +2,23 @@ import type { Vault, MetadataCache } from 'obsidian'
 import { MarkdownRenderer, TFile, getAllTags } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
-import {
-  EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
-  VIDEO_REGEX,
-  getImageResources,
-  getImgInfo, updateFocus
-} from './utils'
+import
+  {
+    EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
+    VIDEO_REGEX,
+    getImageResources,
+    getImgInfo, updateFocus
+  } from './utils'
 import { GalleryInfoView } from './view'
 import type GalleryPlugin from './main'
 import ImageGrid from './svelte/ImageGrid.svelte'
 import Gallery from './svelte/Gallery.svelte'
 import GalleryInfo from './svelte/GalleryInfo.svelte'
 
-export class GalleryProcessor {
-  async galleryDisplay (source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+export class GalleryProcessor
+{
+  async galleryDisplay(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin)
+  {
     const args: GalleryBlockArgs = {
       type: 'grid',
       path: '',
@@ -25,10 +28,12 @@ export class GalleryProcessor {
       divAlign: 'left',
       reverseOrder: 'false',
       customList: ''
-    }
+    };
 
-    source.split('\n').map(e => {
-      if (e) {
+    source.split('\n').map(e =>
+    {
+      if (e)
+      {
         const param = e.trim().split('=');
         (args as any)[param[0]] = param[1]?.trim()
       }
@@ -40,23 +45,27 @@ export class GalleryProcessor {
     })
 
     // Handle problematic arguments
-    if (!args.path || !args.type) {
+    if (!args.path || !args.type)
+    {
       MarkdownRenderer.renderMarkdown(GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
-      return
+      return;
     }
 
     const imgResources = getImageResources(args.path, args.name, vault.getFiles(), vault.adapter)
     let imgList = Object.keys(imgResources)
 
-    if (args.reverseOrder === 'true') {
+    if (args.reverseOrder === 'true')
+    {
       imgList = imgList.reverse()
     }
 
-    if (args.customList) {
+    if (args.customList)
+    {
       imgList = args.customList.split(' ').map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imgList[i])
     }
 
-    if (args.type === 'grid') {
+    if (args.type === 'grid')
+    {
       new ImageGrid({
         props: {
           imageList: imgList,
@@ -66,33 +75,37 @@ export class GalleryProcessor {
       })
 
       const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
-			const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
-			const focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } });
-			const focusVideo = focusElContainer.createEl('video', { attr: { controls: "controls", src: " ", style: 'display: none; margin: auto;' } });
+      const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
+      const focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } });
+      const focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin: auto;' } });
       let pausedVideo, pausedVideoUrl
       let imgFocusIndex = 0
 
-      elCanvas.onClickEvent((event) => {
+      elCanvas.onClickEvent((event) =>
+      {
         event.stopPropagation()
         const currentMode = imageFocusEl.style.getPropertyValue('display')
-        if (currentMode == 'block') {
+        if (currentMode == 'block')
+        {
           imageFocusEl.style.setProperty('display', 'none')
           // Clear Focus video
           focusVideo.src = ''
           // Clear Focus image
           focusImage.src = ''
           // Set Video Url back to disabled grid video
-          if (pausedVideo) {
+          if (pausedVideo)
+          {
             pausedVideo.src = pausedVideoUrl
           }
           // Hide focus image div
           focusImage.style.setProperty('display', 'none')
           // Hide focus video div
           focusVideo.style.setProperty('display', 'none')
-          return
+          return;
         }
 
-        if (event.target instanceof HTMLImageElement) {
+        if (event.target instanceof HTMLImageElement)
+        {
           // Read New image info
           const imgPath = event.target.src
           imgFocusIndex = imgList.indexOf(imgPath)
@@ -100,7 +113,8 @@ export class GalleryProcessor {
           updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
         }
 
-        if (event.target instanceof HTMLVideoElement) {
+        if (event.target instanceof HTMLVideoElement)
+        {
           // Read video info
           const imgPath = event.target.src
           imgFocusIndex = imgList.indexOf(imgPath)
@@ -114,49 +128,62 @@ export class GalleryProcessor {
         }
       })
 
-      elCanvas.addEventListener('contextmenu', async (e) => {
-        if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement) {
+      elCanvas.addEventListener('contextmenu', async (e) =>
+      {
+        if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement)
+        {
           // Open image file
           const file = vault.getAbstractFileByPath(imgResources[e.target.src])
-          if (file instanceof TFile) {
+          if (file instanceof TFile)
+          {
             plugin.app.workspace.getUnpinnedLeaf().openFile(file)
           }
         }
       })
 
-      document.addEventListener('keyup', (event) => {
-        if (imageFocusEl.style.getPropertyValue('display') != 'block') {
-          return
+      document.addEventListener('keyup', (event) =>
+      {
+        if (imageFocusEl.style.getPropertyValue('display') != 'block')
+        {
+          return;
         }
 
-        switch (event.key) {
+        switch (event.key)
+        {
           case 'ArrowLeft':
             imgFocusIndex--
-            if (imgFocusIndex < 0) {
+            if (imgFocusIndex < 0)
+            {
               imgFocusIndex = imgList.length - 1
             }
-            if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
+            if (imgList[imgFocusIndex].match(VIDEO_REGEX))
+            {
               updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
-            } else {
+            } else
+            {
               updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
             }
-            break
+            break;
           case 'ArrowRight':
             imgFocusIndex++
-            if (imgFocusIndex >= imgList.length) {
+            if (imgFocusIndex >= imgList.length)
+            {
               imgFocusIndex = 0
             }
-            if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
+            if (imgList[imgFocusIndex].match(VIDEO_REGEX))
+            {
               updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
-            } else {
+            } else
+            {
               updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
             }
-            break
+            break;
         }
       }, false)
     }
 
-    if (args.type === 'active-thumb') {
+    if (args.type === 'active-thumb')
+    {
       new Gallery({
         props: {
           imgList,
@@ -168,14 +195,17 @@ export class GalleryProcessor {
     }
   }
 
-  async galleryImageInfo (source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+  async galleryImageInfo(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin)
+  {
     const args: InfoBlockArgs = {
       imgPath: '',
       ignoreInfo: ''
-    }
+    };
 
-    source.split('\n').map(e => {
-      if (e) {
+    source.split('\n').map(e =>
+    {
+      if (e)
+      {
         const param = e.trim().split('=');
         (args as any)[param[0]] = param[1]?.trim()
       }
@@ -192,17 +222,20 @@ export class GalleryProcessor {
     const imgURL = vault.adapter.getResourcePath(args.imgPath)
 
     // Handle problematic arg
-    if (!args.imgPath || !imgTFile) {
+    if (!args.imgPath || !imgTFile)
+    {
       MarkdownRenderer.renderMarkdown('GALLERY_INFO_USAGE', elCanvas, '/', plugin)
-      return
+      return;
     }
 
     let measureEl, colors, isVideo
     // Get image dimensions
-    if (imgURL.match(VIDEO_REGEX)) {
+    if (imgURL.match(VIDEO_REGEX))
+    {
       measureEl = document.createElement('video')
       isVideo = true
-    } else {
+    } else
+    {
       measureEl = new Image()
       colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
       isVideo = false
@@ -220,25 +253,31 @@ export class GalleryProcessor {
     // }
 
     let imgInfoCache = null
-    if (imgInfo) {
+    if (imgInfo)
+    {
       imgInfoCache = metadata.getFileCache(imgInfo)
-      if (imgInfoCache) {
+      if (imgInfoCache)
+      {
         imgTags = getAllTags(imgInfoCache)
       }
     }
 
     const imgLinks = []
-    vault.getMarkdownFiles().forEach(mdFile => {
-      metadata.getFileCache(mdFile)?.embeds?.forEach(link => {
-        if (link.link === args.imgPath || link.link === imgName) {
+    vault.getMarkdownFiles().forEach(mdFile =>
+    {
+      metadata.getFileCache(mdFile)?.embeds?.forEach(link =>
+      {
+        if (link.link === args.imgPath || link.link === imgName)
+        {
           imgLinks.push({ path: mdFile.path, name: mdFile.basename })
         }
       })
-    })
+    });
 
     const frontmatter = imgInfoCache?.frontmatter ?? []
 
-    if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension)) {
+    if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
+    {
       new GalleryInfo({
         props: {
           name: imgTFile.basename,
@@ -258,17 +297,20 @@ export class GalleryProcessor {
       })
     }
 
-    elCanvas.onClickEvent(async (event) => {
-      if (event.button === 2) {
+    elCanvas.onClickEvent(async (event) =>
+    {
+      if (event.button === 2)
+      {
         // Open image info view in side panel
         const workspace = plugin.app.workspace
         workspace.detachLeavesOfType(OB_GALLERY_INFO)
         await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
         workspace.revealLeaf(
           await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-        )
+        );
         const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
-        if (infoView instanceof GalleryInfoView) {
+        if (infoView instanceof GalleryInfoView)
+        {
           infoView.infoFile = imgInfo
           infoView.editor.setValue(await vault.cachedRead(imgInfo))
           infoView.render()

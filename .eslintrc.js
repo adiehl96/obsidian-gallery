@@ -1,7 +1,7 @@
 module.exports = {
     "env": {
-        "es2021": true,
-        "node": true
+        "browser": true,
+        "es2021": true
     },
     "extends": "standard-with-typescript",
     "overrides": [
@@ -23,5 +23,17 @@ module.exports = {
         "project": ["tsconfig.json"]
     },
     "rules": {
+        'object-curly-newline': 2,
+        'react/jsx-curly-newline': [
+            2,
+            {
+                'multiline': "require",
+                'singleline': "require"
+            }
+        ],
+        //"linebreak-style": [2, "unix"],
+        "semi": [2, "always"],
+        "indent": [2, 4, {"VariableDeclarator": 0}],
+        "brace-style": [2, "allman"]
     }
 }

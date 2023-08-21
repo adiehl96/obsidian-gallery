@@ -2,7 +2,8 @@ import type { DataAdapter, Vault, MetadataCache } from 'obsidian'
 import { TFolder, TFile } from 'obsidian'
 import type GalleryPlugin from './main'
 
-export interface GallerySettings {
+export interface GallerySettings
+{
   imgDataFolder: string
   galleryLoadPath: string
   width: number
@@ -11,12 +12,14 @@ export interface GallerySettings {
 
 export type ImageResources = Record<string, string>
 
-export interface ImageDimensions {
+export interface ImageDimensions
+{
   width: number
   height: number
 }
 
-export interface GalleryBlockArgs {
+export interface GalleryBlockArgs
+{
   type: string
   path: string
   name: string
@@ -27,7 +30,8 @@ export interface GalleryBlockArgs {
   customList: string
 }
 
-export interface InfoBlockArgs {
+export interface InfoBlockArgs
+{
   imgPath: string
   ignoreInfo: string
 }
@@ -122,14 +126,15 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
  * Return initial img info file content
  * @param imgPath - Relative vault path of related image
  */
-const initializeInfo = (imgPath: string, imgName: string): string => {
+const initializeInfo = (imgPath: string, imgName: string): string =>
+{
   return `![](${imgPath.replace(' ', '%20')})\n
 %% Place Tags Here %%
 \`\`\`gallery-info
 imgPath=${imgPath}
 \`\`\`
 `
-}
+};
 
 /**
  * Return Image Info File, if not present create it
@@ -139,33 +144,41 @@ imgPath=${imgPath}
  * @param plugin - Gallery plugin handler
  */
 
-export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile> => {
+export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile> =>
+{
   let infoFile = null
   const imgName = imgPath.split('/').slice(-1)[0]
   const infoFolder = vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
   const infoFileList = []
-  if (infoFolder instanceof TFolder) {
-    infoFolder.children?.forEach(info => {
-      if (info instanceof TFile) {
+  if (infoFolder instanceof TFolder)
+  {
+    infoFolder.children?.forEach(info =>
+    {
+      if (info instanceof TFile)
+      {
         infoFileList.push(info.basename)
         const fileCache = metadata.getFileCache(info)
         const links = fileCache?.embeds
-        links?.forEach(link => {
-          if (link.link === imgName || link.link === imgPath) {
+        links?.forEach(link =>
+        {
+          if (link.link === imgName || link.link === imgPath)
+          {
             infoFile = info
           }
         })
       }
     })
 
-    if (!infoFile && create) {
+    if (!infoFile && create)
+    {
       // Info File does not exist, Create it
       await plugin.saveSettings()
       let counter = 1
       let fileName = imgName.split('\.')[0]
-      while (infoFileList.contains(fileName)) {
+      while (infoFileList.contains(fileName))
+      {
         fileName = `${fileName}_${counter}`
-        counter++
+        counter++;
       }
 
       await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(imgPath, imgName))
@@ -176,7 +189,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
 
   // Specified Resources folder does not exist
   return null
-}
+};
 
 /**
  * Return images in the specified directory
@@ -186,30 +199,38 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param handler - Obsidian vault handler
  */
 
-export const getImageResources = (path: string, name: string, vaultFiles: TFile[], handler: DataAdapter): ImageResources => {
+export const getImageResources = (path: string, name: string, vaultFiles: TFile[], handler: DataAdapter): ImageResources =>
+{
   const imgList: ImageResources = {}
 
   let reg
-  try {
+  try 
+  {
     reg = new RegExp(`^${path}.*${name}.*$`)
-    if (path === '/') {
+    if (path === '/')
+    {
       reg = new RegExp(`^.*${name}.*$`)
     }
-  } catch (error) {
+  } catch (error)
+  {
     console.log('Gallery Search - BAD REGEX! regex set to `.*` as default!!')
     reg = '.*'
   }
 
-  for (const file of vaultFiles) {
-    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg)) {
+  for (const file of vaultFiles)
+  {
+    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg))
+    {
       imgList[handler.getResourcePath(file.path)] = file.path
     }
   }
   return imgList
-}
+};
 
-export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, src: string, isVideo: boolean): void => {
-  if (isVideo) {
+export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, src: string, isVideo: boolean): void =>
+{
+  if (isVideo)
+  {
     // hide focus image div
     imgEl.style.setProperty('display', 'none')
     // Show focus video div
@@ -218,7 +239,7 @@ export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, 
     imgEl.src = ''
     // Set focus video
     videoEl.src = src
-    return
+    return;
   }
 
   // Show focus image div
@@ -229,4 +250,4 @@ export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, 
   videoEl.src = ''
   // Set focus image
   imgEl.src = src
-}
+};
