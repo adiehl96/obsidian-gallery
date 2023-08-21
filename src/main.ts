@@ -1,5 +1,5 @@
 import { Plugin, WorkspaceLeaf, addIcon } from 'obsidian';
-import { GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon } from './utils';
+import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon } from './utils';
 import { GallerySettingTab } from './settings';
 import { GalleryProcessor } from './block';
 import { GalleryView, GalleryInfoView } from './view';
@@ -69,8 +69,8 @@ export default class GalleryPlugin extends Plugin {
 		let workspace = this.app.workspace;
 		workspace.getLeaf(false).setViewState({ type: OB_GALLERY });
 		let leftCollapseButton = workspace.leftRibbon.collapseButtonEl;
-		if (leftCollapseButton.ariaLabel === "Collapse") {
-			leftCollapseButton.click();
-		}
+		// if (leftCollapseButton.ariaLabel === "Collapse") {
+		// 	leftCollapseButton.click();
+		// }
 	};
 }

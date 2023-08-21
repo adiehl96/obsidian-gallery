@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     export let name;
     export let path;
     export let extension;
@@ -109,7 +109,7 @@
         <div class="gallery-info-section mod-tags">
             <span class="gallery-info-section-label">Palette</span>
             <div class="gallery-info-section-value">
-                <div width="max-content">
+                <div >
                     {#if colorList}
                         {#each colorList as color}
                             <div

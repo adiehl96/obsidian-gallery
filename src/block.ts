@@ -1,5 +1,6 @@
-import type { Vault, MetadataCache, WorkspaceLeaf } from 'obsidian';
+import type { Vault, MetadataCache } from 'obsidian';
 import { MarkdownRenderer, TFile, getAllTags } from 'obsidian';
+import { extractColors } from '../node_modules/extract-colors';
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils';
 import {
 	EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
@@ -8,7 +9,6 @@ import {
 	getImgInfo, updateFocus
 } from './utils';
 import { GalleryInfoView } from './view';
-import { extractColors } from 'extract-colors';
 import type GalleryPlugin from './main';
 import ImageGrid from './svelte/ImageGrid.svelte';
 import Gallery from './svelte/Gallery.svelte';
@@ -196,7 +196,7 @@ export class GalleryProcessor {
 
 		// Handle problematic arg
 		if (!args.imgPath || !imgTFile) {
-			MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
+			MarkdownRenderer.renderMarkdown("GALLERY_INFO_USAGE", elCanvas, '/', plugin);
 			return;
 		}
 
@@ -217,24 +217,31 @@ export class GalleryProcessor {
 		let imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false);
 		let imgTags = null;
 
-		if (!imgInfo) {
-			MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
-			return;
-		}
+		// if (!imgInfo) {
+		// 	MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
+		// 	return;
+		// }
 
-		let imgInfoCache = metadata.getFileCache(imgInfo);
-		if (imgInfo) {
-			imgTags = getAllTags(imgInfoCache);
+		let imgInfoCache = null;
+		if(imgInfo)
+		{
+			imgInfoCache = metadata.getFileCache(imgInfo);
+			if (imgInfoCache) 
+			{
+				imgTags = getAllTags(imgInfoCache);
+			}
 		}
 
 		let imgLinks = [];
 		vault.getMarkdownFiles().forEach(mdFile => {
-			metadata.getFileCache(mdFile)?.links?.forEach(link => {
+			metadata.getFileCache(mdFile)?.embeds?.forEach(link => {
 				if (link.link === args.imgPath || link.link === imgName) {
 					imgLinks.push({path: mdFile.path, name: mdFile.basename});
 				}
 			});
 		});
+
+		let frontmatter = imgInfoCache?.frontmatter?? [];
 
 		if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension)) {
 			new GalleryInfo({
@@ -249,7 +256,7 @@ export class GalleryProcessor {
 					tagList: imgTags,
 					isVideo: isVideo,
 					imgLinks: imgLinks,
-					frontmatter: imgInfoCache.frontmatter,
+					frontmatter: frontmatter,
 					infoList: infoList
 				},
 				target: elCanvas

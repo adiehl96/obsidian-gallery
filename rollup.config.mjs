@@ -1,8 +1,8 @@
 import svelte from "rollup-plugin-svelte";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import typescript from "@rollup/plugin-typescript";
 import autoPreprocess from "svelte-preprocess";
+import typescript from "@rollup/plugin-typescript";
 import image from "svelte-image";
 import copy from 'rollup-plugin-copy';
 import { env } from "process";
