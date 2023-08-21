@@ -1,284 +1,278 @@
-import type { Vault, MetadataCache } from 'obsidian';
-import { MarkdownRenderer, TFile, getAllTags } from 'obsidian';
-import { extractColors } from '../node_modules/extract-colors';
-import type { GalleryBlockArgs, InfoBlockArgs } from './utils';
+import type { Vault, MetadataCache } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags } from 'obsidian'
+import { extractColors } from '../node_modules/extract-colors'
+import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import {
-	EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
-	VIDEO_REGEX,
-	getImageResources,
-	getImgInfo, updateFocus
-} from './utils';
-import { GalleryInfoView } from './view';
-import type GalleryPlugin from './main';
-import ImageGrid from './svelte/ImageGrid.svelte';
-import Gallery from './svelte/Gallery.svelte';
-import GalleryInfo from './svelte/GalleryInfo.svelte';
+  EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
+  VIDEO_REGEX,
+  getImageResources,
+  getImgInfo, updateFocus
+} from './utils'
+import { GalleryInfoView } from './view'
+import type GalleryPlugin from './main'
+import ImageGrid from './svelte/ImageGrid.svelte'
+import Gallery from './svelte/Gallery.svelte'
+import GalleryInfo from './svelte/GalleryInfo.svelte'
 
 export class GalleryProcessor {
+  async galleryDisplay (source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+    const args: GalleryBlockArgs = {
+      type: 'grid',
+      path: '',
+      name: '',
+      imgWidth: 200,
+      divWidth: 100,
+      divAlign: 'left',
+      reverseOrder: 'false',
+      customList: ''
+    }
 
-	async galleryDisplay(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+    source.split('\n').map(e => {
+      if (e) {
+        const param = e.trim().split('=');
+        (args as any)[param[0]] = param[1]?.trim()
+      }
+    })
 
-		let args: GalleryBlockArgs = {
-			type: 'grid',
-			path: '',
-			name: '',
-			imgWidth: 200,
-			divWidth: 100,
-			divAlign: 'left',
-			reverseOrder: 'false',
-			customList: ''
-		};
+    const elCanvas = el.createDiv({
+      cls: 'ob-gallery-display-block',
+      attr: { style: `width: ${args.divWidth}%; height: auto; float: ${args.divAlign}` }
+    })
 
-		source.split('\n').map(e => {
-			if (e) {
-				let param = e.trim().split('=');
-				(args as any)[param[0]] = param[1]?.trim();
-			}
-		});
+    // Handle problematic arguments
+    if (!args.path || !args.type) {
+      MarkdownRenderer.renderMarkdown(GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
+      return
+    }
 
-		let elCanvas = el.createDiv({
-			cls: 'ob-gallery-display-block',
-			attr: { 'style': `width: ${args.divWidth}%; height: auto; float: ${args.divAlign}` }
-		});
+    const imgResources = getImageResources(args.path, args.name, vault.getFiles(), vault.adapter)
+    let imgList = Object.keys(imgResources)
 
-		// Handle problematic arguments
-		if (!args.path || !args.type) {
-			MarkdownRenderer.renderMarkdown(GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin);
-			return;
-		}
+    if (args.reverseOrder === 'true') {
+      imgList = imgList.reverse()
+    }
 
-		let imgResources = getImageResources(args.path, args.name, vault.getFiles(), vault.adapter);
-		let imgList = Object.keys(imgResources);
+    if (args.customList) {
+      imgList = args.customList.split(' ').map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imgList[i])
+    }
 
-		if (args.reverseOrder === 'true') {
-			imgList = imgList.reverse();
-		}
+    if (args.type === 'grid') {
+      new ImageGrid({
+        props: {
+          imageList: imgList,
+          maxColumnWidth: args.imgWidth
+        },
+        target: elCanvas
+      })
 
-		if (args.customList) {
-			imgList = args.customList.split(" ").map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imgList[i]);
-		}
+      const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
+      const focusImage = imageFocusEl.createEl('img', { attr: { style: 'display: none;' } })
+      const focusVideo = imageFocusEl.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin: auto;' } })
+      let pausedVideo, pausedVideoUrl
+      let imgFocusIndex = 0
 
-		if (args.type === "grid") {
-			new ImageGrid({
-				props: {
-					imageList: imgList,
-					maxColumnWidth: args.imgWidth
-				},
-				target: elCanvas
-			});
+      elCanvas.onClickEvent((event) => {
+        event.stopPropagation()
+        const currentMode = imageFocusEl.style.getPropertyValue('display')
+        if (currentMode == 'block') {
+          imageFocusEl.style.setProperty('display', 'none')
+          // Clear Focus video
+          focusVideo.src = ''
+          // Clear Focus image
+          focusImage.src = ''
+          // Set Video Url back to disabled grid video
+          if (pausedVideo) {
+            pausedVideo.src = pausedVideoUrl
+          }
+          // Hide focus image div
+          focusImage.style.setProperty('display', 'none')
+          // Hide focus video div
+          focusVideo.style.setProperty('display', 'none')
+          return
+        }
 
-			let imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' });
-			let focusImage = imageFocusEl.createEl('img', { attr: { style: 'display: none;' } });
-			let focusVideo = imageFocusEl.createEl('video', { attr: { controls: "controls", src: " ", style: 'display: none; margin: auto;' } });
-			let pausedVideo, pausedVideoUrl;
-			let imgFocusIndex = 0;
+        if (event.target instanceof HTMLImageElement) {
+          // Read New image info
+          const imgPath = event.target.src
+          imgFocusIndex = imgList.indexOf(imgPath)
+          imageFocusEl.style.setProperty('display', 'block')
+          updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+        }
 
-			elCanvas.onClickEvent((event) => {
-				event.stopPropagation();
-				let currentMode = imageFocusEl.style.getPropertyValue('display');
-				if (currentMode == "block") {
-					imageFocusEl.style.setProperty('display', 'none');
-					// Clear Focus video
-					focusVideo.src = "";
-					// Clear Focus image
-					focusImage.src = "";
-					// Set Video Url back to disabled grid video
-					if (pausedVideo) {
-						pausedVideo.src = pausedVideoUrl;
-					}
-					// Hide focus image div
-					focusImage.style.setProperty('display', 'none');
-					// Hide focus video div
-					focusVideo.style.setProperty('display', 'none');
-					return;
-				}
+        if (event.target instanceof HTMLVideoElement) {
+          // Read video info
+          const imgPath = event.target.src
+          imgFocusIndex = imgList.indexOf(imgPath)
+          imageFocusEl.style.setProperty('display', 'block')
+          // Save clicked video info to set it back later
+          pausedVideo = event.target
+          pausedVideoUrl = pausedVideo.src
+          // disable clicked video
+          pausedVideo.src = ''
+          updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+        }
+      })
 
-				if (event.target instanceof HTMLImageElement) {
-					// Read New image info
-					let imgPath = event.target.src;
-					imgFocusIndex = imgList.indexOf(imgPath);
-					imageFocusEl.style.setProperty('display', 'block');
-					updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false);
-				}
+      elCanvas.addEventListener('contextmenu', async (e) => {
+        if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement) {
+          // Open image file
+          const file = vault.getAbstractFileByPath(imgResources[e.target.src])
+          if (file instanceof TFile) {
+            plugin.app.workspace.getUnpinnedLeaf().openFile(file)
+          }
+        }
+      })
 
-				if (event.target instanceof HTMLVideoElement) {
-					// Read video info
-					let imgPath = event.target.src;
-					imgFocusIndex = imgList.indexOf(imgPath);
-					imageFocusEl.style.setProperty('display', 'block');
-					// Save clicked video info to set it back later
-					pausedVideo = event.target;
-					pausedVideoUrl = pausedVideo.src;
-					// disable clicked video
-					pausedVideo.src = "";
-					updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true);
-				}
-			});
+      document.addEventListener('keyup', (event) => {
+        if (imageFocusEl.style.getPropertyValue('display') != 'block') {
+          return
+        }
 
-			elCanvas.addEventListener('contextmenu', async (e) => {
-				if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement) {
-					// Open image file
-					let file = vault.getAbstractFileByPath(imgResources[e.target.src]);
-					if (file instanceof TFile) {
-						plugin.app.workspace.getUnpinnedLeaf().openFile(file);
-					}
-				}
-			});
+        switch (event.key) {
+          case 'ArrowLeft':
+            imgFocusIndex--
+            if (imgFocusIndex < 0) {
+              imgFocusIndex = imgList.length - 1
+            }
+            if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
+              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+            } else {
+              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+            }
+            break
+          case 'ArrowRight':
+            imgFocusIndex++
+            if (imgFocusIndex >= imgList.length) {
+              imgFocusIndex = 0
+            }
+            if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
+              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+            } else {
+              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+            }
+            break
+        }
+      }, false)
+    }
 
-			document.addEventListener('keyup', (event) => {
-				if (imageFocusEl.style.getPropertyValue('display') != "block") {
-					return;
-				}
+    if (args.type === 'active-thumb') {
+      new Gallery({
+        props: {
+          imgList,
+          width: args.imgWidth / 50,
+          fillFree: true
+        },
+        target: elCanvas
+      })
+    }
+  }
 
-				switch (event.key) {
-					case "ArrowLeft":
-						imgFocusIndex--;
-						if (imgFocusIndex < 0) {
-							imgFocusIndex = imgList.length - 1;
-						}
-						if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
-							updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true);
-						} else {
-							updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false);
-						}
-						break;
-					case "ArrowRight":
-						imgFocusIndex++;
-						if (imgFocusIndex >= imgList.length) {
-							imgFocusIndex = 0;
-						}
-						if (imgList[imgFocusIndex].match(VIDEO_REGEX)) {
-							updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true);
-						} else {
-							updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false);
-						}
-						break;
-				}
-			}, false);
-		}
+  async galleryImageInfo (source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+    const args: InfoBlockArgs = {
+      imgPath: '',
+      ignoreInfo: ''
+    }
 
-		if (args.type === "active-thumb") {
-			new Gallery({
-				props: {
-					imgList: imgList,
-					width: args.imgWidth / 50,
-					fillFree: true,
-				},
-				target: elCanvas
-			});
+    source.split('\n').map(e => {
+      if (e) {
+        const param = e.trim().split('=');
+        (args as any)[param[0]] = param[1]?.trim()
+      }
+    })
 
-		}
-	}
+    const infoList = args.ignoreInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+    const imgName = args.imgPath.split('/').slice(-1)[0]
+    const elCanvas = el.createDiv({
+      cls: 'ob-gallery-info-block',
+      attr: { style: 'width: 100%; height: auto; float: left' }
+    })
 
-	async galleryImageInfo(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin) {
+    const imgTFile = vault.getAbstractFileByPath(args.imgPath)
+    const imgURL = vault.adapter.getResourcePath(args.imgPath)
 
-		let args: InfoBlockArgs = {
-			imgPath: '',
-			ignoreInfo: ''
-		};
+    // Handle problematic arg
+    if (!args.imgPath || !imgTFile) {
+      MarkdownRenderer.renderMarkdown('GALLERY_INFO_USAGE', elCanvas, '/', plugin)
+      return
+    }
 
-		source.split('\n').map(e => {
-			if (e) {
-				let param = e.trim().split('=');
-				(args as any)[param[0]] = param[1]?.trim();
-			}
-		});
+    let measureEl, colors, isVideo
+    // Get image dimensions
+    if (imgURL.match(VIDEO_REGEX)) {
+      measureEl = document.createElement('video')
+      isVideo = true
+    } else {
+      measureEl = new Image()
+      colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+      isVideo = false
+    }
 
-		let infoList = args.ignoreInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== "");
-		let imgName = args.imgPath.split('/').slice(-1)[0];
-		let elCanvas = el.createDiv({
-			cls: 'ob-gallery-info-block',
-			attr: { 'style': `width: 100%; height: auto; float: left` }
-		});
+    measureEl.src = imgURL
 
-		let imgTFile = vault.getAbstractFileByPath(args.imgPath);
-		let imgURL = vault.adapter.getResourcePath(args.imgPath);
+    // Handle disabled img info functionality or missing info block
+    const imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false)
+    let imgTags = null
 
-		// Handle problematic arg
-		if (!args.imgPath || !imgTFile) {
-			MarkdownRenderer.renderMarkdown("GALLERY_INFO_USAGE", elCanvas, '/', plugin);
-			return;
-		}
+    // if (!imgInfo) {
+    // 	MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
+    // 	return;
+    // }
 
-		let measureEl, colors, isVideo;
-		// Get image dimensions
-		if (imgURL.match(VIDEO_REGEX)) {
-			measureEl = document.createElement('video');
-			isVideo = true;
-		} else {
-			measureEl = new Image();
-			colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS);
-			isVideo = false;
-		}
+    let imgInfoCache = null
+    if (imgInfo) {
+      imgInfoCache = metadata.getFileCache(imgInfo)
+      if (imgInfoCache) {
+        imgTags = getAllTags(imgInfoCache)
+      }
+    }
 
-		measureEl.src = imgURL;
+    const imgLinks = []
+    vault.getMarkdownFiles().forEach(mdFile => {
+      metadata.getFileCache(mdFile)?.embeds?.forEach(link => {
+        if (link.link === args.imgPath || link.link === imgName) {
+          imgLinks.push({ path: mdFile.path, name: mdFile.basename })
+        }
+      })
+    })
 
-		// Handle disabled img info functionality or missing info block
-		let imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false);
-		let imgTags = null;
+    const frontmatter = imgInfoCache?.frontmatter ?? []
 
-		// if (!imgInfo) {
-		// 	MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
-		// 	return;
-		// }
+    if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension)) {
+      new GalleryInfo({
+        props: {
+          name: imgTFile.basename,
+          path: imgTFile.path,
+          extension: imgTFile.extension,
+          date: new Date(imgTFile.stat.ctime),
+          dimensions: measureEl,
+          size: imgTFile.stat.size / 1000000,
+          colorList: colors,
+          tagList: imgTags,
+          isVideo,
+          imgLinks,
+          frontmatter,
+          infoList
+        },
+        target: elCanvas
+      })
+    }
 
-		let imgInfoCache = null;
-		if(imgInfo)
-		{
-			imgInfoCache = metadata.getFileCache(imgInfo);
-			if (imgInfoCache) 
-			{
-				imgTags = getAllTags(imgInfoCache);
-			}
-		}
-
-		let imgLinks = [];
-		vault.getMarkdownFiles().forEach(mdFile => {
-			metadata.getFileCache(mdFile)?.embeds?.forEach(link => {
-				if (link.link === args.imgPath || link.link === imgName) {
-					imgLinks.push({path: mdFile.path, name: mdFile.basename});
-				}
-			});
-		});
-
-		let frontmatter = imgInfoCache?.frontmatter?? [];
-
-		if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension)) {
-			new GalleryInfo({
-				props: {
-					name: imgTFile.basename,
-					path: imgTFile.path,
-					extension: imgTFile.extension,
-					date: new Date(imgTFile.stat.ctime),
-					dimensions: measureEl,
-					size: imgTFile.stat.size / 1000000,
-					colorList: colors,
-					tagList: imgTags,
-					isVideo: isVideo,
-					imgLinks: imgLinks,
-					frontmatter: frontmatter,
-					infoList: infoList
-				},
-				target: elCanvas
-			});
-		}
-
-		elCanvas.onClickEvent(async (event) => {
-			if (event.button === 2) {
-				// Open image info view in side panel
-				let workspace = plugin.app.workspace;
-				workspace.detachLeavesOfType(OB_GALLERY_INFO);
-				await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO });
-				workspace.revealLeaf(
-					await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-				);
-				let infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view;
-				if (infoView instanceof GalleryInfoView) {
-					infoView.infoFile = imgInfo;
-					infoView.editor.setValue(await vault.cachedRead(imgInfo));
-					infoView.render();
-				}
-			}
-		});
-	}
+    elCanvas.onClickEvent(async (event) => {
+      if (event.button === 2) {
+        // Open image info view in side panel
+        const workspace = plugin.app.workspace
+        workspace.detachLeavesOfType(OB_GALLERY_INFO)
+        await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
+        workspace.revealLeaf(
+          await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
+        )
+        const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
+        if (infoView instanceof GalleryInfoView) {
+          infoView.infoFile = imgInfo
+          infoView.editor.setValue(await vault.cachedRead(imgInfo))
+          infoView.render()
+        }
+      }
+    })
+  }
 }
