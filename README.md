@@ -1,6 +1,6 @@
 # Obsidian Gallery
-![GitHub release)](https://img.shields.io/github/v/release/Darakah/obsidian-gallery)
-![GitHub all releases](https://img.shields.io/github/downloads/Darakah/obsidian-gallery/total)
+![GitHub release)](https://img.shields.io/github/v/release/TomNCatz/obsidian-gallery)
+![GitHub all releases](https://img.shields.io/github/downloads/TomNCatz/obsidian-gallery/total)
 
 - Main Gallery to tag / filter / add notes to images.
 - Display blocks to embed images inside notes
@@ -56,6 +56,11 @@ Argument Info:
 
 ## Release Notes:
 
+### v0.6.0 **In Progress**
+- Updated supporting libraries to modern equivilents
+- Minor visual changes pulled in from other contributers
+- BUG: Mobile support for gallery info is broken in this version, still trying to fix that
+
 ### v0.5.8
 - Bug Fix: https://github.com/Darakah/obsidian-gallery/issues/12
 
@@ -99,6 +104,3 @@ Argument Info:
 - changed block id to `gallery`
 - added image name filtering to `/` vault search option
 - removed meaningless confusing `column` parameter
-
-## Support
-[![Github Sponsorship](https://raw.githubusercontent.com/Darakah/Darakah/e0fe245eaef23cb4a5f19fe9a09a9df0c0cdc8e1/icons/github_sponsor_btn.svg)](https://github.com/sponsors/Darakah) [<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="BuyMeACoffee" width="100">](https://www.buymeacoffee.com/darakah)
