@@ -16,7 +16,7 @@
         "canvas": "^2.11.2",
         "codemirror": "^5.0.1",
         "extract-colors": "^3.0.0",
-        "obsidian": "obsidianmd/obsidian-api#master",
+		"obsidian": "latest",
         "rollup-plugin-copy": "^3.4.0",
         "svelte": "^4.2.0",
         "svelte-grid": "^5.1.1",

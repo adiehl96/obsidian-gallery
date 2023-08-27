@@ -41,7 +41,7 @@ export class GalleryView extends ItemView
     this.viewEl.style.setProperty('overflow', 'hidden')
     // Add action button to hide / show filter panel
     const searchPanel = this.containerEl.querySelector('.view-actions').createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
-    setIcon(searchPanel, 'fa-search', 17)
+    setIcon(searchPanel, 'fa-search')
     // Create Search Control Element
     this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
     searchPanel.onClickEvent(() =>
@@ -375,7 +375,7 @@ export class GalleryInfoView extends ItemView
         cls: 'view-action image-info-edit',
         attr: { 'aria-label': 'Edit' }
       })
-    setIcon(changeMode, 'pencil', 17)
+    setIcon(changeMode, 'pencil')
 
     const openInfo = this.viewEl.createEl('a',
       {

@@ -1,5 +1,5 @@
 import type { Vault, MetadataCache } from 'obsidian'
-import { MarkdownRenderer, TFile, getAllTags } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags, Platform } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
@@ -14,6 +14,7 @@ import type GalleryPlugin from './main'
 import ImageGrid from './svelte/ImageGrid.svelte'
 import Gallery from './svelte/Gallery.svelte'
 import GalleryInfo from './svelte/GalleryInfo.svelte'
+import { platform } from 'os'
 
 export class GalleryProcessor
 {
@@ -237,7 +238,10 @@ export class GalleryProcessor
     } else
     {
       measureEl = new Image()
-      colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+      if(Platform.isDesktopApp)
+      {
+        colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+      }
       isVideo = false
     }
 
@@ -246,11 +250,6 @@ export class GalleryProcessor
     // Handle disabled img info functionality or missing info block
     const imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false)
     let imgTags = null
-
-    // if (!imgInfo) {
-    // 	MarkdownRenderer.renderMarkdown(GALLERY_INFO_USAGE, elCanvas, '/', plugin);
-    // 	return;
-    // }
 
     let imgInfoCache = null
     if (imgInfo)
