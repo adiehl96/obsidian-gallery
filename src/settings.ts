@@ -37,7 +37,7 @@ export class GallerySettingTab extends PluginSettingTab
           this.plugin.saveSettings()
         }))
       .addText(text => text
-        .setPlaceholder(this.plugin.settings.imgDataFolder)
+        .setPlaceholder(this.plugin.settings.imgDataFolder ?? '')
         .onChange(async (value) =>
         {
           resourcesPathInput = value.trim()

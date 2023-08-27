@@ -53,11 +53,3 @@ Argument Info:
 ## Settings:
 
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Gallery_Settings.png)
-
-## Release Notes:
-
-### v0.6.0
-- Updated supporting libraries to modern equivilents
-- Minor visual changes pulled in from other contributers
-- mobile version cannot display collor pallet in this version
-

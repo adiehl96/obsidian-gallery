@@ -12,20 +12,20 @@ import type GalleryPlugin from './main'
 export class GalleryView extends ItemView
 {
   plugin: GalleryPlugin
-  headerEl: HTMLElement
-  viewEl: HTMLElement
-  controlEl: HTMLElement
+  headerEl: HTMLElement 
+  viewEl: HTMLElement 
+  controlEl: HTMLElement 
   displayEl: HTMLElement
   filterEl: HTMLElement
   imageFocusEl: HTMLElement
   focusImage: HTMLImageElement
   focusVideo: HTMLVideoElement
   imagesContainer: HTMLUListElement
-  imgList: string[]
-  imgResources: ImageResources
+  imgList: string[] = []
+  imgResources!: ImageResources
   imgFocusIndex: number
-  pausedVideo: HTMLVideoElement
-  pausedVideoUrl: string
+  pausedVideo: HTMLVideoElement 
+  pausedVideoUrl: string = ''
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryPlugin)
   {
@@ -37,23 +37,30 @@ export class GalleryView extends ItemView
     this.headerEl = this.containerEl.querySelector('.view-header')
     // Get View Container Element
     this.viewEl = this.containerEl.querySelector('.view-content')
+
+    if(!this.viewEl) return;
+    
     this.viewEl.style.setProperty('padding', '0px')
     this.viewEl.style.setProperty('overflow', 'hidden')
+    
     // Add action button to hide / show filter panel
-    const searchPanel = this.containerEl.querySelector('.view-actions').createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
-    setIcon(searchPanel, 'fa-search')
-    // Create Search Control Element
-    this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
-    searchPanel.onClickEvent(() =>
+    const searchPanel = this.containerEl.querySelector('.view-actions')?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
+    if(searchPanel)
     {
-      const currentMode = this.filterEl.style.getPropertyValue('display')
-      if (currentMode === 'block')
+      setIcon(searchPanel, 'fa-search')
+      // Create Search Control Element
+      this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
+      searchPanel.onClickEvent(() =>
       {
-        this.filterEl.style.setProperty('display', 'none')
-        return;
-      }
-      this.filterEl.style.setProperty('display', 'block')
-    });
+        const currentMode = this.filterEl.style.getPropertyValue('display')
+        if (currentMode === 'block')
+        {
+          this.filterEl.style.setProperty('display', 'none')
+          return;
+        }
+        this.filterEl.style.setProperty('display', 'block')
+      });
+    }
 
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
@@ -66,29 +73,32 @@ export class GalleryView extends ItemView
     this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
     this.imgFocusIndex = 0
 
-    // Filter by path
-    const pathFilterEl = this.filterEl.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'text',
-      attr: { spellcheck: false, placeholder: 'Path' }
-    })
-
-    pathFilterEl.addEventListener('input', () =>
+    if(this.filterEl)
     {
-      this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
-    });
+      // Filter by path
+      const pathFilterEl = this.filterEl.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'text',
+        attr: { spellcheck: false, placeholder: 'Path' }
+      })
 
-    // Filter by Name
-    const nameFilterEl = this.filterEl.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'text',
-      attr: { spellcheck: false, placeholder: 'Name' }
-    })
+      pathFilterEl.addEventListener('input', () =>
+      {
+        this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
+      });
 
-    nameFilterEl.addEventListener('input', () =>
-    {
-      this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
-    });
+      // Filter by Name
+      const nameFilterEl = this.filterEl.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'text',
+        attr: { spellcheck: false, placeholder: 'Name' }
+      })
+
+      nameFilterEl.addEventListener('input', () =>
+      {
+        this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
+      });
+    }
   }
 
   updateDisplay(path: string, name: string)
@@ -175,7 +185,7 @@ export class GalleryInfoView extends ItemView
   previewEl: HTMLElement
   sourceEl: HTMLElement
   editorEl: HTMLTextAreaElement
-  infoFile: TFile
+  infoFile: TFile | null = null
   imgPath: string
   galleryView: GalleryView
   plugin: GalleryPlugin

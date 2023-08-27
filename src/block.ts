@@ -1,4 +1,4 @@
-import type { Vault, MetadataCache } from 'obsidian'
+import type { Vault, MetadataCache, FrontMatterCache } from 'obsidian'
 import { MarkdownRenderer, TFile, getAllTags, Platform } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
@@ -78,7 +78,7 @@ export class GalleryProcessor
       const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
       const focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } });
       const focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin: auto;' } });
-      let pausedVideo, pausedVideoUrl
+      let pausedVideo : HTMLVideoElement, pausedVideoUrl : string
       let imgFocusIndex = 0
 
       elCanvas.onClickEvent((event) =>
@@ -260,7 +260,7 @@ export class GalleryProcessor
       }
     }
 
-    const imgLinks = []
+    const imgLinks: Array<{path : string, name: string}> = []
     vault.getMarkdownFiles().forEach(mdFile =>
     {
       metadata.getFileCache(mdFile)?.embeds?.forEach(link =>
@@ -272,7 +272,7 @@ export class GalleryProcessor
       })
     });
 
-    const frontmatter = imgInfoCache?.frontmatter ?? []
+    const frontmatter: FrontMatterCache = imgInfoCache?.frontmatter ?? []
     var newTag;
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
@@ -307,7 +307,7 @@ export class GalleryProcessor
           await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
         );
         const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
-        if (infoView instanceof GalleryInfoView)
+        if (infoView instanceof GalleryInfoView && imgInfo)
         {
           infoView.infoFile = imgInfo
           infoView.editor.setValue(await vault.cachedRead(imgInfo))

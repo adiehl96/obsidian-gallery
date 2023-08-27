@@ -12,6 +12,7 @@
     export let frontmatter;
     export let infoList;
 
+    let newTag;
     let width, height;
 
     dimensions.addEventListener(
@@ -80,6 +81,10 @@
                         >
                     {/each}
                 {/if}
+                <input placeholder="Add a tag"
+                on:change={(e) => newTag = e.target} 
+                on:input={(e) => newTag = e.target}
+                >
             </div>
         </div>
     {/if}

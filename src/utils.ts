@@ -4,7 +4,7 @@ import type GalleryPlugin from './main'
 
 export interface GallerySettings
 {
-  imgDataFolder: string
+  imgDataFolder: string | null
   galleryLoadPath: string
   width: number
   reverseDisplay: boolean
@@ -48,7 +48,7 @@ export const EXTRACT_COLORS_OPTIONS = {
   distance: 0.2,
   saturationImportance: 0.2,
   splitPower: 10,
-  colorValidator: (red, green, blue, alpha = 255) => alpha > 250
+  colorValidator: (red: number, green: number, blue: number, alpha = 255) => alpha > 250
 }
 
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', 'mp4']
@@ -144,12 +144,16 @@ imgPath=${imgPath}
  * @param plugin - Gallery plugin handler
  */
 
-export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile> =>
+export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile|null> =>
 {
+  if(plugin.settings.imgDataFolder == null)
+  {
+    return null;
+  }
   let infoFile = null
   const imgName = imgPath.split('/').slice(-1)[0]
   const infoFolder = vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
-  const infoFileList = []
+  const infoFileList: string[] = []
   if (infoFolder instanceof TFolder)
   {
     infoFolder.children?.forEach(info =>

@@ -6,8 +6,8 @@ import { GalleryView, GalleryInfoView } from './view'
 
 export default class GalleryTagsPlugin extends Plugin
 {
-  settings: GallerySettings
-  containerEl: HTMLElement
+  settings!: GallerySettings;
+  containerEl!: HTMLElement;
 
   async onload()
   {
@@ -76,7 +76,7 @@ export default class GalleryTagsPlugin extends Plugin
     return new GalleryInfoView(leaf, this)
   };
 
-  showPanel = async function ()
+  showPanel = async function (this: GalleryTagsPlugin)
   {
     const workspace = this.app.workspace
     workspace.getLeaf(false).setViewState({ type: OB_GALLERY })
