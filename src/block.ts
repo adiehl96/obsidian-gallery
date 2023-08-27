@@ -14,7 +14,6 @@ import type GalleryPlugin from './main'
 import ImageGrid from './svelte/ImageGrid.svelte'
 import Gallery from './svelte/Gallery.svelte'
 import GalleryInfo from './svelte/GalleryInfo.svelte'
-import { platform } from 'os'
 
 export class GalleryProcessor
 {
@@ -274,7 +273,7 @@ export class GalleryProcessor
     });
 
     const frontmatter = imgInfoCache?.frontmatter ?? []
-
+    var newTag;
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
       new GalleryInfo({
