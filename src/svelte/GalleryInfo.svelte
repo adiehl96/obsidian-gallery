@@ -119,8 +119,8 @@
                         {#each colorList as color}
                             <div
                                 class="gallery-info-color"
-                                aria-label={color.hex}
-                                style="background-color:{color.hex}"
+                                aria-label={color}
+                                style="background-color:{color}"
                             />
                         {/each}
                     {/if}

@@ -1,6 +1,7 @@
 import type { Vault, MetadataCache, FrontMatterCache } from 'obsidian'
-import { MarkdownRenderer, TFile, getAllTags, Platform } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags, Platform, Notice } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
+import type { FinalColor } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
@@ -228,7 +229,8 @@ export class GalleryProcessor
       return;
     }
 
-    let measureEl, colors, isVideo
+    let measureEl, isVideo
+    let hexList: string[] = [];
     // Get image dimensions
     if (imgURL.match(VIDEO_REGEX))
     {
@@ -239,8 +241,14 @@ export class GalleryProcessor
       measureEl = new Image()
       if(Platform.isDesktopApp)
       {
-        colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+        let colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+        
+        for(let i = 0; i < colors.length; i++)
+        {
+          hexList.push(colors[i].hex);
+        }
       }
+      
       isVideo = false
     }
 
@@ -253,10 +261,26 @@ export class GalleryProcessor
     let imgInfoCache = null
     if (imgInfo)
     {
+      // await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => {
+      //   let tags = frontmatter.tags ?? []
+      //   if (!Array.isArray(tags)) { tags = [tags] }
+      //   tags.push("new/tag")
+      //   frontmatter.tags = tags
+      // })
+      // add colors if we got them
+      if(hexList.length > 0)
+      {
+          await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => {
+          if (frontmatter.Palette) { return }
+          frontmatter.Palette = hexList
+        });
+      }
+
       imgInfoCache = metadata.getFileCache(imgInfo)
       if (imgInfoCache)
       {
         imgTags = getAllTags(imgInfoCache)
+        
       }
     }
 
@@ -273,6 +297,13 @@ export class GalleryProcessor
     });
 
     const frontmatter: FrontMatterCache = imgInfoCache?.frontmatter ?? []
+    
+    if(hexList.length == 0)
+    {
+      if(frontmatter["Palette"])
+      hexList = frontmatter["Palette"];
+    }
+
     var newTag;
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
@@ -284,7 +315,7 @@ export class GalleryProcessor
           date: new Date(imgTFile.stat.ctime),
           dimensions: measureEl,
           size: imgTFile.stat.size / 1000000,
-          colorList: colors,
+          colorList: hexList,
           tagList: imgTags,
           isVideo,
           imgLinks,

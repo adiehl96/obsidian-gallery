@@ -128,8 +128,11 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
  */
 const initializeInfo = (imgPath: string, imgName: string): string =>
 {
-  return `![](${imgPath.replace(' ', '%20')})\n
-%% Place Tags Here %%
+  return `
+![](${imgPath.replace(' ', '%20')})
+%% Description %%
+
+%% Description %%
 \`\`\`gallery-info
 imgPath=${imgPath}
 \`\`\`
