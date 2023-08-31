@@ -1,7 +1,6 @@
 import type { Vault, MetadataCache, FrontMatterCache } from 'obsidian'
 import { MarkdownRenderer, TFile, getAllTags, Platform, Notice } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
-import type { FinalColor } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
@@ -271,7 +270,10 @@ export class GalleryProcessor
       if(hexList.length > 0)
       {
           await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => {
-          if (frontmatter.Palette) { return }
+          if (frontmatter.Palette && frontmatter.Palette.length > 0) 
+          { 
+            return;
+          }
           frontmatter.Palette = hexList
         });
       }

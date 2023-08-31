@@ -128,7 +128,10 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
  */
 const initializeInfo = (imgPath: string, imgName: string): string =>
 {
-  return `
+  return `---
+Palette:
+---
+
 ![](${imgPath.replace(' ', '%20')})
 %% Description %%
 
