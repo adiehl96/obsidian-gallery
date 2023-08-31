@@ -51,7 +51,7 @@ export class GalleryProcessor
       return;
     }
 
-    const imgResources = getImageResources(args.path, args.name, vault.getFiles(), vault.adapter)
+    const imgResources = await getImageResources(args.path, args.name, "", vault.getFiles(), vault.adapter, plugin)
     let imgList = Object.keys(imgResources)
 
     if (args.reverseOrder === 'true')

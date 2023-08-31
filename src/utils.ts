@@ -1,6 +1,7 @@
 import type { DataAdapter, Vault, MetadataCache } from 'obsidian'
-import { TFolder, TFile } from 'obsidian'
+import { TFolder, TFile, getAllTags } from 'obsidian'
 import type GalleryPlugin from './main'
+import type GalleryTagsPlugin from './main'
 
 export interface GallerySettings
 {
@@ -209,7 +210,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param handler - Obsidian vault handler
  */
 
-export const getImageResources = (path: string, name: string, vaultFiles: TFile[], handler: DataAdapter): ImageResources =>
+export const getImageResources = async (path: string, name: string, tag: string, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<ImageResources> =>
 {
   const imgList: ImageResources = {}
 
@@ -229,12 +230,41 @@ export const getImageResources = (path: string, name: string, vaultFiles: TFile[
 
   for (const file of vaultFiles)
   {
-    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg))
+    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) && await containsTags(file, tag, plugin))
     {
       imgList[handler.getResourcePath(file.path)] = file.path
     }
   }
   return imgList
+};
+
+export const containsTags = async (file: TFile, tag: string, plugin: GalleryTagsPlugin): Promise<boolean> =>
+{
+  if(tag == null || tag == "")
+  {
+    return true;
+  }
+  let infoFile: TFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
+  if(!infoFile)
+  {
+    return false;
+  }
+  let imgTags = null
+  let imgInfoCache = null
+  imgInfoCache = plugin.app.metadataCache.getFileCache(infoFile)
+  if (imgInfoCache)
+  {
+    imgTags = getAllTags(imgInfoCache)
+  }
+  for(let i = 0; i< imgTags.length; i++)
+  {
+    if(imgTags[i].contains(tag))
+    {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, src: string, isVideo: boolean): void =>

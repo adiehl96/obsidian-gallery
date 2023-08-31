@@ -8,6 +8,7 @@ import
 import * as CodeMirror from 'codemirror'
 import ImageGrid from './svelte/ImageGrid.svelte'
 import type GalleryPlugin from './main'
+import type GalleryTagsPlugin from './main'
 
 export class GalleryView extends ItemView
 {
@@ -65,7 +66,6 @@ export class GalleryView extends ItemView
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
     this.imagesContainer = this.displayEl.createEl('ul')
-    this.updateDisplay(this.plugin.settings.galleryLoadPath, '')
 
     this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
@@ -82,9 +82,9 @@ export class GalleryView extends ItemView
         attr: { spellcheck: false, placeholder: 'Path' }
       })
 
-      pathFilterEl.addEventListener('input', () =>
+      pathFilterEl.addEventListener('input', async () =>
       {
-        this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
       });
 
       // Filter by Name
@@ -94,20 +94,34 @@ export class GalleryView extends ItemView
         attr: { spellcheck: false, placeholder: 'Name' }
       })
 
-      nameFilterEl.addEventListener('input', () =>
+      nameFilterEl.addEventListener('input', async () =>
       {
-        this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim())
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
+      });
+
+      // Filter by Tags
+      const tagFilterEl = this.filterEl.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'text',
+        attr: { spellcheck: false, placeholder: 'Tag' }
+      })
+
+      tagFilterEl.addEventListener('input', async () =>
+      {
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
       });
     }
   }
 
-  updateDisplay(path: string, name: string)
+  async updateDisplay(path: string, name: string, tag: string, plugin: GalleryTagsPlugin)
   {
     this.imagesContainer.empty()
-    this.imgResources = getImageResources(path,
+    this.imgResources = await getImageResources(path,
       name,
+      tag,
       this.app.vault.getFiles(),
-      this.app.vault.adapter)
+      this.app.vault.adapter,
+      plugin)
 
     this.imgList = Object.keys(this.imgResources)
 
@@ -154,6 +168,9 @@ export class GalleryView extends ItemView
     this.headerEl.querySelector('.view-header-title').setText('Obsidian Gallery')
     // Set Header Icon
     this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
+    
+    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '','', this.plugin)
+
     // Open Info panel
     const workspace = this.app.workspace
     workspace.detachLeavesOfType(OB_GALLERY_INFO)
@@ -221,6 +238,21 @@ export class GalleryInfoView extends ItemView
     this.saveFile = this.saveFile.bind(this)
     this.clear = this.clear.bind(this)
     this.updateInfoDisplay = this.updateInfoDisplay.bind(this)
+  }
+
+  getViewType(): string
+  {
+    return OB_GALLERY_INFO
+  }
+
+  getDisplayText(): string
+  {
+    return 'Image Info'
+  }
+
+  getIcon(): string
+  {
+    return 'fa-Images'
   }
 
   async onClose(): Promise<void>
@@ -478,20 +510,5 @@ export class GalleryInfoView extends ItemView
     this.contentEl.empty()
     this.editor.setValue('')
     this.editor.clearHistory()
-  }
-
-  getViewType(): string
-  {
-    return OB_GALLERY_INFO
-  }
-
-  getDisplayText(): string
-  {
-    return 'Image Info'
-  }
-
-  getIcon(): string
-  {
-    return 'fa-Images'
   }
 }
