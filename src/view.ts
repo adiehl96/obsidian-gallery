@@ -112,14 +112,14 @@ export class GalleryView extends ItemView
       });
 
       // Filter Exclusive or inclusive
+      
+      const exclusiveFilterLabel = this.filterEl.createEl('label');
+      exclusiveFilterLabel.textContent = "Exclusive";
+
       const exclusiveFilterEl = this.filterEl.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'checkbox'
       })
-      exclusiveFilterEl.id = "exclusiveFilterToggle";
-      const exclusiveFilterLabel = this.filterEl.createEl('label');
-      exclusiveFilterLabel.setAttribute('for', 'exclusiveFilterToggle');
-      exclusiveFilterLabel.textContent = "Exclusive";
 
       exclusiveFilterEl.addEventListener('input', async () =>
       {
