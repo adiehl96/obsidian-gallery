@@ -210,7 +210,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param handler - Obsidian vault handler
  */
 
-export const getImageResources = async (path: string, name: string, tag: string, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<ImageResources> =>
+export const getImageResources = async (path: string, name: string, tag: string, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<ImageResources> =>
 {
   const imgList: ImageResources = {}
 
@@ -230,7 +230,7 @@ export const getImageResources = async (path: string, name: string, tag: string,
 
   for (const file of vaultFiles)
   {
-    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) && await containsTags(file, tag, plugin))
+    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) && await containsTags(file, tag, exclusive, plugin))
     {
       imgList[handler.getResourcePath(file.path)] = file.path
     }
@@ -238,12 +238,13 @@ export const getImageResources = async (path: string, name: string, tag: string,
   return imgList
 };
 
-export const containsTags = async (file: TFile, tag: string, plugin: GalleryTagsPlugin): Promise<boolean> =>
+export const containsTags = async (file: TFile, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
   if(tag == null || tag == "")
   {
     return true;
   }
+  let filterTags: string[] = tag.split(' ');
   let infoFile: TFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
   if(!infoFile)
   {
@@ -256,12 +257,32 @@ export const containsTags = async (file: TFile, tag: string, plugin: GalleryTags
   {
     imgTags = getAllTags(imgInfoCache)
   }
-  for(let i = 0; i< imgTags.length; i++)
+  
+  for(let k = 0; k < filterTags.length; k++)
   {
-    if(imgTags[i].contains(tag))
+    let found: boolean = false;
+    for(let i = 0; i < imgTags.length; i++)
     {
-      return true;
+      if(imgTags[i].contains(filterTags[k]))
+      {
+        if(!exclusive)
+        {
+          return true;
+        }
+        
+        found = true;
+      }
     }
+
+    if(!found && exclusive)
+    {
+      return false;
+    }
+  }
+
+  if(exclusive)
+  {
+    return true;
   }
 
   return false;

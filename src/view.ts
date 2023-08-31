@@ -84,7 +84,7 @@ export class GalleryView extends ItemView
 
       pathFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
       });
 
       // Filter by Name
@@ -96,29 +96,45 @@ export class GalleryView extends ItemView
 
       nameFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
       });
 
       // Filter by Tags
       const tagFilterEl = this.filterEl.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { spellcheck: false, placeholder: 'Tag' }
+        attr: { spellcheck: false, placeholder: 'Tags' }
       })
 
       tagFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+      });
+
+      // Filter Exclusive or inclusive
+      const exclusiveFilterEl = this.filterEl.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'checkbox'
+      })
+      exclusiveFilterEl.id = "exclusiveFilterToggle";
+      const exclusiveFilterLabel = this.filterEl.createEl('label');
+      exclusiveFilterLabel.setAttribute('for', 'exclusiveFilterToggle');
+      exclusiveFilterLabel.textContent = "Exclusive";
+
+      exclusiveFilterEl.addEventListener('input', async () =>
+      {
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
       });
     }
   }
 
-  async updateDisplay(path: string, name: string, tag: string, plugin: GalleryTagsPlugin)
+  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin)
   {
     this.imagesContainer.empty()
     this.imgResources = await getImageResources(path,
       name,
       tag,
+      exclusive,
       this.app.vault.getFiles(),
       this.app.vault.adapter,
       plugin)
@@ -169,7 +185,7 @@ export class GalleryView extends ItemView
     // Set Header Icon
     this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
     
-    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '','', this.plugin)
+    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '','',true, this.plugin)
 
     // Open Info panel
     const workspace = this.app.workspace
