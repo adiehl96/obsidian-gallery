@@ -1,14 +1,17 @@
 <script>
-    import Gallery from "svelte-image-gallery";
     export let imageList;
     export let maxColumnWidth = 400;
 </script>
 
-<Gallery gap="5" {maxColumnWidth}>
+
     {#each imageList as img}
-        <img src={img} class="gallery-grid-img" alt="" width={maxColumnWidth} />
+        {#if img.includes(".mp4")}
+            <video src={img} controls=true width={maxColumnWidth}> <track kind="captions"> </video>
+        {:else}
+            <img src={img} class="gallery-grid-img" alt="" width={maxColumnWidth} />
+        {/if}
     {/each}
-</Gallery>
+
 
 <style>
     /*:global(img) {

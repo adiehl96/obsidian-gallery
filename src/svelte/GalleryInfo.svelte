@@ -114,7 +114,7 @@
         <div class="gallery-info-section mod-tags">
             <span class="gallery-info-section-label">Palette</span>
             <div class="gallery-info-section-value">
-                <div >
+                <div>
                     {#if colorList}
                         {#each colorList as color}
                             <div
