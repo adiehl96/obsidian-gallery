@@ -286,11 +286,29 @@ export const containsTags = async (file: TFile, tag: string, exclusive: boolean,
   
   for(let k = 0; k < filterTags.length; k++)
   {
+    let negate: boolean = false;
+    let tag = filterTags[k];
+    if(tag[0] == '-')
+    {
+      tag = tag.substring(1);
+      negate = true;
+    }
+
+    if(tag == "")
+    {
+      continue;
+    }
+
     let found: boolean = false;
     for(let i = 0; i < imgTags.length; i++)
     {
-      if(imgTags[i].contains(filterTags[k]))
+      if(imgTags[i].contains(tag))
       {
+        if(negate)
+        {
+          return false;
+        }
+
         if(!exclusive)
         {
           return true;
@@ -298,6 +316,11 @@ export const containsTags = async (file: TFile, tag: string, exclusive: boolean,
         
         found = true;
       }
+    }
+
+    if(negate)
+    {
+      return true;
     }
 
     if(!found && exclusive)
