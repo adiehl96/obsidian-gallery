@@ -151,7 +151,6 @@ imgPath=${imgPath}
  * @param metadata - Vaulat metadata handler
  * @param plugin - Gallery plugin handler
  */
-
 export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile|null> =>
 {
   if(plugin.settings.imgDataFolder == null)
@@ -210,7 +209,6 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param vaultFiles - list of all TFiles of Obsidian vault
  * @param handler - Obsidian vault handler
  */
-
 export const getImageResources = async (path: string, name: string, tag: string, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<ImageResources> =>
 {
   const imgList: ImageResources = {}
@@ -239,6 +237,13 @@ export const getImageResources = async (path: string, name: string, tag: string,
   return imgList
 };
 
+/**
+ * Splits the images up into columns so they display nicely
+ * @param imgList - full list of image links
+ * @param target - element to display within
+ * @param maxWidth - max width that any column should be
+ * @returns first value is the collumns, the second value is the new max width(this will always be less than or equal to the max width passed in)
+ */
 export const splitcolumns = (imgList: string[], target: HTMLElement, maxWidth: number): [string[][], number] =>
 {
   let columnCount = Math.ceil(target.innerWidth/maxWidth);
@@ -265,26 +270,44 @@ export const splitcolumns = (imgList: string[], target: HTMLElement, maxWidth: n
   return [columns, (target.innerWidth-15)/columnCount];
 }
 
-export const containsTags = async (file: TFile, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
+/**
+ * assesses if file matches the tag patterns passed
+ * @param file - the image file to assess
+ * @param tags - string that contains all the tags filter by separated by spaces
+ * @param exclusive - if true filter requires all tags to match, if false filter matches for any tag
+ * @param plugin - a link to the plugin for access to resources
+ * @returns - true if the file should be included by the filter
+ */
+const containsTags = async (file: TFile, tags: string, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
-  if(tag == null || tag == "")
+  if(tags == null || tags == "")
   {
     return true;
   }
-  let filterTags: string[] = tag.split(' ');
+
+  let filterTags: string[] = tags.split(' ');
+  let imgTags: string[] = [];
   let infoFile: TFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
-  if(!infoFile)
+  if(infoFile)
   {
-    return false;
-  }
-  let imgTags = null
-  let imgInfoCache = null
-  imgInfoCache = plugin.app.metadataCache.getFileCache(infoFile)
-  if (imgInfoCache)
-  {
-    imgTags = getAllTags(imgInfoCache)
+    let imgInfoCache = plugin.app.metadataCache.getFileCache(infoFile)
+    if (imgInfoCache)
+    {
+      imgTags = getAllTags(imgInfoCache)
+    }
   }
   
+  for(let k = 0; k < filterTags.length; k++)
+  {
+    if(filterTags[k][0] == '-')
+    {
+      filterTags.unshift(filterTags[k]);
+      filterTags.splice(k+1, 1);
+    }
+  }
+
+  let hasPositive: boolean = false;
+
   for(let k = 0; k < filterTags.length; k++)
   {
     let negate: boolean = false;
@@ -294,49 +317,54 @@ export const containsTags = async (file: TFile, tag: string, exclusive: boolean,
       tag = tag.substring(1);
       negate = true;
     }
+    else
+    {
+      hasPositive = true;
+    }
 
     if(tag == "")
     {
       continue;
     }
 
-    let found: boolean = false;
-    for(let i = 0; i < imgTags.length; i++)
+    if(containsTag(tag, imgTags))
     {
-      if(imgTags[i].contains(tag))
+      if(negate)
       {
-        if(negate)
-        {
-          return false;
-        }
-
-        if(!exclusive)
-        {
-          return true;
-        }
-        
-        found = true;
+        return false;
+      }
+      
+      if(!exclusive)
+      {
+        return true;
       }
     }
-
-    if(negate)
-    {
-      return true;
-    }
-
-    if(!found && exclusive)
+    else if(exclusive && !negate)
     {
       return false;
     }
   }
 
-  if(exclusive)
+  if(!hasPositive)
   {
     return true;
   }
+  
+  return exclusive;
+};
+
+const containsTag = (tagFilter:string, tags: string[]): boolean =>
+{  
+  for(let i = 0; i < tags.length; i++)
+  {
+    if(tags[i].contains(tagFilter))
+    {
+      return true;
+    }
+  }
 
   return false;
-};
+}
 
 export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, src: string, isVideo: boolean): void =>
 {

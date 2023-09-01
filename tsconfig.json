@@ -9,13 +9,15 @@
   "compilerOptions": {
     "strictNullChecks":false,
     "baseUrl": ".",
-    "lib": [
-      "ES2021.String"
-    ],
     "types": [
       "node",
       "svelte",
       "jest"
+    ],
+    "lib": [
+      "ES2022",
+      "ES2022.String",
+      "dom"
     ],
     "paths": {
       "src": [
