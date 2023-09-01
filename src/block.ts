@@ -23,6 +23,7 @@ export class GalleryProcessor
       type: 'grid',
       path: '',
       name: '',
+      tags: '',
       imgWidth: 200,
       divWidth: 100,
       divAlign: 'left',
@@ -51,7 +52,7 @@ export class GalleryProcessor
       return;
     }
 
-    const imgResources = await getImageResources(args.path, args.name, "", true, vault.getFiles(), vault.adapter, plugin)
+    const imgResources = await getImageResources(args.path, args.name, args.tags, true, vault.getFiles(), vault.adapter, plugin)
     let imgList = Object.keys(imgResources)
 
     if (args.reverseOrder === 'true')

@@ -24,6 +24,7 @@ export interface GalleryBlockArgs
   type: string
   path: string
   name: string
+  tags: string
   imgWidth: number
   divWidth: number
   divAlign: string
