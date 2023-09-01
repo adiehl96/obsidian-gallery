@@ -8,12 +8,15 @@
   ],
   "compilerOptions": {
     "strictNullChecks":false,
+    "baseUrl": ".",
+    "lib": [
+      "ES2021.String"
+    ],
     "types": [
       "node",
       "svelte",
       "jest"
     ],
-    "baseUrl": ".",
     "paths": {
       "src": [
         "src/*"

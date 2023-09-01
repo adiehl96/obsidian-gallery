@@ -134,7 +134,7 @@ const initializeInfo = (imgPath: string, imgName: string): string =>
 tags:
 ---
 
-![](${imgPath.replace(' ', '%20')})
+![](${imgPath.replaceAll(' ', '%20')})
 %% Description %%
 
 %% Description %%
