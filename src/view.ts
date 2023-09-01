@@ -3,7 +3,7 @@ import type { ImageResources } from './utils'
 import
   {
     OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX,
-    gallerySearchIcon, getImageResources, getImgInfo, updateFocus
+    gallerySearchIcon, getImageResources, getImgInfo, updateFocus, splitcolumns
   } from './utils'
 import * as CodeMirror from 'codemirror'
 import ImageGrid from './svelte/ImageGrid.svelte'
@@ -125,6 +125,12 @@ export class GalleryView extends ItemView
       {
         await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
       });
+
+      // todo: figure out a way to actually get a resize event
+      this.displayEl.onresize = async () =>
+      {
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+      };
     }
   }
 
@@ -146,10 +152,12 @@ export class GalleryView extends ItemView
       this.imgList = this.imgList.reverse()
     }
 
+    const [columns, columnWidth] = splitcolumns(this.imgList, this.imagesContainer, plugin.settings.width)
+
     new ImageGrid({
       props: {
-        imageList: this.imgList,
-        maxColumnWidth: this.plugin.settings.width
+        columns: columns,
+        maxColumnWidth: columnWidth
       },
       target: this.imagesContainer
     })

@@ -130,7 +130,6 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
 const initializeInfo = (imgPath: string, imgName: string): string =>
 {
   return `---
-Palette:
 tags:
 ---
 
@@ -238,6 +237,32 @@ export const getImageResources = async (path: string, name: string, tag: string,
   }
   return imgList
 };
+
+export const splitcolumns = (imgList: string[], target: HTMLElement, maxWidth: number): [string[][], number] =>
+{
+  let columnCount = Math.ceil(target.innerWidth/maxWidth);
+  let columns: string[][] = Array(columnCount)
+  let rowCount = Math.ceil(imgList.length/columnCount);
+
+  for(let col = 0; col < columnCount; col++)
+  {
+    columns[col] = [];
+  }
+
+  for(let row = 0; row <= rowCount; row++)
+  {
+    for(let col = 0; col < columnCount; col++)
+    {
+      let index = row*columnCount+col;
+      if(index < imgList.length)
+      {
+        columns[col].push(imgList[index]);
+      }
+    }
+  }
+
+  return [columns, (target.innerWidth-15)/columnCount];
+}
 
 export const containsTags = async (file: TFile, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {

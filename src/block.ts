@@ -4,10 +4,10 @@ import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
-    EXTENSIONS, GALLERY_DISPLAY_USAGE, GALLERY_INFO_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
+    EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
     VIDEO_REGEX,
     getImageResources,
-    getImgInfo, updateFocus
+    getImgInfo, updateFocus, splitcolumns
   } from './utils'
 import { GalleryInfoView } from './view'
 import type GalleryPlugin from './main'
@@ -66,10 +66,12 @@ export class GalleryProcessor
 
     if (args.type === 'grid')
     {
+      const [columns, columnWidth] = splitcolumns(imgList, elCanvas, args.imgWidth)
+
       new ImageGrid({
         props: {
-          imageList: imgList,
-          maxColumnWidth: args.imgWidth
+          columns: columns,
+          maxColumnWidth: columnWidth
         },
         target: elCanvas
       })
