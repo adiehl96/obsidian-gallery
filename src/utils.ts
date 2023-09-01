@@ -131,6 +131,7 @@ const initializeInfo = (imgPath: string, imgName: string): string =>
 {
   return `---
 Palette:
+tags:
 ---
 
 ![](${imgPath.replace(' ', '%20')})

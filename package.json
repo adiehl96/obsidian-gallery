@@ -1,6 +1,6 @@
 {
-    "name": "Gallery",
-    "version": "0.5.5",
+    "name": "Tagged Gallery",
+    "version": "0.6.1",
     "description": "Track activity of specified projects, Github like activity board",
     "author": "darakah",
     "main": "main.js",
