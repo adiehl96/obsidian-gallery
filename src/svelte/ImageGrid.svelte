@@ -6,7 +6,7 @@
 {#each columns as images}
     <div class="column">
     {#each images as img}
-        {#if img.includes(".mp4")}
+        {#if img.includes(".mp4") || img.includes(".webm")}
             <video src={img} controls=true width={maxColumnWidth} class="gallery-grid-img"> <track kind="captions"> </video>
         {:else}
             <img src={img} class="gallery-grid-img" alt="" width={maxColumnWidth} />
