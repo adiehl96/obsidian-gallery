@@ -18,6 +18,7 @@ export class GalleryView extends ItemView
   controlEl: HTMLElement 
   displayEl: HTMLElement
   filterEl: HTMLElement
+  countEl: HTMLLabelElement
   imageFocusEl: HTMLElement
   focusImage: HTMLImageElement
   focusVideo: HTMLVideoElement
@@ -62,10 +63,16 @@ export class GalleryView extends ItemView
         this.filterEl.style.setProperty('display', 'block')
       });
     }
+    
+    
+    // const testPanel = this.containerEl.querySelector('.view-actions')?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Test' } })
+    // if(searchPanel)
+    // {
+    //   setIcon(testPanel, 'tags')
+    // }
 
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
-    this.imagesContainer = this.displayEl.createEl('ul')
 
     this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
@@ -113,13 +120,17 @@ export class GalleryView extends ItemView
 
       // Filter Exclusive or inclusive
       
-      const exclusiveFilterLabel = this.filterEl.createEl('label');
-      exclusiveFilterLabel.textContent = "Exclusive";
-
       const exclusiveFilterEl = this.filterEl.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'checkbox'
       })
+      exclusiveFilterEl.name = 'exclusive'
+      exclusiveFilterEl.id = 'exclusive'
+
+      const exclusiveFilterLabelEl = this.filterEl.createEl('label');
+      exclusiveFilterLabelEl.textContent = "Exclusive";
+      exclusiveFilterLabelEl.htmlFor = "exclusive"
+      exclusiveFilterLabelEl.style.paddingLeft = "20px"
 
       exclusiveFilterEl.addEventListener('input', async () =>
       {
@@ -131,36 +142,72 @@ export class GalleryView extends ItemView
       {
         await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
       };
+
+      this.countEl = this.filterEl.createEl('label');
+      this.countEl.style.paddingLeft = "20px"
+      this.countEl.textContent = "counts";
     }
   }
 
   async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin)
   {
-    this.imagesContainer.empty()
-    this.imgResources = await getImageResources(path,
-      name,
-      tag,
-      exclusive,
-      this.app.vault.getFiles(),
-      this.app.vault.adapter,
-      plugin)
+    this.displayEl.empty()
 
-    this.imgList = Object.keys(this.imgResources)
+    {
+      const totalFiles = this.app.vault.getFiles();
+      this.imgResources = await getImageResources(path,
+        name,
+        tag,
+        exclusive,
+        totalFiles,
+        this.app.vault.adapter,
+        plugin)
+      
+      this.imgList = Object.keys(this.imgResources)
+      this.countEl.setText(this.imgList.length+"/"+totalFiles.length);
+    }
 
     if (this.plugin.settings.reverseDisplay)
     {
       this.imgList = this.imgList.reverse()
     }
 
-    const [columns, columnWidth] = splitcolumns(this.imgList, this.imagesContainer, plugin.settings.width)
 
+    const [columns, columnWidth] = splitcolumns(this.imgList, this.displayEl, plugin.settings.width)
+    let tempImg = this.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
     new ImageGrid({
       props: {
         columns: columns,
-        maxColumnWidth: columnWidth
+        maxColumnWidth: columnWidth, 
+        tempImg: tempImg
       },
-      target: this.imagesContainer
+      target: this.displayEl
     })
+
+    var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+    let options = {
+      root: document.querySelector("ob-gallery-display"),
+      // rootMargin: "0px",
+      // threshold: 1.0,
+    };
+    if ("IntersectionObserver" in window) {
+      let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            let lazyImage = entry.target as HTMLImageElement;
+            lazyImage.src = lazyImage.dataset.src;
+            lazyImage.classList.remove("lazy");
+            observer.unobserve(lazyImage);
+          }
+        });
+      }, options);
+  
+      lazyImages.forEach(function(lazyImage) {
+        lazyImageObserver.observe(lazyImage);
+      });
+    } else {
+      // Possibly fall back to event handlers here
+    }
   }
 
   getViewType(): string
