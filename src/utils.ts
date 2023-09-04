@@ -1,6 +1,5 @@
 import type { DataAdapter, Vault, MetadataCache } from 'obsidian'
 import { TFolder, TFile, getAllTags } from 'obsidian'
-import type GalleryPlugin from './main'
 import type GalleryTagsPlugin from './main'
 
 export interface GallerySettings
@@ -24,6 +23,7 @@ export interface GalleryBlockArgs
   path: string
   name: string
   tags: string
+  exclusive: string
   imgWidth: number
   divWidth: number
   divAlign: string
@@ -149,7 +149,7 @@ imgPath=${imgPath}
  * @param metadata - Vaulat metadata handler
  * @param plugin - Gallery plugin handler
  */
-export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin, create: boolean): Promise<TFile|null> =>
+export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
 {
   if(plugin.settings.imgDataFolder == null)
   {

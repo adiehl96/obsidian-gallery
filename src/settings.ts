@@ -1,11 +1,11 @@
 import { type App, PluginSettingTab, Setting, TFolder } from 'obsidian'
-import type GalleryPlugin from './main'
+import type GalleryTagsPlugin from './main'
 
 export class GallerySettingTab extends PluginSettingTab
 {
-  plugin: GalleryPlugin
+  plugin: GalleryTagsPlugin
 
-  constructor(app: App, plugin: GalleryPlugin)
+  constructor(app: App, plugin: GalleryTagsPlugin)
   {
     super(app, plugin)
     this.plugin = plugin

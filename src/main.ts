@@ -13,13 +13,13 @@ export default class GalleryTagsPlugin extends Plugin
   {
     // Load message
     await this.loadSettings()
-    console.log('Loaded Gallery Plugin')
+    console.log('Loaded Gallery Tags Plugin')
 
     // Register gallery display block renderer
     this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
     {
       const proc = new GalleryProcessor()
-      await proc.galleryDisplay(source, el, this.app.vault, this.app.metadataCache, this)
+      await proc.galleryDisplay(source, el, this.app.vault, this)
     });
 
     // Register image info block

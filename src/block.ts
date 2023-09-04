@@ -1,29 +1,29 @@
 import type { Vault, MetadataCache, FrontMatterCache } from 'obsidian'
-import { MarkdownRenderer, TFile, getAllTags, Platform, Notice } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags, Platform } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
     EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
     VIDEO_REGEX,
-    getImageResources,
-    getImgInfo, updateFocus, splitcolumns, setLazyLoading
+    getImgInfo, updateFocus
   } from './utils'
 import { GalleryInfoView } from './view'
-import type GalleryPlugin from './main'
-import ImageGrid from './svelte/ImageGrid.svelte'
+import type GalleryTagsPlugin from './main'
+import { ImageGrid } from './ImageGrid'
 import Gallery from './svelte/Gallery.svelte'
 import GalleryInfo from './svelte/GalleryInfo.svelte'
 
 export class GalleryProcessor
 {
-  async galleryDisplay(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin)
+  async galleryDisplay(source: string, el: HTMLElement, vault: Vault, plugin: GalleryTagsPlugin)
   {
     const args: GalleryBlockArgs = {
       type: 'grid',
       path: '',
       name: '',
       tags: '',
+      exclusive: 'false',
       imgWidth: 200,
       divWidth: 100,
       divAlign: 'left',
@@ -51,35 +51,24 @@ export class GalleryProcessor
       MarkdownRenderer.renderMarkdown(GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
       return;
     }
-
-    const imgResources = await getImageResources(args.path, args.name, args.tags, true, vault.getFiles(), vault.adapter, plugin)
-    let imgList = Object.keys(imgResources)
-
-    if (args.reverseOrder === 'true')
-    {
-      imgList = imgList.reverse()
-    }
+    
+    
+    const imageGrid = new ImageGrid(elCanvas, plugin);
+    imageGrid.path = args.path;
+    imageGrid.name = args.name;
+    imageGrid.tag = args.tags;
+    imageGrid.exclusive = args.exclusive === 'true';
+    imageGrid.reverse = args.reverseOrder === 'true';
+    await imageGrid.updateData();
 
     if (args.customList)
     {
-      imgList = args.customList.split(' ').map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imgList[i])
+      imageGrid.imgList = args.customList.split(' ').map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imageGrid.imgList[i])
     }
 
     if (args.type === 'grid')
     {
-      const [columns, columnWidth] = splitcolumns(imgList, elCanvas, args.imgWidth)
-      let tempImg = plugin.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
-
-      new ImageGrid({
-        props: {
-          columns: columns,
-          maxColumnWidth: columnWidth,
-          tempImg: tempImg
-        },
-        target: elCanvas
-      })
-
-      setLazyLoading();
+      imageGrid.updateDisplay();
 
       const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
       const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
@@ -115,23 +104,23 @@ export class GalleryProcessor
         {
           // Read New image info
           const imgPath = event.target.src
-          imgFocusIndex = imgList.indexOf(imgPath)
+          imgFocusIndex = imageGrid.imgList.indexOf(imgPath)
           imageFocusEl.style.setProperty('display', 'block')
-          updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+          updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], false)
         }
 
         if (event.target instanceof HTMLVideoElement)
         {
           // Read video info
           const imgPath = event.target.src
-          imgFocusIndex = imgList.indexOf(imgPath)
+          imgFocusIndex = imageGrid.imgList.indexOf(imgPath)
           imageFocusEl.style.setProperty('display', 'block')
           // Save clicked video info to set it back later
           pausedVideo = event.target
           pausedVideoUrl = pausedVideo.src
           // disable clicked video
           pausedVideo.src = ''
-          updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+          updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], true)
         }
       })
 
@@ -140,7 +129,7 @@ export class GalleryProcessor
         if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement)
         {
           // Open image file
-          const file = vault.getAbstractFileByPath(imgResources[e.target.src])
+          const file = vault.getAbstractFileByPath(imageGrid.imgResources[e.target.src])
           if (file instanceof TFile)
           {
             plugin.app.workspace.getUnpinnedLeaf().openFile(file)
@@ -161,28 +150,28 @@ export class GalleryProcessor
             imgFocusIndex--
             if (imgFocusIndex < 0)
             {
-              imgFocusIndex = imgList.length - 1
+              imgFocusIndex = imageGrid.imgList.length - 1
             }
-            if (imgList[imgFocusIndex].match(VIDEO_REGEX))
+            if (imageGrid.imgList[imgFocusIndex].match(VIDEO_REGEX))
             {
-              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+              updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], true)
             } else
             {
-              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+              updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], false)
             }
             break;
           case 'ArrowRight':
             imgFocusIndex++
-            if (imgFocusIndex >= imgList.length)
+            if (imgFocusIndex >= imageGrid.imgList.length)
             {
               imgFocusIndex = 0
             }
-            if (imgList[imgFocusIndex].match(VIDEO_REGEX))
+            if (imageGrid.imgList[imgFocusIndex].match(VIDEO_REGEX))
             {
-              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], true)
+              updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], true)
             } else
             {
-              updateFocus(focusImage, focusVideo, imgList[imgFocusIndex], false)
+              updateFocus(focusImage, focusVideo, imageGrid.imgList[imgFocusIndex], false)
             }
             break;
         }
@@ -193,7 +182,7 @@ export class GalleryProcessor
     {
       new Gallery({
         props: {
-          imgList,
+          imgList: imageGrid.imgList,
           width: args.imgWidth / 50,
           fillFree: true
         },
@@ -202,7 +191,7 @@ export class GalleryProcessor
     }
   }
 
-  async galleryImageInfo(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryPlugin)
+  async galleryImageInfo(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin)
   {
     const args: InfoBlockArgs = {
       imgPath: '',

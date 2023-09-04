@@ -1,18 +1,16 @@
 import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile, debounce } from 'obsidian'
-import type { ImageResources } from './utils'
 import
   {
     OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX,
-    gallerySearchIcon, getImageResources, getImgInfo, updateFocus, splitcolumns, setLazyLoading
+    gallerySearchIcon, getImgInfo, updateFocus
   } from './utils'
 import * as CodeMirror from 'codemirror'
-import ImageGrid from './svelte/ImageGrid.svelte'
-import type GalleryPlugin from './main'
+import { ImageGrid } from './ImageGrid'
 import type GalleryTagsPlugin from './main'
 
 export class GalleryView extends ItemView
 {
-  plugin: GalleryPlugin
+  plugin: GalleryTagsPlugin
   headerEl: HTMLElement 
   viewEl: HTMLElement 
   controlEl: HTMLElement 
@@ -23,13 +21,12 @@ export class GalleryView extends ItemView
   focusImage: HTMLImageElement
   focusVideo: HTMLVideoElement
   imagesContainer: HTMLUListElement
-  imgList: string[] = []
-  imgResources!: ImageResources
   imgFocusIndex: number
   pausedVideo: HTMLVideoElement 
   pausedVideoUrl: string = ''
+  imageGrid: ImageGrid
 
-  constructor(leaf: WorkspaceLeaf, plugin: GalleryPlugin)
+  constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
     super(leaf)
     this.plugin = plugin
@@ -74,6 +71,7 @@ export class GalleryView extends ItemView
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
     this.imagesContainer = this.displayEl.createEl('ul')
+    this.imageGrid = new ImageGrid(this.imagesContainer, plugin);
 
     this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
@@ -93,7 +91,7 @@ export class GalleryView extends ItemView
 
       pathFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       });
 
       // Filter by Name
@@ -105,7 +103,7 @@ export class GalleryView extends ItemView
 
       nameFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       });
 
       // Filter by Tags
@@ -117,7 +115,7 @@ export class GalleryView extends ItemView
 
       tagFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       });
 
       // Filter Exclusive or inclusive
@@ -135,7 +133,7 @@ export class GalleryView extends ItemView
 
       exclusiveFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       });
 
       // Should display order be reversed
@@ -153,7 +151,7 @@ export class GalleryView extends ItemView
 
       sortReverseEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       });
 
       // file filter counts
@@ -164,45 +162,24 @@ export class GalleryView extends ItemView
       // todo: figure out a way to actually get a resize event
       this.displayEl.onresize = async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
       };
     }
   }
 
-  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, reverse : boolean, plugin: GalleryTagsPlugin)
+  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, reverse : boolean)
   {
     this.imagesContainer.empty()
-
-    {
-      const totalFiles = this.app.vault.getFiles();
-      this.imgResources = await getImageResources(path,
-        name,
-        tag,
-        exclusive,
-        totalFiles,
-        this.app.vault.adapter,
-        plugin)
-      
-      this.imgList = Object.keys(this.imgResources)
-      this.countEl.setText(this.imgList.length+"/"+totalFiles.length);
-      if(reverse)
-      {
-        this.imgList = this.imgList.reverse()
-      }
-    }
-
-    const [columns, columnWidth] = splitcolumns(this.imgList, this.imagesContainer, plugin.settings.width)
-    let tempImg = this.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
-    new ImageGrid({
-      props: {
-        columns: columns,
-        maxColumnWidth: columnWidth, 
-        tempImg: tempImg
-      },
-      target: this.imagesContainer
-    })
     
-    setLazyLoading();
+    this.imageGrid.path = path;
+    this.imageGrid.name = name;
+    this.imageGrid.tag = tag;
+    this.imageGrid.exclusive = exclusive;
+    this.imageGrid.reverse = reverse;
+    await this.imageGrid.updateData();
+    this.imageGrid.updateDisplay();
+
+    this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
   }
 
   getViewType(): string
@@ -235,7 +212,7 @@ export class GalleryView extends ItemView
     // Set Header Icon
     this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
     
-    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '', '', true, false, this.plugin)
+    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '', '', true, false)
 
     // Open Info panel
     const workspace = this.app.workspace
@@ -271,10 +248,10 @@ export class GalleryInfoView extends ItemView
   infoFile: TFile | null = null
   imgPath: string
   galleryView: GalleryView
-  plugin: GalleryPlugin
+  plugin: GalleryTagsPlugin
   editor: CodeMirror.Editor
 
-  constructor(leaf: WorkspaceLeaf, plugin: GalleryPlugin)
+  constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
     super(leaf)
     this.plugin = plugin
@@ -369,10 +346,10 @@ export class GalleryInfoView extends ItemView
           await this.saveFile()
           // Read New image info
           this.imgPath = evt.target.src
-          this.galleryView.imgFocusIndex = this.galleryView.imgList.indexOf(this.imgPath)
+          this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
           this.galleryView.imageFocusEl.style.setProperty('display', 'block')
           updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-            this.galleryView.imgList[this.galleryView.imgFocusIndex], false)
+            this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
 
           await this.updateInfoDisplay()
         }
@@ -383,7 +360,7 @@ export class GalleryInfoView extends ItemView
           await this.saveFile()
           // Read video info
           this.imgPath = evt.target.src
-          this.galleryView.imgFocusIndex = this.galleryView.imgList.indexOf(this.imgPath)
+          this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
           this.galleryView.imageFocusEl.style.setProperty('display', 'block')
           // Save clicked video info to set it back later
           this.galleryView.pausedVideo = evt.target
@@ -391,7 +368,7 @@ export class GalleryInfoView extends ItemView
           // disable clicked video
           this.galleryView.pausedVideo.src = ''
           updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-            this.galleryView.imgList[this.galleryView.imgFocusIndex], true)
+            this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
 
           await this.updateInfoDisplay()
         }
@@ -408,7 +385,7 @@ export class GalleryInfoView extends ItemView
           this.clear()
 
           // Open image file
-          const file = this.app.vault.getAbstractFileByPath(this.galleryView.imgResources[e.target.src])
+          const file = this.app.vault.getAbstractFileByPath(this.galleryView.imageGrid.imgResources[e.target.src])
           if (file instanceof TFile)
           {
             this.app.workspace.getUnpinnedLeaf().openFile(file)
@@ -434,34 +411,34 @@ export class GalleryInfoView extends ItemView
             this.galleryView.imgFocusIndex--
             if (this.galleryView.imgFocusIndex < 0)
             {
-              this.galleryView.imgFocusIndex = this.galleryView.imgList.length - 1
+              this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.length - 1
             }
-            if (this.galleryView.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
+            if (this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
             {
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imgList[this.galleryView.imgFocusIndex], true)
+                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
             }
             else
             {
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imgList[this.galleryView.imgFocusIndex], false)
+                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
             }
             break;
           case 'ArrowRight':
             this.galleryView.imgFocusIndex++
-            if (this.galleryView.imgFocusIndex >= this.galleryView.imgList.length)
+            if (this.galleryView.imgFocusIndex >= this.galleryView.imageGrid.imgList.length)
             {
               this.galleryView.imgFocusIndex = 0
             }
-            if (this.galleryView.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
+            if (this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
             {
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imgList[this.galleryView.imgFocusIndex], true)
+                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
             }
             else
             {
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imgList[this.galleryView.imgFocusIndex], false)
+                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
             }
             break;
         }
@@ -469,7 +446,7 @@ export class GalleryInfoView extends ItemView
         await this.saveFile()
 
         // Read New image info
-        this.imgPath = this.galleryView.imgList[this.galleryView.imgFocusIndex]
+        this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
         await this.updateInfoDisplay()
       }, false)
     }
@@ -525,7 +502,7 @@ export class GalleryInfoView extends ItemView
 
   async updateInfoDisplay()
   {
-    this.infoFile = await getImgInfo(this.galleryView.imgResources[this.imgPath],
+    this.infoFile = await getImgInfo(this.galleryView.imageGrid.imgResources[this.imgPath],
       this.app.vault,
       this.app.metadataCache,
       this.plugin,
