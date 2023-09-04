@@ -33,22 +33,18 @@ export class ImageGrid
 
 	async updateData()
 	{
+		[this.imgResources, this.totalCount ] = await getImageResources(this.path,
+			this.name,
+			this.tag,
+			this.exclusive,
+			this.plugin.app.vault.getFiles(),
+			this.plugin.app.vault.adapter,
+			this.plugin)
+		
+		this.imgList = Object.keys(this.imgResources)
+		if(this.reverse)
 		{
-			const totalFiles = this.plugin.app.vault.getFiles();
-			this.totalCount = totalFiles.length;
-			this.imgResources = await getImageResources(this.path,
-				this.name,
-				this.tag,
-				this.exclusive,
-				totalFiles,
-				this.plugin.app.vault.adapter,
-				this.plugin)
-			
-			this.imgList = Object.keys(this.imgResources)
-			if(this.reverse)
-			{
-				this.imgList = this.imgList.reverse()
-			}
+			this.imgList = this.imgList.reverse()
 		}
 	}
 

@@ -207,7 +207,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param vaultFiles - list of all TFiles of Obsidian vault
  * @param handler - Obsidian vault handler
  */
-export const getImageResources = async (path: string, name: string, tag: string, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<ImageResources> =>
+export const getImageResources = async (path: string, name: string, tag: string, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<[ImageResources,number]> =>
 {
   const imgList: ImageResources = {}
 
@@ -225,14 +225,19 @@ export const getImageResources = async (path: string, name: string, tag: string,
     reg = '.*'
   }
 
+  let count: number = 0;
   for (const file of vaultFiles)
   {
-    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) && await containsTags(file, tag, exclusive, plugin))
+    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) )
     {
-      imgList[handler.getResourcePath(file.path)] = file.path
+      count++;
+      if( await containsTags(file, tag, exclusive, plugin))
+      {
+        imgList[handler.getResourcePath(file.path)] = file.path
+      }
     }
   }
-  return imgList
+  return [imgList, count];
 };
 
 /**
