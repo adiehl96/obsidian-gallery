@@ -1,8 +1,8 @@
 {
     "name": "obsidian-gallery-tagged",
-    "version": "0.6.2",
-    "description": "Track activity of specified projects, Github like activity board",
-    "author": "darakah",
+    "version": "0.7.0",
+    "description": "Main Gallery to tag / filter / add notes to images. Display blocks to embed images inside notes. Display block to an image information",
+    "author": "Tom",
     "main": "main.js",
     "license": "MIT",
     "scripts": {
