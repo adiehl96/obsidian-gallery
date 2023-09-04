@@ -76,6 +76,17 @@
     display: none;
 }
 
+.gallery-grid-column{
+    float: left;
+    flex: 50%;
+}
+.gallery-grid-vid{
+    display: block;
+}
+.gallery-grid-img{
+    display: block;
+}
+
 /* active-thumb View CSS */
 
 .gallery-widget {

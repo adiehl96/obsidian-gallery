@@ -67,19 +67,6 @@ export class GallerySettingTab extends PluginSettingTab
         }))
 
     new Setting(containerEl)
-      .setName('Main Gallery Display Order')
-      .setDesc('Toggle this option to reverse the order in which the main gallery displays images.')
-      .addToggle((toggle) =>
-      {
-        toggle.setValue(this.plugin.settings.reverseDisplay)
-        toggle.onChange(async (value) =>
-        {
-          this.plugin.settings.reverseDisplay = value
-          await this.plugin.saveSettings()
-        });
-      })
-
-    new Setting(containerEl)
       .setName('Gallery On Open Path Search')
       .setDesc(`The path from which to show images when the main gallery is opened. 
             Setting it to \`/\` will show all images in the vault. 

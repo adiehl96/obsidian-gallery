@@ -5,7 +5,7 @@
 </script>
 
 {#each columns as images}
-    <div class="column">
+    <div class="gallery-grid-column">
     {#each images as img}
         {#if img.includes(".mp4") || img.includes(".webm")}
             <video src={img} controls=true width={maxColumnWidth} class="gallery-grid-vid"> <track kind="captions"> </video>
@@ -15,25 +15,3 @@
     {/each}
     </div>
 {/each}
-
-
-<style>
-    .column {
-        float: left;
-        flex: 50%;
-    }
-    .gallery-grid-vid{
-        display: block;
-    }
-    .gallery-grid-img{
-        display: block;
-    }
-    /*:global(img) {
-        opacity: 0.9;
-        transition: 0.1;
-    }
-    :global(img):hover {
-        opacity: 1;
-        transform: scale(1.04);
-    }*/
-</style>

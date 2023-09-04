@@ -88,10 +88,11 @@ export class GalleryView extends ItemView
         type: 'text',
         attr: { spellcheck: false, placeholder: 'Path' }
       })
+      pathFilterEl.value = this.plugin.settings.galleryLoadPath;
 
       pathFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
       });
 
       // Filter by Name
@@ -103,7 +104,7 @@ export class GalleryView extends ItemView
 
       nameFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
       });
 
       // Filter by Tags
@@ -115,11 +116,10 @@ export class GalleryView extends ItemView
 
       tagFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
       });
 
       // Filter Exclusive or inclusive
-      
       const exclusiveFilterEl = this.filterEl.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'checkbox'
@@ -134,22 +134,41 @@ export class GalleryView extends ItemView
 
       exclusiveFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
       });
+
+      // Should display order be reversed
+      const sortReverseEl = this.filterEl.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'checkbox'
+      })
+      sortReverseEl.name = 'sortReverse'
+      sortReverseEl.id = 'sortReverse'
+
+      const sortReverseLabelEl = this.filterEl.createEl('label');
+      sortReverseLabelEl.textContent = "Reverse Sort";
+      sortReverseLabelEl.htmlFor = "sortReverse"
+      sortReverseLabelEl.style.paddingLeft = "20px"
+
+      sortReverseEl.addEventListener('input', async () =>
+      {
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
+      });
+
+      // file filter counts
+      this.countEl = this.filterEl.createEl('label');
+      this.countEl.style.paddingLeft = "20px"
+      this.countEl.textContent = "counts";
 
       // todo: figure out a way to actually get a resize event
       this.displayEl.onresize = async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, plugin)
+        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked, plugin)
       };
-
-      this.countEl = this.filterEl.createEl('label');
-      this.countEl.style.paddingLeft = "20px"
-      this.countEl.textContent = "counts";
     }
   }
 
-  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, plugin: GalleryTagsPlugin)
+  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, reverse : boolean, plugin: GalleryTagsPlugin)
   {
     this.displayEl.empty()
 
@@ -165,13 +184,11 @@ export class GalleryView extends ItemView
       
       this.imgList = Object.keys(this.imgResources)
       this.countEl.setText(this.imgList.length+"/"+totalFiles.length);
+      if(reverse)
+      {
+        this.imgList = this.imgList.reverse()
+      }
     }
-
-    if (this.plugin.settings.reverseDisplay)
-    {
-      this.imgList = this.imgList.reverse()
-    }
-
 
     const [columns, columnWidth] = splitcolumns(this.imgList, this.displayEl, plugin.settings.width)
     let tempImg = this.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
@@ -240,7 +257,7 @@ export class GalleryView extends ItemView
     // Set Header Icon
     this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
     
-    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '','',true, this.plugin)
+    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '', '', true, false, this.plugin)
 
     // Open Info panel
     const workspace = this.app.workspace

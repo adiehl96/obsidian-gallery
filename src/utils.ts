@@ -8,7 +8,6 @@ export interface GallerySettings
   imgDataFolder: string | null
   galleryLoadPath: string
   width: number
-  reverseDisplay: boolean
 }
 
 export type ImageResources = Record<string, string>
@@ -41,8 +40,7 @@ export interface InfoBlockArgs
 export const SETTINGS: GallerySettings = {
   imgDataFolder: null,
   galleryLoadPath: '/',
-  width: 400,
-  reverseDisplay: true
+  width: 400
 }
 
 export const EXTRACT_COLORS_OPTIONS = {
