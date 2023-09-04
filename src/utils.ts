@@ -241,40 +241,6 @@ export const getImageResources = async (path: string, name: string, tag: string,
   return [imgList, count];
 };
 
-/**
- * Splits the images up into columns so they display nicely
- * @param imgList - full list of image links
- * @param target - element to display within
- * @param maxWidth - max width that any column should be
- * @returns first value is the collumns, the second value is the new max width(this will always be less than or equal to the max width passed in)
- */
-export const splitcolumns = (imgList: string[], target: HTMLElement, maxWidth: number): [string[][], number] =>
-{
-  let columnCount = Math.ceil(target.innerWidth/maxWidth);
-  let columns: string[][] = Array(columnCount)
-  let rowCount = Math.ceil(imgList.length/columnCount);
-
-  for(let col = 0; col < columnCount; col++)
-  {
-    columns[col] = [];
-  }
-
-  for(let row = 0; row <= rowCount; row++)
-  {
-    for(let col = 0; col < columnCount; col++)
-    {
-      let index = row*columnCount+col;
-      if(index < imgList.length)
-      {
-        columns[col].push(imgList[index]);
-      }
-    }
-  }
-
-  return [columns, (target.innerWidth-15)/columnCount];
-}
-
-
 export const setLazyLoading = () =>
 {
   var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));

@@ -1,8 +1,7 @@
 import type GalleryTagsPlugin from "./main"
 import type { ImageResources } from './utils'
 import {
-    getImageResources, 
-	splitcolumns, 
+    getImageResources,
 	setLazyLoading
   } from './utils'
 
@@ -50,36 +49,50 @@ export class ImageGrid
 
 	updateDisplay()
 	{
-		const [columns, columnWidth] = splitcolumns(this.imgList, this.parent, this.plugin.settings.width)
+		const columnCount = Math.ceil(this.parent.innerWidth/this.maxWidth);
+		const columnWidth = (this.parent.innerWidth-15)/columnCount;
+		const columnEls: HTMLDivElement[] = [];
 
-		for(let col = 0; col < columns.length; col++)
+		for(let col = 0; col < columnCount; col++)
 		{
-			const images = columns[col];
-			const columnEL = this.parent.createDiv({ cls: 'gallery-grid-column' });
-			for(let row = 0; row < images.length; row++)
+			columnEls.push(this.parent.createDiv({ cls: 'gallery-grid-column' }));
+		}
+
+		let index = 0;
+		while(index < this.imgList.length)
+		{
+			for(let col = 0; col < columnCount; col++)
 			{
-				if(images[row].contains(".mp4") || images[row].contains(".webm"))
+				if(index >= this.imgList.length)
 				{
-					const vid = columnEL.createEl("video");
-					vid.src = images[row];
+					break;
+				}
+
+				let source = this.imgList[index];
+				index++;
+
+				if(source.contains(".mp4") || source.contains(".webm"))
+				{
+					const vid = columnEls[col].createEl("video");
+					vid.src = source;
 					vid.classList.add("gallery-grid-vid");
 					vid.controls = true;
 					vid.width = columnWidth;
 				}
 				else
 				{
-					const img = columnEL.createEl("img");
+					const img = columnEls[col].createEl("img");
 					img.src = this.tempImg;
 					img.classList.add("gallery-grid-img");
 					img.classList.add("lazy");
 					img.loading = "lazy";
 					img.alt = "testing alt text";
-					img.dataset.src = images[row];
+					img.dataset.src = source;
 					img.width = columnWidth;
 				}
 			}
 		}
 
 		setLazyLoading();
-	} 
+	}
 }
