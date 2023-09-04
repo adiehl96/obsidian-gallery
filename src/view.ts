@@ -3,7 +3,7 @@ import type { ImageResources } from './utils'
 import
   {
     OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX,
-    gallerySearchIcon, getImageResources, getImgInfo, updateFocus, splitcolumns
+    gallerySearchIcon, getImageResources, getImgInfo, updateFocus, splitcolumns, setLazyLoading
   } from './utils'
 import * as CodeMirror from 'codemirror'
 import ImageGrid from './svelte/ImageGrid.svelte'
@@ -73,6 +73,7 @@ export class GalleryView extends ItemView
 
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
+    this.imagesContainer = this.displayEl.createEl('ul')
 
     this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
@@ -170,7 +171,7 @@ export class GalleryView extends ItemView
 
   async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, reverse : boolean, plugin: GalleryTagsPlugin)
   {
-    this.displayEl.empty()
+    this.imagesContainer.empty()
 
     {
       const totalFiles = this.app.vault.getFiles();
@@ -190,7 +191,7 @@ export class GalleryView extends ItemView
       }
     }
 
-    const [columns, columnWidth] = splitcolumns(this.imgList, this.displayEl, plugin.settings.width)
+    const [columns, columnWidth] = splitcolumns(this.imgList, this.imagesContainer, plugin.settings.width)
     let tempImg = this.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
     new ImageGrid({
       props: {
@@ -198,33 +199,10 @@ export class GalleryView extends ItemView
         maxColumnWidth: columnWidth, 
         tempImg: tempImg
       },
-      target: this.displayEl
+      target: this.imagesContainer
     })
-
-    var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
-    let options = {
-      root: document.querySelector("ob-gallery-display"),
-      // rootMargin: "0px",
-      // threshold: 1.0,
-    };
-    if ("IntersectionObserver" in window) {
-      let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            let lazyImage = entry.target as HTMLImageElement;
-            lazyImage.src = lazyImage.dataset.src;
-            lazyImage.classList.remove("lazy");
-            observer.unobserve(lazyImage);
-          }
-        });
-      }, options);
-  
-      lazyImages.forEach(function(lazyImage) {
-        lazyImageObserver.observe(lazyImage);
-      });
-    } else {
-      // Possibly fall back to event handlers here
-    }
+    
+    setLazyLoading();
   }
 
   getViewType(): string

@@ -7,7 +7,7 @@ import
     EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
     VIDEO_REGEX,
     getImageResources,
-    getImgInfo, updateFocus, splitcolumns
+    getImgInfo, updateFocus, splitcolumns, setLazyLoading
   } from './utils'
 import { GalleryInfoView } from './view'
 import type GalleryPlugin from './main'
@@ -68,14 +68,18 @@ export class GalleryProcessor
     if (args.type === 'grid')
     {
       const [columns, columnWidth] = splitcolumns(imgList, elCanvas, args.imgWidth)
+      let tempImg = plugin.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
 
       new ImageGrid({
         props: {
           columns: columns,
-          maxColumnWidth: columnWidth
+          maxColumnWidth: columnWidth,
+          tempImg: tempImg
         },
         target: elCanvas
       })
+
+      setLazyLoading();
 
       const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
       const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
