@@ -1,6 +1,6 @@
 {
-    "name": "Tagged Gallery",
-    "version": "0.6.1",
+    "name": "obsidian-gallery-tagged",
+    "version": "0.6.2",
     "description": "Track activity of specified projects, Github like activity board",
     "author": "darakah",
     "main": "main.js",
