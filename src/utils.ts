@@ -268,6 +268,35 @@ export const splitcolumns = (imgList: string[], target: HTMLElement, maxWidth: n
   return [columns, (target.innerWidth-15)/columnCount];
 }
 
+
+export const setLazyLoading = () =>
+{
+  var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+  let options = {
+    root: document.querySelector("ob-gallery-display"),
+    // rootMargin: "0px",
+    // threshold: 1.0,
+  };
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target as HTMLImageElement;
+          lazyImage.src = lazyImage.dataset.src;
+          lazyImage.classList.remove("lazy");
+          observer.unobserve(lazyImage);
+        }
+      });
+    }, options);
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage);
+    });
+  } else {
+    // Possibly fall back to event handlers here
+  }
+}
+
 /**
  * assesses if file matches the tag patterns passed
  * @param file - the image file to assess
