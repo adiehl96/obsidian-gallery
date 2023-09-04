@@ -133,6 +133,7 @@ tags:
 ---
 
 ![](${imgPath.replaceAll(' ', '%20')})
+[${imgName}](${imgPath.replaceAll(' ', '%20')})
 %% Description %%
 
 %% Description %%
