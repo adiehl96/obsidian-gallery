@@ -1,18 +1,15 @@
-import { Notice, type FrontMatterCache } from "obsidian"
+import { Notice, type FrontMatterCache, TFile } from "obsidian"
 import type GalleryTagsPlugin from "./main"
 
 export class GalleryInfo
 {
 	plugin: GalleryTagsPlugin
 	parent: HTMLElement
-    name: string
-    path: string
-    extension: string
-    size: number
+	imgFile: TFile
+	imgInfo: TFile
 	dimensions: HTMLVideoElement
 	width: number
 	height: number
-    date: Date
     tagList: string[]
     colorList: string[]
     isVideo: boolean
@@ -37,28 +34,28 @@ export class GalleryInfo
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Name";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.name;
+			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.basename;
 		}
 
 		if(!this.infoList.contains("path"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Path";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.path;
+			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.path;
 		}
 
 		if(!this.infoList.contains("extension"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Extension";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.extension;
+			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.extension;
 		}
 
 		if(!this.infoList.contains("size"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Size";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.size.toPrecision(3) + " Mb";
+			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = (this.imgFile.stat.size / 1000000).toPrecision(3) + " Mb";
 		}
 
 		if(!this.infoList.contains("dimensions"))
@@ -79,7 +76,7 @@ export class GalleryInfo
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Date";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.date.toDateString();
+			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = new Date(this.imgFile.stat.ctime).toDateString();
 		}
 
 		if(!this.infoList.contains("image-tags"))
@@ -100,8 +97,31 @@ export class GalleryInfo
 			}
 			const newTagEl = currentVal.createEl("input");
 			newTagEl.placeholder = "New Tag";
-			newTagEl.addEventListener("input", (e)=>{new Notice("Input")}) // fired when text is altered
-			newTagEl.addEventListener("change", (e)=>{new Notice("Change")}) // fired when user hits return
+			newTagEl.addEventListener("change", async (e)=>{ // add the new tag when they hit enter
+				const tag = newTagEl.value.trim();
+				if(tag === '')
+				{
+					return;
+				}
+				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+					let tags = frontmatter.tags ?? []
+					if (!Array.isArray(tags)) 
+					{ 
+						tags = [tags]; 
+					}
+
+					if(tags.contains(tag))
+					{
+						return;
+					}
+
+					tags.push(tag);
+					frontmatter.tags = tags;
+					this.tagList.push(tag)
+					this.updateDisplay();
+				  });
+			})
+
 		}
 
 		if(!this.infoList.contains("backlinks"))

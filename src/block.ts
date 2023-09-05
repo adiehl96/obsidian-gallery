@@ -212,7 +212,7 @@ export class GalleryProcessor
     {
       infoList = plugin.settings.hiddenInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
     }
-    
+
     const imgName = args.imgPath.split('/').slice(-1)[0]
     const elCanvas = el.createDiv({
       cls: 'ob-gallery-info-block',
@@ -312,14 +312,11 @@ export class GalleryProcessor
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
       const info = new GalleryInfo(elCanvas, plugin);
-      info.name = imgTFile.basename;
-      info.path = imgTFile.path;
-      info.extension = imgTFile.extension;
-      info.date = new Date(imgTFile.stat.ctime);
+      info.imgFile = imgTFile;
+      info.imgInfo = imgInfo;
       info.width = width;
       info.height = height;
       info.dimensions = measureEl as HTMLVideoElement;
-      info.size = imgTFile.stat.size / 1000000;
       info.colorList = hexList;
       info.tagList = imgTags;
       info.isVideo = isVideo;
