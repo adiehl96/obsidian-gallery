@@ -139,7 +139,7 @@ export class GalleryInfo
 
 		for(const yaml in this.frontmatter)
 		{
-			if(!this.infoList.contains(yaml.toLocaleLowerCase()))
+			if(!this.infoList.contains(yaml.toLocaleLowerCase()) && yaml !="position")
 			{
 				current = block.createDiv({ cls: 'gallery-info-section' });
 				current.createSpan({ cls: 'gallery-info-section-label' }).textContent = yaml;
