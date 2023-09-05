@@ -11,8 +11,8 @@ import
 import { GalleryInfoView } from './view'
 import type GalleryTagsPlugin from './main'
 import { ImageGrid } from './ImageGrid'
+import { GalleryInfo } from './GalleryInfo'
 import Gallery from './svelte/Gallery.svelte'
-import GalleryInfo from './svelte/GalleryInfo.svelte'
 
 export class GalleryProcessor
 {
@@ -207,7 +207,12 @@ export class GalleryProcessor
       }
     })
 
-    const infoList = args.ignoreInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+    let infoList = args.ignoreInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+    if(infoList.length == 0)
+    {
+      infoList = plugin.settings.hiddenInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+    }
+    
     const imgName = args.imgPath.split('/').slice(-1)[0]
     const elCanvas = el.createDiv({
       cls: 'ob-gallery-info-block',
@@ -256,12 +261,6 @@ export class GalleryProcessor
     let imgInfoCache = null
     if (imgInfo)
     {
-      // await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => {
-      //   let tags = frontmatter.tags ?? []
-      //   if (!Array.isArray(tags)) { tags = [tags] }
-      //   tags.push("new/tag")
-      //   frontmatter.tags = tags
-      // })
       // add colors if we got them
       if(hexList.length > 0)
       {
@@ -302,26 +301,33 @@ export class GalleryProcessor
       hexList = frontmatter["Palette"];
     }
 
-    var newTag;
+    let width, height
+    const img = measureEl as HTMLImageElement
+    if(img)
+    {
+      width = img.naturalWidth;
+      height = img.naturalHeight;
+    }
+
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
-      new GalleryInfo({
-        props: {
-          name: imgTFile.basename,
-          path: imgTFile.path,
-          extension: imgTFile.extension,
-          date: new Date(imgTFile.stat.ctime),
-          dimensions: measureEl,
-          size: imgTFile.stat.size / 1000000,
-          colorList: hexList,
-          tagList: imgTags,
-          isVideo,
-          imgLinks,
-          frontmatter,
-          infoList
-        },
-        target: elCanvas
-      })
+      const info = new GalleryInfo(elCanvas, plugin);
+      info.name = imgTFile.basename;
+      info.path = imgTFile.path;
+      info.extension = imgTFile.extension;
+      info.date = new Date(imgTFile.stat.ctime);
+      info.width = width;
+      info.height = height;
+      info.dimensions = measureEl as HTMLVideoElement;
+      info.size = imgTFile.stat.size / 1000000;
+      info.colorList = hexList;
+      info.tagList = imgTags;
+      info.isVideo = isVideo;
+      info.imgLinks = imgLinks;
+      info.frontmatter = frontmatter;
+      info.infoList = infoList;
+      
+      info.updateDisplay();
     }
 
     elCanvas.onClickEvent(async (event) =>

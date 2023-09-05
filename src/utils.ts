@@ -7,6 +7,7 @@ export interface GallerySettings
   imgDataFolder: string | null
   galleryLoadPath: string
   width: number
+  hiddenInfo: string | null
 }
 
 export type ImageResources = Record<string, string>
@@ -40,7 +41,8 @@ export interface InfoBlockArgs
 export const SETTINGS: GallerySettings = {
   imgDataFolder: null,
   galleryLoadPath: '/',
-  width: 400
+  width: 400,
+  hiddenInfo: "tags;palette"
 }
 
 export const EXTRACT_COLORS_OPTIONS = {

@@ -16,6 +16,7 @@ export class GallerySettingTab extends PluginSettingTab
     const { containerEl } = this
     let resourcesPathInput = ''
     let onOpenPathInput = ''
+    let hiddenInfoInput = ''
 
     containerEl.empty()
     containerEl.createEl('h2', { text: 'Gallery Settings' })
@@ -87,5 +88,23 @@ export class GallerySettingTab extends PluginSettingTab
         {
           onOpenPathInput = value.trim()
         }))
+
+    new Setting(containerEl)
+    .setName('Default Hidden Info')
+    .setDesc(`When no hidden info items are specified in an image info block these info items will be hidden.`)
+    .addButton(text => text
+      .setButtonText('Save')
+      .onClick(() =>
+      {
+        this.plugin.settings.hiddenInfo = hiddenInfoInput
+        hiddenInfoInput = ''
+        this.plugin.saveSettings()
+      }))
+    .addText(text => text
+      .setPlaceholder(this.plugin.settings.hiddenInfo)
+      .onChange(async (value) =>
+      {
+        hiddenInfoInput = value.trim()
+      }))
   }
 }
