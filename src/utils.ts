@@ -6,6 +6,7 @@ export interface GallerySettings
 {
   imgDataFolder: string | null
   galleryLoadPath: string
+  imgmetaTemplatePath: string | null
   width: number
   hiddenInfo: string | null
 }
@@ -41,6 +42,7 @@ export interface InfoBlockArgs
 export const SETTINGS: GallerySettings = {
   imgDataFolder: null,
   galleryLoadPath: '/',
+  imgmetaTemplatePath: null,
   width: 400,
   hiddenInfo: "tags;palette"
 }
@@ -124,26 +126,33 @@ export const GALLERY_RESOURCES_MISSING = `
 Please make sure that a Valid Folder is specified in the settings for the plugin to use to store image information notes!
 `
 
+const defaultTemplate = '---\ntags:\n---\n<%IMGEMBED%>\n<%IMGINFO%>\n%% Description %%\n'
+
 /**
  * Return initial img info file content
  * @param imgPath - Relative vault path of related image
  */
-const initializeInfo = (imgPath: string, imgName: string): string =>
+const initializeInfo = (template: string, imgPath: string, imgName: string): string =>
 {
-  return `---
-tags:
----
+  if(template == null || template.trim() == "")
+  {
+    template = defaultTemplate;
+  }
+  const uri = imgPath.replaceAll(' ', '%20');
+  const infoBlock = "```gallery-info\nimgPath="+imgPath+"\n```";
+  const link = "["+imgName+"]("+uri+")";
+  const embed = "![]("+uri+")";
+  let final = template;
 
-[${imgName}](${imgPath.replaceAll(' ', '%20')})
-![](${imgPath.replaceAll(' ', '%20')})
-%% Description %%
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(L|l)(I|i)(N|n)(K|k)\s*%>/g), link);
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(E|e)(M|m)(B|b)(E|e)(D|d)\s*%>/g), embed);
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(I|i)(N|n)(F|f)(O|o)\s*%>/g), infoBlock);
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(U|u)(R|r)(I|i)\s*%>/g), uri);
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(P|p)(A|a)(T|t)(H|h)\s*%>/g), imgPath);
+  final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(N|n)(A|a)(M|m)(E|e)\s*%>/g), imgName);
 
-%% Description %%
-\`\`\`gallery-info
-imgPath=${imgPath}
-\`\`\`
-`
-};
+  return final;
+}
 
 /**
  * Return Image Info File, if not present create it
@@ -193,7 +202,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
         counter++;
       }
 
-      await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(imgPath, imgName))
+      await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(plugin.currentMetaTemplate, imgPath, imgName))
       infoFile = (vault.getAbstractFileByPath(`${plugin.settings.imgDataFolder}/${fileName}.md`) as TFile)
     }
     return infoFile

@@ -1,4 +1,4 @@
-import { Plugin, type WorkspaceLeaf, addIcon } from 'obsidian'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, Vault } from 'obsidian'
 import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryProcessor } from './block'
@@ -8,12 +8,14 @@ export default class GalleryTagsPlugin extends Plugin
 {
   settings!: GallerySettings;
   containerEl!: HTMLElement;
+  currentMetaTemplate: string;
 
   async onload()
   {
     // Load message
-    await this.loadSettings()
-    console.log('Loaded Gallery Tags Plugin')
+    await this.loadSettings();
+    await this.loadMetaTemplate();
+    console.log('Loaded Gallery Tags Plugin');
 
     // Register gallery display block renderer
     this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
@@ -48,12 +50,40 @@ export default class GalleryTagsPlugin extends Plugin
 
     // Save settings
     this.saveSettings()
+    
+		// this.registerEvent(
+		// 	app.workspace.on(
+		// 		"editor-menu",
+		// 		this.testOption
+		// 	)
+		// );
+  }
+  
+  testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
+  {
+    menu.addItem((item: MenuItem) => {
+      item.setTitle("Test Option")
+        //.setIcon("plus-circle")
+        //.setSection("cmdr")
+        .onClick(async () => {
+          new Notice("clicked option");
+        });
+    });
   }
 
   onunload()
   {
     this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
     console.log('unloading Gallery Plugin')
+  }
+  
+  async loadMetaTemplate()
+  {
+    const imgTFile = this.app.vault.getAbstractFileByPath(this.settings.imgmetaTemplatePath+".md") as TFile;
+    if(imgTFile)
+    {
+      this.currentMetaTemplate = await this.app.vault.read(imgTFile);
+    }
   }
 
   async loadSettings()

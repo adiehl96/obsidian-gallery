@@ -32,6 +32,7 @@ export class GalleryInfo
 
 		if(!this.infoList.contains("name"))
 		{
+			
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Name";
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.basename;
@@ -41,7 +42,9 @@ export class GalleryInfo
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Path";
-			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.path;
+			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
+			imgLink.href = this.imgFile.path;
+			imgLink.textContent = this.imgFile.path;
 		}
 
 		if(!this.infoList.contains("extension"))

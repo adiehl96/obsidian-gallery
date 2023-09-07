@@ -16,6 +16,7 @@ export class GallerySettingTab extends PluginSettingTab
     const { containerEl } = this
     let resourcesPathInput = ''
     let onOpenPathInput = ''
+    let imgmetaPathInput = ''
     let hiddenInfoInput = ''
 
     containerEl.empty()
@@ -88,6 +89,33 @@ export class GallerySettingTab extends PluginSettingTab
         {
           onOpenPathInput = value.trim()
         }))
+        
+    const metaTemplatSetting = new Setting(containerEl)
+      .setName('Meta file template override')
+      .setDesc('')
+      .addButton(text => text
+        .setButtonText('Save')
+        .onClick(async () =>
+        {
+          this.plugin.settings.imgmetaTemplatePath = imgmetaPathInput
+          imgmetaPathInput = ''
+          this.plugin.saveSettings()
+          await this.plugin.loadMetaTemplate();
+        }))
+      .addText(text => text
+        .setPlaceholder(this.plugin.settings.imgmetaTemplatePath)
+        .onChange(async (value) =>
+        {
+          imgmetaPathInput = value.trim()
+        }))
+    metaTemplatSetting.descEl.createDiv({ text: 'Location of template file to use for generating image meta files. If blank will use default.' })
+    metaTemplatSetting.descEl.createDiv({ text: 'These keys will be replaced with the apropriate info for the file:' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG LINK %> : Clickable link to the image with its name as the text' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG EMBED %> : Embeded view of the image' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG INFO %> : Info block for the image' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG URI %> : The formatted URI for the image that can be used to generate a link to it' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG PATH %> : Path to the image(including file name)' })
+    metaTemplatSetting.descEl.createDiv({ text: '<% IMG NAME %> : File name for the image' })
 
     new Setting(containerEl)
     .setName('Default Hidden Info')
