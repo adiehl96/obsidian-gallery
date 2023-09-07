@@ -119,14 +119,17 @@ export class GalleryView extends ItemView
       });
 
       // Filter Exclusive or inclusive
-      const exclusiveFilterEl = this.filterEl.createEl('input', {
-        cls: 'ob-gallery-filter-input',
+      const exclusiveFilterDiv = this.filterEl.createDiv({
+        cls: 'ob-gallery-filter-input'
+      })
+      const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
+        cls: 'ob-gallery-filter-checkbox-input',
         type: 'checkbox'
       })
       exclusiveFilterEl.name = 'exclusive'
       exclusiveFilterEl.id = 'exclusive'
 
-      const exclusiveFilterLabelEl = this.filterEl.createEl('label');
+      const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
       exclusiveFilterLabelEl.textContent = "Exclusive";
       exclusiveFilterLabelEl.htmlFor = "exclusive"
       exclusiveFilterLabelEl.style.paddingLeft = "20px"
@@ -137,14 +140,17 @@ export class GalleryView extends ItemView
       });
 
       // Should display order be reversed
-      const sortReverseEl = this.filterEl.createEl('input', {
-        cls: 'ob-gallery-filter-input',
+      const sortReverseDiv = this.filterEl.createDiv({
+        cls: 'ob-gallery-filter-input'
+      })
+      const sortReverseEl = sortReverseDiv.createEl('input', {
+        cls: 'ob-gallery-filter-checkbox-input',
         type: 'checkbox'
       })
       sortReverseEl.name = 'sortReverse'
       sortReverseEl.id = 'sortReverse'
 
-      const sortReverseLabelEl = this.filterEl.createEl('label');
+      const sortReverseLabelEl = sortReverseDiv.createEl('label');
       sortReverseLabelEl.textContent = "Reverse Sort";
       sortReverseLabelEl.htmlFor = "sortReverse"
       sortReverseLabelEl.style.paddingLeft = "20px"
