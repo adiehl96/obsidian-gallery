@@ -57,6 +57,8 @@ export class GalleryProcessor
     imageGrid.path = args.path;
     imageGrid.name = args.name;
     imageGrid.tag = args.tags;
+    imageGrid.reverse = args.reverseOrder === 'true';
+    imageGrid.maxWidth = args.imgWidth;
     imageGrid.exclusive = args.exclusive === 'true';
     imageGrid.reverse = args.reverseOrder === 'true';
     await imageGrid.updateData();
