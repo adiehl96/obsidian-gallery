@@ -9,6 +9,7 @@ export interface GallerySettings
   imgmetaTemplatePath: string | null
   width: number
   hiddenInfo: string | null
+  filterStartOpen: boolean
 }
 
 export type ImageResources = Record<string, string>
@@ -44,7 +45,8 @@ export const SETTINGS: GallerySettings = {
   galleryLoadPath: '/',
   imgmetaTemplatePath: null,
   width: 400,
-  hiddenInfo: "tags;palette"
+  hiddenInfo: "tags;palette",
+  filterStartOpen: false
 }
 
 export const EXTRACT_COLORS_OPTIONS = {

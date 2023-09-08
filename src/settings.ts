@@ -133,5 +133,20 @@ export class GallerySettingTab extends PluginSettingTab
       {
         hiddenInfoInput = value.trim()
       }))
+    
+    
+    new Setting(containerEl)
+    .setName('Filter Opens on Main Gallery Open')
+    .setDesc('Toggle this option to have the filter header start open.')
+    .addToggle((toggle) =>
+    {
+      toggle.setValue(this.plugin.settings.filterStartOpen)
+      toggle.onChange(async (value) =>
+      {
+        this.plugin.settings.filterStartOpen = value
+        await this.plugin.saveSettings()
+      });
+    })
+
   }
 }

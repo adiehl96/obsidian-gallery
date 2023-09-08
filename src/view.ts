@@ -47,8 +47,15 @@ export class GalleryView extends ItemView
     if(searchPanel)
     {
       setIcon(searchPanel, 'fa-search')
+
       // Create Search Control Element
       this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
+
+      if(plugin.settings.filterStartOpen)
+      {
+        this.filterEl.style.setProperty('display', 'block');
+      }
+
       searchPanel.onClickEvent(() =>
       {
         const currentMode = this.filterEl.style.getPropertyValue('display')
