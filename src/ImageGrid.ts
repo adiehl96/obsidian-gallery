@@ -12,6 +12,7 @@ export class ImageGrid
 	path: string = ""
 	name: string = ""
 	tag: string = ""
+	matchCase: boolean = true
 	exclusive: boolean = false
 	reverse : boolean = false
 	maxWidth : number
@@ -35,6 +36,7 @@ export class ImageGrid
 		[this.imgResources, this.totalCount ] = await getImageResources(this.path,
 			this.name,
 			this.tag,
+			this.matchCase,
 			this.exclusive,
 			this.plugin.app.vault.getFiles(),
 			this.plugin.app.vault.adapter,

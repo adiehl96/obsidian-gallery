@@ -30,11 +30,11 @@
 }
 
 .ob-gallery-filter-input {
-    width: 23% !important;
+    width: 22% !important;
     left: 20px;
     position: static;
     margin-right: 20px;
-    display: inline-block;
+    display: inline-block !important;
 }
 
 .ob-gallery-image-focus {

@@ -247,7 +247,7 @@ export const searchForFile = async (path: string, plugin: GalleryTagsPlugin): Pr
  * @param vaultFiles - list of all TFiles of Obsidian vault
  * @param handler - Obsidian vault handler
  */
-export const getImageResources = async (path: string, name: string, tag: string, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<[ImageResources,number]> =>
+export const getImageResources = async (path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<[ImageResources,number]> =>
 {
   const imgList: ImageResources = {}
 
@@ -271,7 +271,7 @@ export const getImageResources = async (path: string, name: string, tag: string,
     if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) )
     {
       count++;
-      if( await containsTags(file, tag, exclusive, plugin))
+      if( await containsTags(file, tag, matchCase, exclusive, plugin))
       {
         imgList[handler.getResourcePath(file.path)] = file.path
       }
@@ -316,7 +316,7 @@ export const setLazyLoading = () =>
  * @param plugin - a link to the plugin for access to resources
  * @returns - true if the file should be included by the filter
  */
-const containsTags = async (file: TFile, tags: string, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
+const containsTags = async (file: TFile, tags: string, matchCase: boolean, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
   if(tags == null || tags == "")
   {
@@ -365,7 +365,7 @@ const containsTags = async (file: TFile, tags: string, exclusive: boolean, plugi
       continue;
     }
 
-    if(containsTag(tag, imgTags))
+    if(containsTag(tag, imgTags, matchCase))
     {
       if(negate)
       {
@@ -391,13 +391,28 @@ const containsTags = async (file: TFile, tags: string, exclusive: boolean, plugi
   return exclusive;
 };
 
-const containsTag = (tagFilter:string, tags: string[]): boolean =>
-{  
+const containsTag = (tagFilter:string, tags: string[], matchCase: boolean): boolean =>
+{
+  if(!matchCase)
+  {
+    tagFilter = tagFilter.toLowerCase();
+  }
+
   for(let i = 0; i < tags.length; i++)
   {
-    if(tags[i].contains(tagFilter))
+    if(matchCase)
     {
-      return true;
+      if(tags[i].contains(tagFilter))
+      {
+        return true;
+      }
+    }
+    else
+    {
+      if(tags[i].toLowerCase().contains(tagFilter))
+      {
+        return true;
+      } 
     }
   }
 

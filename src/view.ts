@@ -88,8 +88,10 @@ export class GalleryView extends ItemView
 
     if(this.filterEl)
     {
+      const filterTopDiv = this.filterEl.createDiv();
+      const filterBottomDiv = this.filterEl.createDiv();
       // Filter by path
-      const pathFilterEl = this.filterEl.createEl('input', {
+      const pathFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
         attr: { spellcheck: false, placeholder: 'Path' }
@@ -98,11 +100,12 @@ export class GalleryView extends ItemView
 
       pathFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
+        this.imageGrid.path = pathFilterEl.value.trim();
+        await this.updateDisplay();
       });
 
       // Filter by Name
-      const nameFilterEl = this.filterEl.createEl('input', {
+      const nameFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
         attr: { spellcheck: false, placeholder: 'Name' }
@@ -110,44 +113,12 @@ export class GalleryView extends ItemView
 
       nameFilterEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
-      });
-
-      // Filter by Tags
-      const tagFilterEl = this.filterEl.createEl('input', {
-        cls: 'ob-gallery-filter-input',
-        type: 'text',
-        attr: { spellcheck: false, placeholder: 'Tags' }
-      })
-
-      tagFilterEl.addEventListener('input', async () =>
-      {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
-      });
-
-      // Filter Exclusive or inclusive
-      const exclusiveFilterDiv = this.filterEl.createDiv({
-        cls: 'ob-gallery-filter-input'
-      })
-      const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
-        cls: 'ob-gallery-filter-checkbox-input',
-        type: 'checkbox'
-      })
-      exclusiveFilterEl.name = 'exclusive'
-      exclusiveFilterEl.id = 'exclusive'
-
-      const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
-      exclusiveFilterLabelEl.textContent = "Exclusive";
-      exclusiveFilterLabelEl.htmlFor = "exclusive"
-      exclusiveFilterLabelEl.style.paddingLeft = "20px"
-
-      exclusiveFilterEl.addEventListener('input', async () =>
-      {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
+        this.imageGrid.name = nameFilterEl.value.trim();
+        await this.updateDisplay();
       });
 
       // Should display order be reversed
-      const sortReverseDiv = this.filterEl.createDiv({
+      const sortReverseDiv = filterTopDiv.createDiv({
         cls: 'ob-gallery-filter-input'
       })
       const sortReverseEl = sortReverseDiv.createEl('input', {
@@ -164,35 +135,89 @@ export class GalleryView extends ItemView
 
       sortReverseEl.addEventListener('input', async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
+        this.imageGrid.reverse = sortReverseEl.checked;
+        await this.updateDisplay();
       });
 
       // file filter counts
-      this.countEl = this.filterEl.createEl('label');
+      this.countEl = filterTopDiv.createEl('label');
       this.countEl.style.paddingLeft = "20px"
       this.countEl.textContent = "counts";
+
+
+      // Filter by Tags
+      const tagFilterEl = filterBottomDiv.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'text',
+        attr: { spellcheck: false, placeholder: 'Tags' }
+      })
+
+      tagFilterEl.addEventListener('input', async () =>
+      {
+        this.imageGrid.tag = tagFilterEl.value.trim();
+        await this.updateDisplay();
+      });
+
+      // Filter Match Case
+      const matchFilterDiv = filterBottomDiv.createDiv({
+        cls: 'ob-gallery-filter-input'
+      })
+      const matchFilterEl = matchFilterDiv.createEl('input', {
+        cls: 'ob-gallery-filter-checkbox-input',
+        type: 'checkbox'
+      })
+      matchFilterEl.name = 'match'
+      matchFilterEl.id = 'match'
+
+      const matchFilterLabelEl = matchFilterDiv.createEl('label');
+      matchFilterLabelEl.textContent = "Match Case";
+      matchFilterLabelEl.htmlFor = "match"
+      matchFilterLabelEl.style.paddingLeft = "20px"
+
+      matchFilterEl.addEventListener('input', async () =>
+      {
+        this.imageGrid.matchCase = matchFilterEl.checked;
+        await this.updateDisplay();
+      });
+
+      // Filter Exclusive or inclusive
+      const exclusiveFilterDiv = filterBottomDiv.createDiv({
+        cls: 'ob-gallery-filter-input'
+      })
+      const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
+        cls: 'ob-gallery-filter-checkbox-input',
+        type: 'checkbox'
+      })
+      exclusiveFilterEl.name = 'exclusive'
+      exclusiveFilterEl.id = 'exclusive'
+
+      const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
+      exclusiveFilterLabelEl.textContent = "Exclusive";
+      exclusiveFilterLabelEl.htmlFor = "exclusive"
+      exclusiveFilterLabelEl.style.paddingLeft = "20px"
+
+      exclusiveFilterEl.addEventListener('input', async () =>
+      {
+        this.imageGrid.exclusive = exclusiveFilterEl.checked;
+        await this.updateDisplay();
+      });
 
       // todo: figure out a way to actually get a resize event
       this.displayEl.onresize = async () =>
       {
-        await this.updateDisplay(pathFilterEl.value.trim(), nameFilterEl.value.trim(), tagFilterEl.value.trim(), exclusiveFilterEl.checked, sortReverseEl.checked)
+        await this.updateDisplay()
       };
     }
   }
 
-  async updateDisplay(path: string, name: string, tag: string, exclusive: boolean, reverse : boolean)
+  async updateDisplay()
   {
     this.imagesContainer.empty()
     
-    this.imageGrid.path = path;
-    this.imageGrid.name = name;
-    this.imageGrid.tag = tag;
-    this.imageGrid.exclusive = exclusive;
-    this.imageGrid.reverse = reverse;
     await this.imageGrid.updateData();
-    this.imageGrid.updateDisplay();
-
     this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
+
+    this.imageGrid.updateDisplay();
   }
 
   getViewType(): string
@@ -225,7 +250,13 @@ export class GalleryView extends ItemView
     // Set Header Icon
     this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
     
-    await this.updateDisplay(this.plugin.settings.galleryLoadPath, '', '', true, false)
+    this.imageGrid.path = this.plugin.settings.galleryLoadPath;
+    this.imageGrid.name = "";
+    this.imageGrid.tag = "";
+    this.imageGrid.matchCase = false;
+    this.imageGrid.exclusive = false;
+    this.imageGrid.reverse = false;
+    await this.updateDisplay()
 
     // Open Info panel
     const workspace = this.app.workspace
