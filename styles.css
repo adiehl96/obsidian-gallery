@@ -30,18 +30,18 @@
 }
 
 .ob-gallery-filter-checkbox{
-    width: 110px !important;
-    left: 20px;
+    width: 120px !important;
+    left: 5px;
     position: static;
-    margin-right: 20px;
+    margin-right: 5px;
     display: inline-block !important;
 }
 
 .ob-gallery-filter-input {
-    width: 22% !important;
-    left: 20px;
+    width: 21% !important;
+    left: 10px;
     position: static;
-    margin-right: 20px;
+    margin-right: 10px;
     display: inline-block !important;
 }
 
