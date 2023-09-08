@@ -119,10 +119,10 @@ export class GalleryView extends ItemView
 
       // Should display order be reversed
       const sortReverseDiv = filterTopDiv.createDiv({
-        cls: 'ob-gallery-filter-input'
+        cls: 'ob-gallery-filter-checkbox'
       })
       const sortReverseEl = sortReverseDiv.createEl('input', {
-        cls: 'ob-gallery-filter-checkbox-input',
+        //cls: 'ob-gallery-filter-checkbox-input',
         type: 'checkbox'
       })
       sortReverseEl.name = 'sortReverse'
@@ -131,7 +131,6 @@ export class GalleryView extends ItemView
       const sortReverseLabelEl = sortReverseDiv.createEl('label');
       sortReverseLabelEl.textContent = "Reverse Sort";
       sortReverseLabelEl.htmlFor = "sortReverse"
-      sortReverseLabelEl.style.paddingLeft = "20px"
 
       sortReverseEl.addEventListener('input', async () =>
       {
@@ -141,7 +140,6 @@ export class GalleryView extends ItemView
 
       // file filter counts
       this.countEl = filterTopDiv.createEl('label');
-      this.countEl.style.paddingLeft = "20px"
       this.countEl.textContent = "counts";
 
 
@@ -160,7 +158,7 @@ export class GalleryView extends ItemView
 
       // Filter Match Case
       const matchFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-input'
+        cls: 'ob-gallery-filter-checkbox'
       })
       const matchFilterEl = matchFilterDiv.createEl('input', {
         cls: 'ob-gallery-filter-checkbox-input',
@@ -172,7 +170,6 @@ export class GalleryView extends ItemView
       const matchFilterLabelEl = matchFilterDiv.createEl('label');
       matchFilterLabelEl.textContent = "Match Case";
       matchFilterLabelEl.htmlFor = "match"
-      matchFilterLabelEl.style.paddingLeft = "20px"
 
       matchFilterEl.addEventListener('input', async () =>
       {
@@ -182,7 +179,7 @@ export class GalleryView extends ItemView
 
       // Filter Exclusive or inclusive
       const exclusiveFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-input'
+        cls: 'ob-gallery-filter-checkbox'
       })
       const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
         cls: 'ob-gallery-filter-checkbox-input',
@@ -194,7 +191,6 @@ export class GalleryView extends ItemView
       const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
       exclusiveFilterLabelEl.textContent = "Exclusive";
       exclusiveFilterLabelEl.htmlFor = "exclusive"
-      exclusiveFilterLabelEl.style.paddingLeft = "20px"
 
       exclusiveFilterEl.addEventListener('input', async () =>
       {

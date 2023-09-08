@@ -29,6 +29,14 @@
 
 }
 
+.ob-gallery-filter-checkbox{
+    width: 110px !important;
+    left: 20px;
+    position: static;
+    margin-right: 20px;
+    display: inline-block !important;
+}
+
 .ob-gallery-filter-input {
     width: 22% !important;
     left: 20px;
