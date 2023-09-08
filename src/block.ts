@@ -1,12 +1,12 @@
-import type { Vault, MetadataCache, FrontMatterCache } from 'obsidian'
-import { MarkdownRenderer, TFile, getAllTags, Platform } from 'obsidian'
+import type { Vault, MetadataCache, FrontMatterCache, EditorPosition } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags, Platform, MarkdownView } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
     EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
     VIDEO_REGEX,
-    getImgInfo, updateFocus
+    getImgInfo, updateFocus, GALLERY_INFO_USAGE, searchForFile
   } from './utils'
 import { GalleryInfoView } from './view'
 import type GalleryTagsPlugin from './main'
@@ -191,7 +191,7 @@ export class GalleryProcessor
     }
   }
 
-  async galleryImageInfo(source: string, el: HTMLElement, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin)
+  async galleryImageInfo(source: string, el: HTMLElement, sourcePath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin)
   {
     const args: InfoBlockArgs = {
       imgPath: '',
@@ -219,14 +219,62 @@ export class GalleryProcessor
       attr: { style: 'width: 100%; height: auto; float: left' }
     })
 
-    const imgTFile = vault.getAbstractFileByPath(args.imgPath)
-    const imgURL = vault.adapter.getResourcePath(args.imgPath)
+    let imgTFile = vault.getAbstractFileByPath(args.imgPath)
+    let imgURL = vault.adapter.getResourcePath(args.imgPath)
 
     // Handle problematic arg
-    if (!args.imgPath || !imgTFile)
+    if(!args.imgPath)
     {
-      MarkdownRenderer.renderMarkdown('GALLERY_INFO_USAGE', elCanvas, '/', plugin)
+      MarkdownRenderer.render(plugin.app, GALLERY_INFO_USAGE, elCanvas, '/', plugin)
       return;
+    }
+
+    if (!imgTFile)
+    {
+      const found = await searchForFile(args.imgPath, plugin);
+
+      if(found.length == 0)
+      {
+        MarkdownRenderer.render(plugin.app,GALLERY_INFO_USAGE, elCanvas, '/', plugin)
+        return;
+      }
+      
+      if(found.length == 1)
+      {
+        // set file and path for current usage
+        imgTFile = vault.getAbstractFileByPath(found[0])
+        imgURL = vault.adapter.getResourcePath(found[0])
+
+        // replace file path for future usage
+        const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+
+        if (view) 
+        {
+          for(let i = 0; i < view.editor.lineCount(); i++)
+          {
+            let line = view.editor.getLine(i);
+            if(line.contains(args.imgPath))
+            {
+              const from: EditorPosition = {line: i, ch: line.indexOf(args.imgPath)};
+              const to: EditorPosition = {line: i, ch: line.indexOf(args.imgPath)+args.imgPath.length};
+              view.editor.replaceRange(found[0], from, to);
+            }
+          }
+        }
+
+      }
+      else
+      {
+        // too many options, tell the user about it
+        let output = "### File path not found. Were you looking for one of these?\n"
+        for(let i = 0; i < found.length; i++)
+        {
+          output += "- "+found[i]+"\n";
+        }
+        
+        MarkdownRenderer.render(plugin.app,output, elCanvas, '/', plugin)
+        return;
+      }
     }
 
     let measureEl, isVideo

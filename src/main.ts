@@ -8,13 +8,11 @@ export default class GalleryTagsPlugin extends Plugin
 {
   settings!: GallerySettings;
   containerEl!: HTMLElement;
-  currentMetaTemplate: string;
 
   async onload()
   {
     // Load message
     await this.loadSettings();
-    await this.loadMetaTemplate();
     console.log('Loaded Gallery Tags Plugin');
 
     // Register gallery display block renderer
@@ -28,7 +26,7 @@ export default class GalleryTagsPlugin extends Plugin
     this.registerMarkdownCodeBlockProcessor('gallery-info', async (source, el, ctx) =>
     {
       const proc = new GalleryProcessor()
-      await proc.galleryImageInfo(source, el, this.app.vault, this.app.metadataCache, this)
+      await proc.galleryImageInfo(source, el, ctx.sourcePath, this.app.vault, this.app.metadataCache, this)
     });
 
     // Add Gallery Icon
@@ -75,15 +73,6 @@ export default class GalleryTagsPlugin extends Plugin
   {
     this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
     console.log('unloading Gallery Plugin')
-  }
-  
-  async loadMetaTemplate()
-  {
-    const imgTFile = this.app.vault.getAbstractFileByPath(this.settings.imgmetaTemplatePath+".md") as TFile;
-    if(imgTFile)
-    {
-      this.currentMetaTemplate = await this.app.vault.read(imgTFile);
-    }
   }
 
   async loadSettings()

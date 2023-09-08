@@ -102,7 +102,7 @@ e.g. Input:
 
 \`\`\`
 imgPath=Resources/Images/Image_example_1.png
-infoList=Name;tags;size;backlinks
+ignoreInfo=Name;tags;size;backlinks
 \`\`\`
 
 ----
@@ -111,11 +111,12 @@ infoList=Name;tags;size;backlinks
 - Path is the relative path of the file withing the obsidian vault.
 - Make sure the image exists!!
 - It is case sensitive!
+- IgnoreInfo is a list of fields NOT to display(if not included uses Default Hidden Info setting)
 
 ----
 
 Please Check Release Notes for plugin changes:<br>
-https://github.com/Darakah/obsidian-gallery#release-notes
+https://github.com/TomNCatz/obsidian-gallery#release-notes
 `
 
 export const GALLERY_RESOURCES_MISSING = `
@@ -202,7 +203,15 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
         counter++;
       }
 
-      await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(plugin.currentMetaTemplate, imgPath, imgName))
+      
+      const templateTFile = plugin.app.vault.getAbstractFileByPath(plugin.settings.imgmetaTemplatePath+".md") as TFile;
+      let template = defaultTemplate;
+      if(templateTFile)
+      {
+        template = await plugin.app.vault.read(templateTFile);
+      }
+
+      await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(template, imgPath, imgName))
       infoFile = (vault.getAbstractFileByPath(`${plugin.settings.imgDataFolder}/${fileName}.md`) as TFile)
     }
     return infoFile
@@ -211,6 +220,23 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
   // Specified Resources folder does not exist
   return null
 };
+
+export const searchForFile = async (path: string, plugin: GalleryTagsPlugin): Promise<string[]> =>
+{
+  const foundPaths: string[] = []
+  const vaultFiles: TFile[] = plugin.app.vault.getFiles();
+  const fileName: string = path.substring(path.lastIndexOf('/'));
+
+  for (const file of vaultFiles)
+  {
+    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.contains(fileName) )
+    {
+      foundPaths.push(file.path);
+    }
+  }
+
+  return foundPaths;
+}
 
 /**
  * Return images in the specified directory

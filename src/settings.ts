@@ -100,7 +100,6 @@ export class GallerySettingTab extends PluginSettingTab
           this.plugin.settings.imgmetaTemplatePath = imgmetaPathInput
           imgmetaPathInput = ''
           this.plugin.saveSettings()
-          await this.plugin.loadMetaTemplate();
         }))
       .addText(text => text
         .setPlaceholder(this.plugin.settings.imgmetaTemplatePath)
