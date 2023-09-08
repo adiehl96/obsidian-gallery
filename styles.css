@@ -22,7 +22,7 @@
     border: none;
     background-color: var(--background-secondary);
     border-radius: 5px;
-    padding: 20px;
+    padding: 10px;
 }
 
 .ob-gallery-filter-checkbox-input{
@@ -30,7 +30,7 @@
 }
 
 .ob-gallery-filter-checkbox{
-    width: 120px !important;
+    width: 125px !important;
     left: 5px;
     position: static;
     margin-right: 5px;
