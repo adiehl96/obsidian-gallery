@@ -9,11 +9,7 @@
 #### Example:
 
 ##### Main Gallery
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_main_gallery_1.gif)
-
-##### Main Gallery Filtering
-
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_main_gallery_2.gif)
+![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_main_gallery.gif)
 
 ##### Display blocks
 
@@ -23,8 +19,6 @@
 
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_Info_Block.gif)
 
-##### Old example
-![example_1](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/example_1.png) 
 
 ## Usage:
 

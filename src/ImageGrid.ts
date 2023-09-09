@@ -21,6 +21,7 @@ export class ImageGrid
 	totalCount: number = 0
 	
 	tempImg: string
+	columnCount: number
 
 	constructor(parent: HTMLElement, plugin: GalleryTagsPlugin)
 	{
@@ -29,6 +30,13 @@ export class ImageGrid
 		this.path = this.plugin.settings.galleryLoadPath;
 		this.maxWidth = this.plugin.settings.width;
 		this.tempImg = this.plugin.app.vault.adapter.getResourcePath(".obsidian/plugins/obsidian-tagged-gallery/loading.gif")
+	}
+
+	haveColumnsChanged(): boolean
+	{
+		const newColumnCount = Math.ceil(this.parent.innerWidth/this.maxWidth);
+
+		return this.columnCount != newColumnCount;
 	}
 
 	async updateData()
@@ -51,11 +59,11 @@ export class ImageGrid
 
 	updateDisplay()
 	{
-		const columnCount = Math.ceil(this.parent.innerWidth/this.maxWidth);
-		const columnWidth = (this.parent.innerWidth-15)/columnCount;
+		this.columnCount = Math.ceil(this.parent.innerWidth/this.maxWidth);
+		const columnWidth = (this.parent.innerWidth-15)/this.columnCount;
 		const columnEls: HTMLDivElement[] = [];
 
-		for(let col = 0; col < columnCount; col++)
+		for(let col = 0; col < this.columnCount; col++)
 		{
 			columnEls.push(this.parent.createDiv({ cls: 'gallery-grid-column' }));
 		}
@@ -63,7 +71,7 @@ export class ImageGrid
 		let index = 0;
 		while(index < this.imgList.length)
 		{
-			for(let col = 0; col < columnCount; col++)
+			for(let col = 0; col < this.columnCount; col++)
 			{
 				if(index >= this.imgList.length)
 				{

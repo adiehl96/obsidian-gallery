@@ -16,7 +16,7 @@
 }
 
 .ob-gallery-filter {
-    height: 100px;
+    height: auto;
     width: 100%;
     position: relative;
     border: none;
@@ -29,8 +29,16 @@
 
 }
 
-.ob-gallery-filter-checkbox{
+.ob-gallery-filter-slider-input{
     width: 125px !important;
+    left: 5px;
+    position: static;
+    margin-right: 5px;
+    display: inline-block !important;
+}
+
+.ob-gallery-filter-checkbox{
+    width: 65px !important;
     left: 5px;
     position: static;
     margin-right: 5px;

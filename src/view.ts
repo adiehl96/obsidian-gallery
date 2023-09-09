@@ -90,11 +90,12 @@ export class GalleryView extends ItemView
     {
       const filterTopDiv = this.filterEl.createDiv();
       const filterBottomDiv = this.filterEl.createDiv();
+
       // Filter by path
       const pathFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { spellcheck: false, placeholder: 'Path' }
+        attr: { 'aria-label': 'Folder to search', spellcheck: false, placeholder: 'Path' }
       })
       pathFilterEl.value = this.plugin.settings.galleryLoadPath;
 
@@ -108,7 +109,7 @@ export class GalleryView extends ItemView
       const nameFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { spellcheck: false, placeholder: 'Name' }
+        attr: { 'aria-label': 'File name contains', spellcheck: false, placeholder: 'Name' }
       })
 
       nameFilterEl.addEventListener('input', async () =>
@@ -119,17 +120,18 @@ export class GalleryView extends ItemView
 
       // Should display order be reversed
       const sortReverseDiv = filterTopDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox'
+        cls: 'ob-gallery-filter-checkbox',
+        attr: { 'aria-label': 'Should the sort order be reversed'}
       })
       const sortReverseEl = sortReverseDiv.createEl('input', {
-        //cls: 'ob-gallery-filter-checkbox-input',
+        cls: 'ob-gallery-filter-checkbox-input',
         type: 'checkbox'
       })
       sortReverseEl.name = 'sortReverse'
       sortReverseEl.id = 'sortReverse'
 
       const sortReverseLabelEl = sortReverseDiv.createEl('label');
-      sortReverseLabelEl.textContent = "Reverse Sort";
+      sortReverseLabelEl.textContent = "Flip";
       sortReverseLabelEl.htmlFor = "sortReverse"
 
       sortReverseEl.addEventListener('input', async () =>
@@ -139,7 +141,7 @@ export class GalleryView extends ItemView
       });
 
       // file filter counts
-      this.countEl = filterTopDiv.createEl('label');
+      this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': 'Number of files displayed by filter out of files the gallery could display'}});
       this.countEl.textContent = "counts";
 
 
@@ -147,7 +149,7 @@ export class GalleryView extends ItemView
       const tagFilterEl = filterBottomDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { spellcheck: false, placeholder: 'Tags' }
+        attr: { 'aria-label': 'partial tags seperated by spaces. Minus in front of a tag excludes it. eg "drawing -sketch fant" to include drawing and fantasy tags, but exclude sketches.', spellcheck: false, placeholder: 'Tags' }
       })
 
       tagFilterEl.addEventListener('input', async () =>
@@ -158,7 +160,8 @@ export class GalleryView extends ItemView
 
       // Filter Match Case
       const matchFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox'
+        cls: 'ob-gallery-filter-checkbox',
+        attr: { 'aria-label': 'Should tags match exact case'}
       })
       const matchFilterEl = matchFilterDiv.createEl('input', {
         cls: 'ob-gallery-filter-checkbox-input',
@@ -168,7 +171,7 @@ export class GalleryView extends ItemView
       matchFilterEl.id = 'match'
 
       const matchFilterLabelEl = matchFilterDiv.createEl('label');
-      matchFilterLabelEl.textContent = "Match Case";
+      matchFilterLabelEl.textContent = "Aa";
       matchFilterLabelEl.htmlFor = "match"
 
       matchFilterEl.addEventListener('input', async () =>
@@ -179,7 +182,8 @@ export class GalleryView extends ItemView
 
       // Filter Exclusive or inclusive
       const exclusiveFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox'
+        cls: 'ob-gallery-filter-checkbox',
+        attr: { 'aria-label': 'When set will only include results that contain ALL of the tags listed. Otherwise the search is for ANY except those that contain explicit exclusions(eg -fan)'}
       })
       const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
         cls: 'ob-gallery-filter-checkbox-input',
@@ -189,7 +193,7 @@ export class GalleryView extends ItemView
       exclusiveFilterEl.id = 'exclusive'
 
       const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
-      exclusiveFilterLabelEl.textContent = "Exclusive";
+      exclusiveFilterLabelEl.textContent = "All";
       exclusiveFilterLabelEl.htmlFor = "exclusive"
 
       exclusiveFilterEl.addEventListener('input', async () =>
@@ -197,6 +201,27 @@ export class GalleryView extends ItemView
         this.imageGrid.exclusive = exclusiveFilterEl.checked;
         await this.updateDisplay();
       });
+
+      // image width scaler
+      const widthScale = filterBottomDiv.createEl("input", {
+        cls: 'ob-gallery-filter-slider-input',
+        type: 'range',
+        attr: { 'aria-label': 'Change the display width of columns'}
+      });
+      widthScale.name = 'maxWidth';
+      widthScale.id = 'maxWidth';
+      widthScale.min = '100';
+      widthScale.max = this.imagesContainer.innerWidth+"";
+      widthScale.value = this.imageGrid.maxWidth+"";
+      widthScale.addEventListener('input', async () =>
+      {
+        this.imageGrid.maxWidth = parseInt(widthScale.value);
+        if(this.imageGrid.haveColumnsChanged())
+        {
+          await this.updateDisplay();
+        }
+      });
+
 
       // todo: figure out a way to actually get a resize event
       this.displayEl.onresize = async () =>
