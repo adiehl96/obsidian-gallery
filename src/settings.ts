@@ -1,5 +1,7 @@
 import { type App, PluginSettingTab, Setting, TFolder } from 'obsidian'
 import type GalleryTagsPlugin from './main'
+import { FuzzyFiles, FuzzyFolders } from './FuzzySuggestions'
+
 
 export class GallerySettingTab extends PluginSettingTab
 {
@@ -14,37 +16,29 @@ export class GallerySettingTab extends PluginSettingTab
   display(): void
   {
     const { containerEl } = this
-    let resourcesPathInput = ''
-    let onOpenPathInput = ''
-    let imgmetaPathInput = ''
     let hiddenInfoInput = ''
+    let fuzzyFolders = new FuzzyFolders(this.app)
+    let fuzzyFiles = new FuzzyFiles(this.app)
 
     containerEl.empty()
     containerEl.createEl('h2', { text: 'Gallery Settings' })
 
     const infoPathSetting = new Setting(containerEl)
-      .setName('Gallery Info Folder')
+      .setName('Gallery Info Folder: \t' + this.plugin.settings.imgDataFolder)
       .setDesc('')
       .addButton(text => text
-        .setButtonText('Save')
+        .setButtonText('Change')
         .onClick(() =>
         {
-          if (resourcesPathInput === '/' || !(this.plugin.app.vault.getAbstractFileByPath(resourcesPathInput) instanceof TFolder))
-          {
-            return;
+          fuzzyFolders.onSelection = (s) =>{
+            this.plugin.settings.imgDataFolder = s
+            infoPathSetting.nameEl.textContent = 'Gallery Info Folder: ' + this.plugin.settings.imgDataFolder
+            this.plugin.saveSettings()
           }
 
-          this.plugin.settings.imgDataFolder = resourcesPathInput
-          resourcesPathInput = ''
-          this.plugin.saveSettings()
+          fuzzyFolders.open()
         }))
-      .addText(text => text
-        .setPlaceholder(this.plugin.settings.imgDataFolder ?? '')
-        .onChange(async (value) =>
-        {
-          resourcesPathInput = value.trim()
-        }))
-
+        
     infoPathSetting.descEl.createDiv({ text: 'Specify an existing vault folder for the gallery plugin to store image information/notes as markdown files.' })
     infoPathSetting.descEl.createDiv({ text: 'E.g. \`Resources/Gallery\`.', attr: { style: 'color: indianred;' } })
     infoPathSetting.descEl.createDiv({ text: 'On first activation the default is unspecified. Thus the info functionality of the Main gallery is diabled.' })
@@ -68,44 +62,40 @@ export class GallerySettingTab extends PluginSettingTab
           await this.plugin.saveSettings()
         }))
 
-    new Setting(containerEl)
-      .setName('Gallery On Open Path Search')
+      const galleryOpenPathSetting = new Setting(containerEl)
+      .setName('Gallery On Open Path Search: \t' + this.plugin.settings.galleryLoadPath)
       .setDesc(`The path from which to show images when the main gallery is opened. 
             Setting it to \`/\` will show all images in the vault. 
             Can be used to avoid the loading all images and affecting on open performance 
             (especially if vault has a huge amount of high quality images). 
             Setting it to an invalid path to have no images shown when gallery is opened.`)
       .addButton(text => text
-        .setButtonText('Save')
+        .setButtonText('Change')
         .onClick(() =>
         {
-          this.plugin.settings.galleryLoadPath = onOpenPathInput
-          onOpenPathInput = ''
-          this.plugin.saveSettings()
-        }))
-      .addText(text => text
-        .setPlaceholder(this.plugin.settings.galleryLoadPath)
-        .onChange(async (value) =>
-        {
-          onOpenPathInput = value.trim()
+          fuzzyFolders.onSelection = (s) =>{
+            this.plugin.settings.galleryLoadPath = s
+            galleryOpenPathSetting.nameEl.textContent = 'Gallery On Open Path Search: \t' + this.plugin.settings.galleryLoadPath
+            this.plugin.saveSettings()
+          }
+
+          fuzzyFolders.open()
         }))
         
     const metaTemplatSetting = new Setting(containerEl)
-      .setName('Meta file template override')
+      .setName('Meta file template override: \t' + this.plugin.settings.imgmetaTemplatePath)
       .setDesc('')
       .addButton(text => text
-        .setButtonText('Save')
-        .onClick(async () =>
+        .setButtonText('Change')
+        .onClick(() =>
         {
-          this.plugin.settings.imgmetaTemplatePath = imgmetaPathInput
-          imgmetaPathInput = ''
-          this.plugin.saveSettings()
-        }))
-      .addText(text => text
-        .setPlaceholder(this.plugin.settings.imgmetaTemplatePath)
-        .onChange(async (value) =>
-        {
-          imgmetaPathInput = value.trim()
+          fuzzyFiles.onSelection = (s) =>{
+            this.plugin.settings.imgmetaTemplatePath = s.substring(0,s.length-3)
+            metaTemplatSetting.nameEl.textContent = 'Meta file template override: \t' + this.plugin.settings.imgmetaTemplatePath
+            this.plugin.saveSettings()
+          }
+
+          fuzzyFiles.open()
         }))
     metaTemplatSetting.descEl.createDiv({ text: 'Location of template file to use for generating image meta files. If blank will use default.' })
     metaTemplatSetting.descEl.createDiv({ text: 'These keys will be replaced with the apropriate info for the file:' })
