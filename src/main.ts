@@ -50,7 +50,7 @@ export default class GalleryTagsPlugin extends Plugin
     this.saveSettings()
     
 		// this.registerEvent(
-		// 	app.workspace.on(
+		// 	this.app.workspace.on(
 		// 		"editor-menu",
 		// 		this.testOption
 		// 	)
@@ -71,7 +71,6 @@ export default class GalleryTagsPlugin extends Plugin
 
   onunload()
   {
-    this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
     console.log('unloading Gallery Plugin')
   }
 

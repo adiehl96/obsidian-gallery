@@ -1,5 +1,5 @@
 import type { DataAdapter, Vault, MetadataCache } from 'obsidian'
-import { TFolder, TFile, getAllTags } from 'obsidian'
+import { TFolder, TFile, getAllTags, normalizePath } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 
 export interface GallerySettings
@@ -59,7 +59,7 @@ export const EXTRACT_COLORS_OPTIONS = {
 
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', "webp", "gif", "webm", 'mp4']
 
-export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)\\?\\d*$')
+export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)')
 
 export const OB_GALLERY = 'ob-gallery'
 
@@ -206,15 +206,14 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
       }
 
       
-      const templateTFile = plugin.app.vault.getAbstractFileByPath(plugin.settings.imgmetaTemplatePath+".md") as TFile;
+      const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md")) as TFile;
       let template = defaultTemplate;
       if(templateTFile)
       {
         template = await plugin.app.vault.read(templateTFile);
       }
 
-      await vault.adapter.write(`${plugin.settings.imgDataFolder}/${fileName}.md`, initializeInfo(template, imgPath, imgName))
-      infoFile = (vault.getAbstractFileByPath(`${plugin.settings.imgDataFolder}/${fileName}.md`) as TFile)
+      infoFile = await vault.create(normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`), initializeInfo(template, imgPath, imgName));
     }
     return infoFile
   }
@@ -250,6 +249,8 @@ export const searchForFile = async (path: string, plugin: GalleryTagsPlugin): Pr
 export const getImageResources = async (path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<[ImageResources,number]> =>
 {
   const imgList: ImageResources = {}
+  
+  path = normalizePath(path);
 
   let reg
   try 
@@ -282,7 +283,7 @@ export const getImageResources = async (path: string, name: string, tag: string,
 
 export const setLazyLoading = () =>
 {
-  var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+  const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
   let options = {
     root: document.querySelector("ob-gallery-display"),
     // rootMargin: "0px",

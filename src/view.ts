@@ -1,8 +1,7 @@
-import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile, debounce } from 'obsidian'
+import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile } from 'obsidian'
 import
   {
-    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX,
-    gallerySearchIcon, getImgInfo, updateFocus
+    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX, getImgInfo, updateFocus
   } from './utils'
 import * as CodeMirror from 'codemirror'
 import { ImageGrid } from './ImageGrid'
@@ -268,8 +267,6 @@ export class GalleryView extends ItemView
   {
     // Set Header Title
     this.headerEl.querySelector('.view-header-title').setText('Obsidian Gallery')
-    // Set Header Icon
-    this.headerEl.querySelector('svg').outerHTML = gallerySearchIcon
     
     this.imageGrid.path = this.plugin.settings.galleryLoadPath;
     this.imageGrid.name = "";
@@ -343,7 +340,6 @@ export class GalleryInfoView extends ItemView
       keyMap: 'default'
     })
     this.render = this.render.bind(this)
-    this.saveFile = this.saveFile.bind(this)
     this.clear = this.clear.bind(this)
     this.updateInfoDisplay = this.updateInfoDisplay.bind(this)
   }
@@ -365,8 +361,6 @@ export class GalleryInfoView extends ItemView
 
   async onClose(): Promise<void>
   {
-    // Save file content
-    this.saveFile()
     // Clear the preview and editor history
     this.clear()
     await Promise.resolve()
@@ -386,8 +380,6 @@ export class GalleryInfoView extends ItemView
         const currentMode = this.galleryView.imageFocusEl.style.getPropertyValue('display')
         if (currentMode === 'block')
         {
-          // Save file content
-          await this.saveFile()
           this.galleryView.imageFocusEl.style.setProperty('display', 'none')
           // Clear Focus video
           this.galleryView.focusVideo.src = ''
@@ -407,8 +399,6 @@ export class GalleryInfoView extends ItemView
 
         if (evt.target instanceof HTMLImageElement)
         {
-          // Save file content
-          await this.saveFile()
           // Read New image info
           this.imgPath = evt.target.src
           this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
@@ -421,8 +411,6 @@ export class GalleryInfoView extends ItemView
 
         if (evt.target instanceof HTMLVideoElement)
         {
-          // Save file content
-          await this.saveFile()
           // Read video info
           this.imgPath = evt.target.src
           this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
@@ -443,9 +431,6 @@ export class GalleryInfoView extends ItemView
       {
         if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement)
         {
-          // Save file content
-          this.saveFile()
-
           // Clear the preview and editor history
           this.clear()
 
@@ -507,8 +492,6 @@ export class GalleryInfoView extends ItemView
             }
             break;
         }
-        // Save file content
-        await this.saveFile()
 
         // Read New image info
         this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
@@ -557,12 +540,6 @@ export class GalleryInfoView extends ItemView
         this.app.workspace.getUnpinnedLeaf().openFile(this.infoFile)
       }
     })
-
-    // Save file on change
-    this.editor.on('change', () =>
-    {
-      this.requestSave()
-    });
   }
 
   async updateInfoDisplay()
@@ -590,27 +567,8 @@ export class GalleryInfoView extends ItemView
 
   async render(): Promise<void>
   {
-    this.saveFile()
     this.contentEl.empty()
-    MarkdownRenderer.renderMarkdown(this.editor.getValue(), this.contentEl, '/', this)
-  }
-
-  // Debounced save function
-  requestSave = debounce(this.saveFile, 2500, false)
-
-  async saveFile(): Promise<void>
-  {
-    // Save file content
-    if (this.infoFile)
-    {
-      if (this.editor.getValue().trim())
-      {
-        if (this.app.vault.getAbstractFileByPath(this.infoFile.path))
-        {
-          await this.app.vault.adapter.write(this.infoFile.path, this.editor.getValue())
-        }
-      }
-    }
+    MarkdownRenderer.render(this.app, this.editor.getValue(), this.contentEl, '/', this)
   }
 
   clear(): void

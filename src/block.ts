@@ -1,5 +1,5 @@
 import type { Vault, MetadataCache, FrontMatterCache, EditorPosition } from 'obsidian'
-import { MarkdownRenderer, TFile, getAllTags, Platform, MarkdownView } from 'obsidian'
+import { MarkdownRenderer, TFile, getAllTags, Platform, MarkdownView, normalizePath } from 'obsidian'
 import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
@@ -48,7 +48,7 @@ export class GalleryProcessor
     // Handle problematic arguments
     if (!args.path || !args.type)
     {
-      MarkdownRenderer.renderMarkdown(GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
+      MarkdownRenderer.render(plugin.app, GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
       return;
     }
     
@@ -215,6 +215,7 @@ export class GalleryProcessor
       infoList = plugin.settings.hiddenInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
     }
 
+    args.imgPath = normalizePath(args.imgPath);
     const imgName = args.imgPath.split('/').slice(-1)[0]
     const elCanvas = el.createDiv({
       cls: 'ob-gallery-info-block',
@@ -282,16 +283,20 @@ export class GalleryProcessor
     let measureEl, isVideo
     let hexList: string[] = [];
     // Get image dimensions
-    if (imgURL.match(VIDEO_REGEX))
+    if (imgTFile.path.match(VIDEO_REGEX))
     {
       measureEl = document.createElement('video')
+      measureEl.src = imgURL
       isVideo = true
-    } else
+    } 
+    else
     {
       measureEl = new Image()
+      measureEl.src = imgURL;
+      
       if(Platform.isDesktopApp)
       {
-        let colors = await extractColors(imgURL, EXTRACT_COLORS_OPTIONS)
+        let colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
         
         for(let i = 0; i < colors.length; i++)
         {
@@ -301,8 +306,6 @@ export class GalleryProcessor
       
       isVideo = false
     }
-
-    measureEl.src = imgURL
 
     // Handle disabled img info functionality or missing info block
     const imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false)

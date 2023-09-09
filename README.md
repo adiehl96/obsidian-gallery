@@ -6,7 +6,7 @@
 - Display blocks to embed images inside notes
 - Display block to an image information
 
-#### Example:
+#### Examples:
 
 ##### Main Gallery
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_main_gallery.gif)
