@@ -50,6 +50,17 @@ Argument Info:
 
 
 # Release Notes
+## v0.7.2
+ - New setting to open filter by default in gallery
+ - Can now choose if tags should match case in filter
+ - slider added to filter that changes with size of image display
+ - Better filter display on mobile
+ - Settings now use fuzzy search to better facilitate selection
+ - several updates to better comply with modern standards
+
+### Fixed
+ - gh#1 Meta file overwritten by sidebar
+
 ## v0.7.1
  - Fixing critical bug with meta file templates
  - Improves display of gallery filter on mobile
