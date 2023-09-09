@@ -4,7 +4,7 @@ import
     OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX, getImgInfo, updateFocus
   } from './utils'
 import * as CodeMirror from 'codemirror'
-import { ImageGrid } from './ImageGrid'
+import { ImageGrid } from './DisplayObjects/ImageGrid'
 import type GalleryTagsPlugin from './main'
 
 export class GalleryView extends ItemView

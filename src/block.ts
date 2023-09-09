@@ -10,8 +10,8 @@ import
   } from './utils'
 import { GalleryInfoView } from './view'
 import type GalleryTagsPlugin from './main'
-import { ImageGrid } from './ImageGrid'
-import { GalleryInfo } from './GalleryInfo'
+import { ImageGrid } from './DisplayObjects/ImageGrid'
+import { GalleryInfo } from './DisplayObjects/GalleryInfo'
 import Gallery from './svelte/Gallery.svelte'
 
 export class GalleryProcessor

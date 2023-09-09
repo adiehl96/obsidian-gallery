@@ -1,5 +1,5 @@
 import { Notice, type FrontMatterCache, TFile } from "obsidian"
-import type GalleryTagsPlugin from "./main"
+import type GalleryTagsPlugin from "../main"
 
 export class GalleryInfo
 {

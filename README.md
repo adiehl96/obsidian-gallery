@@ -50,6 +50,11 @@ Argument Info:
 
 
 # Release Notes
+## v0.7.1
+ - Fixing critical bug with meta file templates
+ - Improves display of gallery filter on mobile
+ - Image info blocks now try to resolve the image if the path has changed, and provides some info if it fails
+
 ## v0.7.0
 - Total image count now only count file the gallery thinks it can display in the first place
 - More large gallery optimization
@@ -65,11 +70,3 @@ Argument Info:
 - moved the reverse sorting checkbox into the filter header so it can be changed on the fly
 - cleaned up some packages that might have had vulnerabilities
 - fixed issue with supporting multiple spaces in a file name
-
-## V0.6.1
-- when desktop version parses color information for an image is saves it and mobile loads it from that save (work around for not being able to get palette information on mobile)
-- tag filter field added
-- can filter by multiple tags if separated by spaces
-- putting a '-' at the front of a tag such as '-photos' will exclude all results with that tag
-- tag filter mode checkbox added, when checked only shows results that match ALL tags, when off includes result that match ANY tags
-- Fixed MP$ display on desktop(still broken on mobile)

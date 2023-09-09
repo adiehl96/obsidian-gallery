@@ -1,9 +1,9 @@
-import type GalleryTagsPlugin from "./main"
-import type { ImageResources } from './utils'
+import type GalleryTagsPlugin from "../main"
+import type { ImageResources } from '../utils'
 import {
     getImageResources,
 	setLazyLoading
-  } from './utils'
+  } from '../utils'
 
 export class ImageGrid
 {

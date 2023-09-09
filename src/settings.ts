@@ -1,6 +1,6 @@
 import { type App, PluginSettingTab, Setting } from 'obsidian'
 import type GalleryTagsPlugin from './main'
-import { FuzzyFiles, FuzzyFolders } from './FuzzySuggestions'
+import { FuzzyFiles, FuzzyFolders } from './DisplayObjects/FuzzySuggestions'
 
 
 export class GallerySettingTab extends PluginSettingTab
