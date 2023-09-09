@@ -198,7 +198,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
       // Info File does not exist, Create it
       await plugin.saveSettings()
       let counter = 1
-      let fileName = imgName.split('\.')[0]
+      let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
       while (infoFileList.contains(fileName))
       {
         fileName = `${fileName}_${counter}`
