@@ -1,4 +1,4 @@
-# Obsidian Gallery
+# Tagged Gallery
 ![GitHub release)](https://img.shields.io/github/v/release/TomNCatz/obsidian-gallery)
 ![GitHub all releases](https://img.shields.io/github/downloads/TomNCatz/obsidian-gallery/total)
 
@@ -6,34 +6,21 @@
 - Display blocks to embed images inside notes
 - Display block to an image information
 
-#### Examples:
+## Examples:
 
-##### Main Gallery
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_main_gallery.gif)
+### Main Gallery
+![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_main_gallery.gif)
 
-##### Display blocks
+### [Display blocks](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/DisplayBlocks.md)
 
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_Display_Block.gif)
 
-##### Display Image Info block
+### Display Image Info block
 
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_Info_Block.gif)
+![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_Info_Block.gif)
 
 
 ## Usage:
-
-### Image display block Usage
-e.g. Input:
-
-```
-path=Weekly
-name=.*Calen
-imgWidth=400
-divWidth=70
-divAlign=left
-reverseOrder=false
-customList=5 10 2 4
-```
 
 Argument Info:
 - **type**: specify display type. Possible values grid, active-thumb
@@ -46,7 +33,7 @@ Argument Info:
 
 ## Settings:
 
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Gallery_Settings.png)
+![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Gallery_Settings.png)
 
 
 # Release Notes
