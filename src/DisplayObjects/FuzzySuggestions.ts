@@ -51,7 +51,7 @@ export class FuzzyTags extends FuzzySuggestModal<string>
 		for(let i = 0; i < files.length; i++)
 		{
 			const tags = getAllTags(this.app.metadataCache.getFileCache(files[i]));
-			for(let k = 0; k < files.length; k++)
+			for(let k = 0; k < tags.length; k++)
 			{
 				if(!allTags.contains(tags[k]))
 				{

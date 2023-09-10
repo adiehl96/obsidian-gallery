@@ -1,5 +1,6 @@
 import { Notice, type FrontMatterCache, TFile } from "obsidian"
 import type GalleryTagsPlugin from "../main"
+import { FuzzyTags } from "./FuzzySuggestions"
 
 export class GalleryInfo
 {
@@ -16,11 +17,14 @@ export class GalleryInfo
     imgLinks: Array<{path : string, name: string}>
     frontmatter: FrontMatterCache
     infoList: string[]
+	
+	fuzzyTags: FuzzyTags
 
 	constructor(parent: HTMLDivElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
 		this.parent = parent;
+		this.fuzzyTags = new FuzzyTags(plugin.app)
 	}
 
 	updateDisplay()
@@ -87,6 +91,38 @@ export class GalleryInfo
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Image Tags";
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
+			
+			const addTagButton = currentVal.createEl("button")
+			addTagButton.textContent = "+";
+			addTagButton.addEventListener("click", () => {
+				this.fuzzyTags.onSelection = async (s) =>{
+					const tag = s.trim();
+					if(tag === '')
+					{
+						return;
+					}
+					await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+						let tags = frontmatter.tags ?? []
+						if (!Array.isArray(tags)) 
+						{ 
+							tags = [tags]; 
+						}
+	
+						if(tags.contains(tag))
+						{
+							return;
+						}
+	
+						tags.push(tag);
+						frontmatter.tags = tags;
+						this.tagList.push(tag)
+						this.updateDisplay();
+					  });
+				}
+		
+				this.fuzzyTags.open()
+			});
+			
 			if(this.tagList != null)
 			{
 				for(let i = 0; i < this.tagList.length; i++)
@@ -98,32 +134,40 @@ export class GalleryInfo
 					currentTag.textContent = this.tagList[i];
 				}
 			}
-			const newTagEl = currentVal.createEl("input");
-			newTagEl.placeholder = "New Tag";
-			newTagEl.addEventListener("change", async (e)=>{ // add the new tag when they hit enter
-				const tag = newTagEl.value.trim();
-				if(tag === '')
-				{
-					return;
-				}
-				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
-					let tags = frontmatter.tags ?? []
-					if (!Array.isArray(tags)) 
-					{ 
-						tags = [tags]; 
-					}
+			// const newTagEl = currentVal.createEl("input");
+			// newTagEl.placeholder = "New Tag";
+			// newTagEl.addEventListener("input", () =>{
+			// 	this.fuzzyTags.onSelection = (s) =>{
+			// 		newTagEl.value = s;
+			// 		newTagEl.dispatchEvent(new Event("change"));
+			// 	}
+		
+			// 	this.fuzzyTags.open()
+			// })
+			// newTagEl.addEventListener("change", async (e)=>{ // add the new tag when they hit enter
+			// 	const tag = newTagEl.value.trim();
+			// 	if(tag === '')
+			// 	{
+			// 		return;
+			// 	}
+			// 	await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+			// 		let tags = frontmatter.tags ?? []
+			// 		if (!Array.isArray(tags)) 
+			// 		{ 
+			// 			tags = [tags]; 
+			// 		}
 
-					if(tags.contains(tag))
-					{
-						return;
-					}
+			// 		if(tags.contains(tag))
+			// 		{
+			// 			return;
+			// 		}
 
-					tags.push(tag);
-					frontmatter.tags = tags;
-					this.tagList.push(tag)
-					this.updateDisplay();
-				  });
-			})
+			// 		tags.push(tag);
+			// 		frontmatter.tags = tags;
+			// 		this.tagList.push(tag)
+			// 		this.updateDisplay();
+			// 	  });
+			// })
 
 		}
 
