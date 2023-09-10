@@ -71,6 +71,10 @@ export class GalleryProcessor
     if (args.type === 'grid')
     {
       imageGrid.updateDisplay();
+      plugin.onResize = () => {
+        elCanvas.empty();
+        imageGrid.updateDisplay();
+      }
 
       const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
       const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });

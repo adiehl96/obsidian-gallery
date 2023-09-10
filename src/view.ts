@@ -101,7 +101,8 @@ export class GalleryView extends ItemView
       pathFilterEl.addEventListener('input', async () =>
       {
         this.imageGrid.path = pathFilterEl.value.trim();
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // Filter by Name
@@ -114,7 +115,8 @@ export class GalleryView extends ItemView
       nameFilterEl.addEventListener('input', async () =>
       {
         this.imageGrid.name = nameFilterEl.value.trim();
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // Should display order be reversed
@@ -136,7 +138,8 @@ export class GalleryView extends ItemView
       sortReverseEl.addEventListener('input', async () =>
       {
         this.imageGrid.reverse = sortReverseEl.checked;
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // file filter counts
@@ -154,7 +157,8 @@ export class GalleryView extends ItemView
       tagFilterEl.addEventListener('input', async () =>
       {
         this.imageGrid.tag = tagFilterEl.value.trim();
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // Filter Match Case
@@ -176,7 +180,8 @@ export class GalleryView extends ItemView
       matchFilterEl.addEventListener('input', async () =>
       {
         this.imageGrid.matchCase = matchFilterEl.checked;
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // Filter Exclusive or inclusive
@@ -198,7 +203,8 @@ export class GalleryView extends ItemView
       exclusiveFilterEl.addEventListener('input', async () =>
       {
         this.imageGrid.exclusive = exclusiveFilterEl.checked;
-        await this.updateDisplay();
+        await this.updateData();
+        this.updateDisplay();
       });
 
       // image width scaler
@@ -217,25 +223,27 @@ export class GalleryView extends ItemView
         this.imageGrid.maxWidth = parseInt(widthScale.value);
         if(this.imageGrid.haveColumnsChanged())
         {
-          await this.updateDisplay();
+          this.updateDisplay();
         }
       });
 
-
-      // todo: figure out a way to actually get a resize event
-      this.displayEl.onresize = async () =>
-      {
-        await this.updateDisplay()
-      };
+      // redraw if screen resized
+      plugin.onResize = () => {
+        widthScale.max = (this.imagesContainer.innerWidth+50)+"";
+        this.updateDisplay();
+      }
     }
   }
 
-  async updateDisplay()
+  async updateData()
   {
-    this.imagesContainer.empty()
-    
     await this.imageGrid.updateData();
     this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
+  }
+
+  updateDisplay()
+  {
+    this.imagesContainer.empty()
 
     this.imageGrid.updateDisplay();
   }
@@ -260,6 +268,7 @@ export class GalleryView extends ItemView
     // Hide focus elements
     this.imageFocusEl.style.setProperty('display', 'none')
     this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
+    this.plugin.onResize = null;
     await Promise.resolve()
   }
 
@@ -274,7 +283,8 @@ export class GalleryView extends ItemView
     this.imageGrid.matchCase = false;
     this.imageGrid.exclusive = false;
     this.imageGrid.reverse = false;
-    await this.updateDisplay()
+    await this.updateData();
+    this.updateDisplay();
 
     // Open Info panel
     const workspace = this.app.workspace
