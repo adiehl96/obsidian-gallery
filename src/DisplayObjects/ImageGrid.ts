@@ -59,6 +59,11 @@ export class ImageGrid
 
 	updateDisplay()
 	{
+		if(this.parent.innerWidth <= 0)
+		{
+			return;
+		}
+		
 		this.columnCount = Math.ceil(this.parent.innerWidth/this.maxWidth);
 		const columnWidth = (this.parent.innerWidth-15)/this.columnCount;
 		const columnEls: HTMLDivElement[] = [];

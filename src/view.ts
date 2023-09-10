@@ -24,6 +24,7 @@ export class GalleryView extends ItemView
   pausedVideo: HTMLVideoElement 
   pausedVideoUrl: string = ''
   imageGrid: ImageGrid
+  widthScaleEl: HTMLInputElement
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
@@ -41,8 +42,16 @@ export class GalleryView extends ItemView
     this.viewEl.style.setProperty('padding', '0px')
     this.viewEl.style.setProperty('overflow', 'hidden')
     
+    const viewActionsEl = this.containerEl.querySelector('.view-actions');
+
+    // Add copy filter button
+    const copyFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Copy filter to clipboard' } })
+
+    // Add paste filter button
+    const pasteFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Paste filter from clipboard' } })
+
     // Add action button to hide / show filter panel
-    const searchPanel = this.containerEl.querySelector('.view-actions')?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
+    const searchPanel = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
     if(searchPanel)
     {
       setIcon(searchPanel, 'fa-search')
@@ -67,13 +76,12 @@ export class GalleryView extends ItemView
       });
     }
     
+    // mover the context menu to the end of the action list
+    if(viewActionsEl)
+    {
+      viewActionsEl.appendChild(viewActionsEl.children[0]);
+    }
     
-    // const testPanel = this.containerEl.querySelector('.view-actions')?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Test' } })
-    // if(searchPanel)
-    // {
-    //   setIcon(testPanel, 'tags')
-    // }
-
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
     this.imagesContainer = this.displayEl.createEl('ul')
@@ -208,29 +216,101 @@ export class GalleryView extends ItemView
       });
 
       // image width scaler
-      const widthScale = filterBottomDiv.createEl("input", {
+      this.widthScaleEl = filterBottomDiv.createEl("input", {
         cls: 'ob-gallery-filter-slider-input',
         type: 'range',
         attr: { 'aria-label': 'Change the display width of columns'}
       });
-      widthScale.name = 'maxWidth';
-      widthScale.id = 'maxWidth';
-      widthScale.min = '100';
-      widthScale.max = this.imagesContainer.innerWidth+"";
-      widthScale.value = this.imageGrid.maxWidth+"";
-      widthScale.addEventListener('input', async () =>
+      this.widthScaleEl.name = 'maxWidth';
+      this.widthScaleEl.id = 'maxWidth';
+      this.widthScaleEl.min = '100';
+      this.widthScaleEl.max = this.imagesContainer.innerWidth+"";
+      this.widthScaleEl.value = this.imageGrid.maxWidth+"";
+      this.widthScaleEl.addEventListener('input', async () =>
       {
-        this.imageGrid.maxWidth = parseInt(widthScale.value);
+        this.imageGrid.maxWidth = parseInt(this.widthScaleEl.value);
         if(this.imageGrid.haveColumnsChanged())
         {
           this.updateDisplay();
         }
       });
 
-      // redraw if screen resized
-      plugin.onResize = () => {
-        widthScale.max = (this.imagesContainer.innerWidth+50)+"";
-        this.updateDisplay();
+      // Copy button functionality
+      if(copyFilterButton)
+      {
+        setIcon(copyFilterButton, 'copy')
+
+        copyFilterButton.onClickEvent(async () =>
+        {
+          let filterCopy = "```gallery"
+          filterCopy += "\npath=" + pathFilterEl.value.trim();
+          filterCopy += "\nname=" + nameFilterEl.value.trim();
+          filterCopy += "\ntags=" + tagFilterEl.value.trim();
+          filterCopy += "\nmatchCase=" + matchFilterEl.checked;
+          filterCopy += "\nexclusive=" + exclusiveFilterEl.checked;
+          filterCopy += "\nimgWidth=" + parseInt(this.widthScaleEl.value);
+          filterCopy += "\nreverseOrder=" + sortReverseEl.checked;
+          filterCopy += "\n```"
+
+          await navigator.clipboard.writeText(filterCopy);
+        });
+      }
+
+      // paste button functionality
+      if(pasteFilterButton)
+      {
+        setIcon(pasteFilterButton, 'paste')
+
+        pasteFilterButton.onClickEvent(async () =>
+        {
+            const filterString = await navigator.clipboard.readText();
+            const lines = filterString.split('\n');
+            for(let i = 0; i < lines.length; i++)
+            {
+              const parts = lines[i].split('=');
+              if(parts.length <2)
+              {
+                continue;
+              }
+
+              switch(lines[i][0])
+              {
+                case '`' : continue;
+                case 'p' : 
+                pathFilterEl.value = parts[1]; 
+                this.imageGrid.path = parts[1];
+                break;
+                case 'n' : 
+                nameFilterEl.value = parts[1]; 
+                this.imageGrid.name = parts[1];
+                break;
+                case 't' : 
+                tagFilterEl.value = parts[1]; 
+                this.imageGrid.tag = parts[1];
+                break;
+                case 'm' : 
+                matchFilterEl.checked = (parts[1] === "true"); 
+                this.imageGrid.matchCase = (parts[1] === "true");
+                break;
+                case 'e' : 
+                exclusiveFilterEl.checked = (parts[1] === "true"); 
+                this.imageGrid.exclusive = (parts[1] === "true");
+                break;
+                case 'i' : 
+                this.widthScaleEl.value = parts[1]; 
+                this.imageGrid.maxWidth = parseInt(parts[1]);
+                break;
+                case 'r' : 
+                sortReverseEl.checked = (parts[1] === "true"); 
+                this.imageGrid.reverse = (parts[1] === "true");
+                break;
+                default : continue;
+              }
+            }
+
+            await this.updateData();
+            this.updateDisplay();
+        });
       }
     }
   }
@@ -263,12 +343,17 @@ export class GalleryView extends ItemView
     return 'lines-of-text'
   }
 
+  onResize(): void
+  {
+    this.widthScaleEl.max = (this.imagesContainer.innerWidth+50)+"";
+    this.updateDisplay();
+  }
+
   async onClose(): Promise<void>
   {
     // Hide focus elements
     this.imageFocusEl.style.setProperty('display', 'none')
     this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
-    this.plugin.onResize = null;
     await Promise.resolve()
   }
 
@@ -448,7 +533,7 @@ export class GalleryInfoView extends ItemView
           const file = this.app.vault.getAbstractFileByPath(this.galleryView.imageGrid.imgResources[e.target.src])
           if (file instanceof TFile)
           {
-            this.app.workspace.getUnpinnedLeaf().openFile(file)
+            this.app.workspace.getLeaf(false).openFile(file)
           }
         }
       })
@@ -547,7 +632,7 @@ export class GalleryInfoView extends ItemView
       // Set workspace leaf to info file
       if (this.infoFile)
       {
-        this.app.workspace.getUnpinnedLeaf().openFile(this.infoFile)
+        this.app.workspace.getLeaf(false).openFile(this.infoFile)
       }
     })
   }

@@ -24,6 +24,7 @@ export class GalleryProcessor
       name: '',
       tags: '',
       exclusive: 'false',
+      matchCase: 'false',
       imgWidth: 200,
       divWidth: 100,
       divAlign: 'left',
@@ -60,6 +61,7 @@ export class GalleryProcessor
     imageGrid.reverse = args.reverseOrder === 'true';
     imageGrid.maxWidth = args.imgWidth;
     imageGrid.exclusive = args.exclusive === 'true';
+    imageGrid.matchCase = args.matchCase === 'true';
     imageGrid.reverse = args.reverseOrder === 'true';
     await imageGrid.updateData();
 
@@ -71,6 +73,11 @@ export class GalleryProcessor
     if (args.type === 'grid')
     {
       imageGrid.updateDisplay();
+      plugin.onResize = () =>
+      {
+        elCanvas.empty();
+        imageGrid.updateDisplay();
+      }
       
       const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
       const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });

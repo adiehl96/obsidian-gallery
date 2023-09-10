@@ -27,6 +27,7 @@ export interface GalleryBlockArgs
   name: string
   tags: string
   exclusive: string
+  matchCase: string
   imgWidth: number
   divWidth: number
   divAlign: string
