@@ -54,7 +54,8 @@ export class GalleryProcessor
     }
     
     
-    const imageGrid = new ImageGrid(elCanvas, plugin);
+    const imagesContainer = elCanvas.createEl('ul')
+    const imageGrid = new ImageGrid(imagesContainer, plugin);
     imageGrid.path = args.path;
     imageGrid.name = args.name;
     imageGrid.tag = args.tags;
@@ -75,7 +76,7 @@ export class GalleryProcessor
       imageGrid.updateDisplay();
       plugin.onResize = () =>
       {
-        elCanvas.empty();
+        imagesContainer.empty();
         imageGrid.updateDisplay();
       }
       
