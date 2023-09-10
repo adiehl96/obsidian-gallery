@@ -272,34 +272,33 @@ export class GalleryView extends ItemView
                 continue;
               }
 
-              switch(lines[i][0])
+              switch(parts[0].toLocaleLowerCase())
               {
-                case '`' : continue;
-                case 'p' : 
+                case 'path' : 
                 pathFilterEl.value = parts[1]; 
                 this.imageGrid.path = parts[1];
                 break;
-                case 'n' : 
+                case 'name' : 
                 nameFilterEl.value = parts[1]; 
                 this.imageGrid.name = parts[1];
                 break;
-                case 't' : 
+                case 'tags' : 
                 tagFilterEl.value = parts[1]; 
                 this.imageGrid.tag = parts[1];
                 break;
-                case 'm' : 
+                case 'matchcase' : 
                 matchFilterEl.checked = (parts[1] === "true"); 
                 this.imageGrid.matchCase = (parts[1] === "true");
                 break;
-                case 'e' : 
+                case 'exclusive' : 
                 exclusiveFilterEl.checked = (parts[1] === "true"); 
                 this.imageGrid.exclusive = (parts[1] === "true");
                 break;
-                case 'i' : 
+                case 'imgwidth' : 
                 this.widthScaleEl.value = parts[1]; 
                 this.imageGrid.maxWidth = parseInt(parts[1]);
                 break;
-                case 'r' : 
+                case 'reverseorder' : 
                 sortReverseEl.checked = (parts[1] === "true"); 
                 this.imageGrid.reverse = (parts[1] === "true");
                 break;
