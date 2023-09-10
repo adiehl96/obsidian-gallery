@@ -11,7 +11,7 @@
 ### Main Gallery
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_main_gallery.gif)
 
-### [Display blocks](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/DisplayBlocks.md)
+### [Display blocks](docs/DisplayBlocks.md)
 
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_Display_Block.gif)
 
