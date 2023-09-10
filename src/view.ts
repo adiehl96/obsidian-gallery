@@ -3,7 +3,6 @@ import
   {
     OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX, getImgInfo, updateFocus
   } from './utils'
-import * as CodeMirror from 'codemirror'
 import { ImageGrid } from './DisplayObjects/ImageGrid'
 import type GalleryTagsPlugin from './main'
 
@@ -406,7 +405,7 @@ export class GalleryInfoView extends ItemView
   imgPath: string
   galleryView: GalleryView
   plugin: GalleryTagsPlugin
-  editor: CodeMirror.Editor
+  fileContent: string
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
@@ -424,16 +423,10 @@ export class GalleryInfoView extends ItemView
       cls: 'markdown-preview-sizer markdown-preview-section'
     })
     // Add Source Mode Container
-    this.sourceEl = this.viewEl.createDiv({ cls: 'CodeMirror cm-s-obsidian CodeMirror-wrap', attr: { style: 'display: none' } })
+    this.sourceEl = this.viewEl.createDiv({ cls: 'cm-s-obsidian', attr: { style: 'display: none' } })
     // Add code mirro editor
     this.editorEl = this.sourceEl.createEl('textarea', { cls: 'image-info-cm-editor' })
-    // Create Code Mirror Editor with specific config
-    this.editor = CodeMirror.fromTextArea(this.editorEl, {
-      lineNumbers: false,
-      lineWrapping: true,
-      scrollbarStyle: null,
-      keyMap: 'default'
-    })
+
     this.render = this.render.bind(this)
     this.clear = this.clear.bind(this)
     this.updateInfoDisplay = this.updateInfoDisplay.bind(this)
@@ -595,48 +588,6 @@ export class GalleryInfoView extends ItemView
     }
   }
 
-  async onOpen(): Promise<void>
-  {
-    // Control to change between preview / source modes
-    const changeMode = this.viewEl.createEl('a',
-      {
-        cls: 'view-action image-info-edit',
-        attr: { 'aria-label': 'Edit' }
-      })
-    setIcon(changeMode, 'pencil')
-
-    const openInfo = this.viewEl.createEl('a',
-      {
-        cls: 'fa fa-external-link view-action image-info-open',
-        attr: { 'aria-label': 'Open Info', style: 'float: right; padding-top: 10px; color: var(--text-normal);' }
-      })
-
-    changeMode.onClickEvent(() =>
-    {
-      const currentMode = this.previewEl.style.getPropertyValue('display')
-      if (currentMode === 'block')
-      {
-        this.previewEl.style.setProperty('display', 'none')
-        this.sourceEl.style.setProperty('display', 'block')
-        this.editor.refresh()
-        return;
-      }
-
-      this.render()
-      this.previewEl.style.setProperty('display', 'block')
-      this.sourceEl.style.setProperty('display', 'none')
-    });
-
-    openInfo.onClickEvent(() =>
-    {
-      // Set workspace leaf to info file
-      if (this.infoFile)
-      {
-        this.app.workspace.getLeaf(false).openFile(this.infoFile)
-      }
-    })
-  }
-
   async updateInfoDisplay()
   {
     this.infoFile = await getImgInfo(this.galleryView.imageGrid.imgResources[this.imgPath],
@@ -655,21 +606,19 @@ export class GalleryInfoView extends ItemView
     // Clear the preview and editor history
     this.clear()
 
-    // Set Editor to new file content
-    this.editor.setValue(infoText)
+    this.fileContent = infoText
     this.render()
   }
 
   async render(): Promise<void>
   {
     this.contentEl.empty()
-    MarkdownRenderer.render(this.app, this.editor.getValue(), this.contentEl, '/', this)
+    MarkdownRenderer.render(this.app, this.fileContent, this.contentEl, '/', this)
   }
 
   clear(): void
   {
     this.contentEl.empty()
-    this.editor.setValue('')
-    this.editor.clearHistory()
+    this.fileContent = ''
   }
 }

@@ -402,7 +402,7 @@ export class GalleryProcessor
         if (infoView instanceof GalleryInfoView && imgInfo)
         {
           infoView.infoFile = imgInfo
-          infoView.editor.setValue(await vault.cachedRead(imgInfo))
+          infoView.fileContent = await vault.cachedRead(imgInfo)
           infoView.render()
         }
       }

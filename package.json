@@ -1,6 +1,6 @@
 {
     "name": "tagged-gallery",
-    "version": "0.7.2",
+    "version": "0.7.3",
     "description": "Main Gallery to tag / filter / add notes to images. Display blocks to embed images inside notes. Display block to an image information",
     "author": "Tom",
     "main": "main.js",
@@ -13,7 +13,6 @@
     },
     "dependencies": {
         "canvas": "^2.11.2",
-        "codemirror": "^5.0.1",
         "extract-colors": "^3.0.0",
 		"obsidian": "latest",
         "rollup-plugin-copy": "^3.4.0",
