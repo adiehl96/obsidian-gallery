@@ -396,7 +396,6 @@ export class GalleryView extends ItemView
 export class GalleryInfoView extends ItemView
 {
   viewEl: HTMLElement
-  contentEl: HTMLElement
   previewEl: HTMLElement
   sourceEl: HTMLElement
   editorEl: HTMLTextAreaElement
