@@ -54,7 +54,12 @@ export default class GalleryTagsPlugin extends Plugin
     //   this.app.workspace.on("file-menu", (menu, file, source) => { new Notice(source);}));
       
     this.registerEvent(
-      this.app.workspace.on("resize", () => { if(this.onResize) this.onResize()}));
+      this.app.workspace.on("resize", () => {
+          if(this.onResize) 
+          {
+            this.onResize()
+          }
+      }));
 		// this.registerEvent(
 		// 	this.app.workspace.on(
 		// 		"editor-menu",

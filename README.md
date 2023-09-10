@@ -11,25 +11,13 @@
 ### Main Gallery
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_main_gallery.gif)
 
-### [Display blocks](docs/DisplayBlocks.md)
+### [Display blocks](docs/READEME_DisplayBlocks.md)
 
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/images/Example_Display_Block.gif)
+![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_Display_Block.gif)
 
 ### Display Image Info block
 
 ![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_Info_Block.gif)
-
-
-## Usage:
-
-Argument Info:
-- **type**: specify display type. Possible values grid, active-thumb
-- **path**: vault path to display images from. Regex expression
-- **imgWidth**: image width in pixels
-- **divWidth**: div container in %
-- **divAlign**: div alignment. Possible values left, right
-- **reverseOrder**: reverse the display order of images. Possible values true, false
-- **customList**: specify image indexes to display in the passed order
 
 ## Settings:
 
