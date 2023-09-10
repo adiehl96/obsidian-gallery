@@ -28,7 +28,12 @@ export default {
             include: "node_modules/**",
         }),
         copy({
-            targets: [{ src: 'static/g', dest: 'public' }],
+            targets: [
+                { src: 'static/g', dest: 'public' },
+                { src: './main.js', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' },
+                { src: './manifest.json', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' },
+                { src: './styles.css', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' }
+            ]
         }),
     ],
 };

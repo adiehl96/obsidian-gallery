@@ -25,6 +25,15 @@
 
 
 # Release Notes
+## 0.8.1
+ - Added button to copy current main gallery filter in a format that can be pasted in a note to generate a block gallery
+ - Added another button to paste the same information back in as a filter to use in the gallery
+ - Gallery blocks now support match case setting
+ - Better handling for dots in the image file name
+ - Gallery view optimizations
+ - Auto resizing gallery views when the window resizes
+ - removed old version specific codemirror dependencies
+
 ## v0.7.2
  - New setting to open filter by default in gallery
  - Can now choose if tags should match case in filter
@@ -46,13 +55,3 @@
 - More large gallery optimization
 - Added a setting for default hidden info
 - Added the option to set your own template file for the meta files
-
-## v0.6.2
-- Tag filter support added to gallery block
-- Tag filter support is more stable and consistent now
-- added support for .gif and .webm support
-- indicator in filter of how many files are being shown verses the total(this currently show all file types for the total, not just supported image file types, will fix later)
-- some work done to improve handling of exceptionally large image collections(over 14000)
-- moved the reverse sorting checkbox into the filter header so it can be changed on the fly
-- cleaned up some packages that might have had vulnerabilities
-- fixed issue with supporting multiple spaces in a file name

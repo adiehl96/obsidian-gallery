@@ -1,15 +1,14 @@
 {
     "name": "tagged-gallery",
-    "version": "0.8.0",
+    "version": "0.8.2",
     "description": "Main Gallery to tag / filter / add notes to images. Display blocks to embed images inside notes. Display block to an image information",
     "author": "Tom",
     "main": "main.js",
     "license": "MIT",
     "scripts": {
         "svelte-check": "svelte-check",
-        "lint": "svelte-check",
-        "build": "npm run lint && rollup -c",
-        "dev": "rollup --config rollup.config.mjs -w"
+        "dev": "rollup --config rollup.config.mjs -w",
+        "pub": "release.sh"
     },
     "dependencies": {
         "canvas": "^2.11.2",
