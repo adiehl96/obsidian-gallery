@@ -1,4 +1,4 @@
-import { Notice, fuzzySearch } from "obsidian";
+import { fuzzySearch } from "obsidian";
 
 export class SuggestionDropdown
 {

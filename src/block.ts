@@ -4,11 +4,10 @@ import { extractColors } from '../node_modules/extract-colors'
 import type { GalleryBlockArgs, InfoBlockArgs } from './utils'
 import
   {
-    EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS, OB_GALLERY_INFO,
+    EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS,
     VIDEO_REGEX,
     getImgInfo, updateFocus, GALLERY_INFO_USAGE, searchForFile
   } from './utils'
-import { GalleryInfoView } from './view'
 import type GalleryTagsPlugin from './main'
 import { ImageGrid } from './DisplayObjects/ImageGrid'
 import { GalleryInfo } from './DisplayObjects/GalleryInfo'

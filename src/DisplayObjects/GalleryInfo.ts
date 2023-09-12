@@ -1,4 +1,4 @@
-import { Notice, type FrontMatterCache, TFile, getAllTags } from "obsidian"
+import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "./SuggestionDropdown"
 

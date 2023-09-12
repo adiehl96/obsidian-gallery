@@ -1,4 +1,4 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, Vault } from 'obsidian'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice } from 'obsidian'
 import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryProcessor } from './block'
