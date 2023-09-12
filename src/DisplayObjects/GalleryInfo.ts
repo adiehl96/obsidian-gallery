@@ -147,7 +147,8 @@ export class GalleryInfo
 					});
 				}
 			}
-			const newTagEl = currentVal.createEl("input");
+			const newTagEl = currentVal.createEl("input", {cls: "new-tag-input"});
+			newTagEl.name = "new-tag";
 			newTagEl.placeholder = "New Tag";
 			new SuggestionDropdown(newTagEl, () =>{
 				const files = this.plugin.app.vault.getMarkdownFiles();
@@ -171,7 +172,7 @@ export class GalleryInfo
 				{
 					return;
 				}
-				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, (frontmatter) => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
 					{ 
@@ -187,6 +188,8 @@ export class GalleryInfo
 					frontmatter.tags = tags;
 					this.tagList.push(tag)
 					this.updateDisplay();
+
+					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
 					});
 			});
 		}

@@ -39,6 +39,7 @@ export class SuggestionDropdown
 		});
 
 		this.target.addEventListener("keydown", (ev) => {this.#onKeyDown(ev)});
+		this.target.addEventListener("keyup", (ev) => {this.#onKeyUp(ev)});
 
 		this.target.addEventListener("blur", () => {this.#cleanUp()});
 		this.target.addEventListener("change", () => {this.#cleanUp()});
@@ -57,6 +58,10 @@ export class SuggestionDropdown
 				this.#submit();
 				break;
 			case "Escape":
+				if(!this.#showing)
+				{
+					this.target.blur();
+				}
 				this.cancel();
 				break;
 			case "ArrowRight":
@@ -98,8 +103,32 @@ export class SuggestionDropdown
 					}
 				}
 				break;
-			default: // new Notice(e.key)
+			default: 
+			// new Notice(e.key)
+			return;
 		}
+
+		event.stopPropagation();
+	}
+	
+	#onKeyUp(event:KeyboardEvent)
+	{
+		switch(event.key)
+		{
+			case "Enter":
+			case "Escape":
+			case "ArrowRight":
+			case "ArrowLeft":
+			case "ArrowUp":
+			case "ArrowDown":
+			case "Backspace":
+				break;
+			default: 
+			// new Notice(e.key)
+			return;
+		}
+
+		event.stopPropagation();
 	}
 
 	#submit()
