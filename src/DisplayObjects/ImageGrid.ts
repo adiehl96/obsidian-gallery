@@ -1,6 +1,7 @@
 import type GalleryTagsPlugin from "../main"
 import type { ImageResources } from '../utils'
 import {
+	VIDEO_REGEX,
     getImageResources,
 	setLazyLoading
   } from '../utils'
@@ -86,7 +87,7 @@ export class ImageGrid
 				let source = this.imgList[index];
 				index++;
 
-				if(source.contains(".mp4") || source.contains(".webm"))
+				if(source.match(VIDEO_REGEX))
 				{
 					const vid = columnEls[col].createEl("video");
 					vid.src = source;

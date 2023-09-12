@@ -120,7 +120,7 @@ export class SuggestionDropdown
 		}
 	}
 
-	#updateSuggestions(input: string)
+	async #updateSuggestions(input: string)
 	{
 		if(input == this.#input)
 		{
@@ -128,7 +128,7 @@ export class SuggestionDropdown
 		}
 
 		this.#suggestions.empty();
-		const items = this.onGetItems();
+		const items = await this.onGetItems();
 		if(items.length == 0)
 		{
 			return;

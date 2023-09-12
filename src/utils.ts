@@ -60,7 +60,7 @@ export const EXTRACT_COLORS_OPTIONS = {
 
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', "webp", "gif", "webm", 'mp4']
 
-export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)')
+export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)\\?')
 
 export const OB_GALLERY = 'ob-gallery'
 

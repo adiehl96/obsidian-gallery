@@ -131,7 +131,7 @@ export class GalleryInfo
 					const removal = pill.createDiv("multi-select-pill-remove-button")
 					removal.createSpan().textContent = "X";
 					removal.addEventListener("click", 
-					async(s) =>{
+					async (s) =>{
 						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
 							let tags = frontmatter.tags;
 							if (!Array.isArray(tags)) 
