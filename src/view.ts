@@ -559,6 +559,9 @@ export class GalleryInfoView extends ItemView
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
                 this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
             }
+            // Read New image info
+            this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
+            await this.updateInfoDisplay()
             break;
           case 'ArrowRight':
             this.galleryView.imgFocusIndex++
@@ -576,12 +579,12 @@ export class GalleryInfoView extends ItemView
               updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
                 this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
             }
+            // Read New image info
+            this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
+            await this.updateInfoDisplay()
             break;
         }
 
-        // Read New image info
-        this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
-        await this.updateInfoDisplay()
       }, false)
     }
   }

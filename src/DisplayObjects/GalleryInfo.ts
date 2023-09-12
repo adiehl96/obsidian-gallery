@@ -1,6 +1,7 @@
-import { Notice, type FrontMatterCache, TFile } from "obsidian"
+import { Notice, type FrontMatterCache, TFile, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
-import { FuzzyTags } from "./FuzzySuggestions"
+import { SuggestionDropdown } from "./SuggestionDropdown"
+
 
 export class GalleryInfo
 {
@@ -18,13 +19,34 @@ export class GalleryInfo
     frontmatter: FrontMatterCache
     infoList: string[]
 	
-	fuzzyTags: FuzzyTags
+	#accentColor: string
+	#accentColorDark: string
 
 	constructor(parent: HTMLDivElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
 		this.parent = parent;
-		this.fuzzyTags = new FuzzyTags(plugin.app)
+		// @ts-ignore
+		this.#accentColor = this.plugin.app.vault.getConfig('accentColor')
+		this.#accentColorDark = this.darkenColor(this.#accentColor);
+	}
+
+	darkenColor(color: string) : string
+	{
+		let rcode = color.substring(1,3);
+		let gcode = color.substring(3,5);
+		let bcode = color.substring(5,7);
+		let r = parseInt(rcode, 16);
+		let g = parseInt(gcode, 16);
+		let b = parseInt(bcode, 16);
+
+		r *= 0.25;
+		g *= 0.25;
+		b *= 0.25;
+		rcode = Math.ceil(r).toString(16).padStart(2, '0');
+		gcode = Math.ceil(g).toString(16).padStart(2, '0');
+		bcode = Math.ceil(b).toString(16).padStart(2, '0');
+		return "#"+rcode+gcode+bcode+"44"
 	}
 
 	updateDisplay()
@@ -92,83 +114,81 @@ export class GalleryInfo
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Image Tags";
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
 			
-			const addTagButton = currentVal.createEl("button")
-			addTagButton.textContent = "+";
-			addTagButton.addEventListener("click", () => {
-				this.fuzzyTags.onSelection = async (s) =>{
-					const tag = s.trim();
-					if(tag === '')
-					{
-						return;
-					}
-					await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
-						let tags = frontmatter.tags ?? []
-						if (!Array.isArray(tags)) 
-						{ 
-							tags = [tags]; 
-						}
-	
-						if(tags.contains(tag))
-						{
-							return;
-						}
-	
-						tags.push(tag);
-						frontmatter.tags = tags;
-						this.tagList.push(tag)
-						this.updateDisplay();
-					  });
-				}
-		
-				this.fuzzyTags.open()
-			});
-			
 			if(this.tagList != null)
 			{
 				for(let i = 0; i < this.tagList.length; i++)
 				{
-					const currentTag = currentVal.createEl("a", { cls: 'tag' })
+					const pill = currentVal.createDiv("gallery-info-section-pill");	
+					pill.style.backgroundColor = this.#accentColorDark;
+					// TODO: for visual consistency I want to change this, but I don't know how to get the link functionality yet
+					// const currentTag = pill.createSpan("multi-select-pill-content")
+					// currentTag.textContent = this.tagList[i];
+					const currentTag = pill.createEl("a", { cls: 'tag' })
 					currentTag.target = "_blank";
 					currentTag.rel = "noopener";
 					currentTag.href = this.tagList[i];
 					currentTag.textContent = this.tagList[i];
+					const removal = pill.createDiv("multi-select-pill-remove-button")
+					removal.createSpan().textContent = "X";
+					removal.addEventListener("click", 
+					async(s) =>{
+						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+							let tags = frontmatter.tags;
+							if (!Array.isArray(tags)) 
+							{ 
+								tags = [tags]; 
+							}
+		
+							tags.remove(this.tagList[i]);
+							frontmatter.tags = tags;
+							this.tagList.remove(this.tagList[i])
+							this.updateDisplay();
+							});
+					});
 				}
 			}
-			// const newTagEl = currentVal.createEl("input");
-			// newTagEl.placeholder = "New Tag";
-			// newTagEl.addEventListener("input", () =>{
-			// 	this.fuzzyTags.onSelection = (s) =>{
-			// 		newTagEl.value = s;
-			// 		newTagEl.dispatchEvent(new Event("change"));
-			// 	}
-		
-			// 	this.fuzzyTags.open()
-			// })
-			// newTagEl.addEventListener("change", async (e)=>{ // add the new tag when they hit enter
-			// 	const tag = newTagEl.value.trim();
-			// 	if(tag === '')
-			// 	{
-			// 		return;
-			// 	}
-			// 	await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
-			// 		let tags = frontmatter.tags ?? []
-			// 		if (!Array.isArray(tags)) 
-			// 		{ 
-			// 			tags = [tags]; 
-			// 		}
+			const newTagEl = currentVal.createEl("input");
+			newTagEl.placeholder = "New Tag";
+			new SuggestionDropdown(newTagEl, () =>{
+				const files = this.plugin.app.vault.getMarkdownFiles();
+				const allTags: string[] = []
+				for(let i = 0; i < files.length; i++)
+				{
+					const tags = getAllTags(this.plugin.app.metadataCache.getFileCache(files[i]));
+					for(let k = 0; k < tags.length; k++)
+					{
+						if(!allTags.contains(tags[k]))
+						{
+							allTags.push(tags[k])
+						}
+					}
+				}
+				return allTags
+			},
+			async(s) =>{
+				const tag = s.trim();
+				if(tag === '')
+				{
+					return;
+				}
+				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
+					let tags = frontmatter.tags ?? []
+					if (!Array.isArray(tags)) 
+					{ 
+						tags = [tags]; 
+					}
 
-			// 		if(tags.contains(tag))
-			// 		{
-			// 			return;
-			// 		}
+					if(tags.contains(tag))
+					{
+						return;
+					}
 
-			// 		tags.push(tag);
-			// 		frontmatter.tags = tags;
-			// 		this.tagList.push(tag)
-			// 		this.updateDisplay();
-			// 	  });
-			// })
-
+					tags.push(tag);
+					frontmatter.tags = tags;
+					this.tagList.push(tag)
+					this.updateDisplay();
+					});
+			});
 		}
 
 		if(!this.infoList.contains("backlinks"))

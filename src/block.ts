@@ -388,25 +388,26 @@ export class GalleryProcessor
       info.updateDisplay();
     }
 
-    elCanvas.onClickEvent(async (event) =>
-    {
-      if (event.button === 2)
-      {
-        // Open image info view in side panel
-        const workspace = plugin.app.workspace
-        workspace.detachLeavesOfType(OB_GALLERY_INFO)
-        await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-        workspace.revealLeaf(
-          await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-        );
-        const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
-        if (infoView instanceof GalleryInfoView && imgInfo)
-        {
-          infoView.infoFile = imgInfo
-          infoView.fileContent = await vault.cachedRead(imgInfo)
-          infoView.render()
-        }
-      }
-    })
+    // TODO: I'm not sure why I'd ever want this and it was causeing bugs
+    // elCanvas.onClickEvent(async (event) =>
+    // {
+    //   if (event.button === 2)
+    //   {
+    //     // Open image info view in side panel
+    //     const workspace = plugin.app.workspace
+    //     workspace.detachLeavesOfType(OB_GALLERY_INFO)
+    //     await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
+    //     workspace.revealLeaf(
+    //       await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
+    //     );
+    //     const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
+    //     if (infoView instanceof GalleryInfoView && imgInfo)
+    //     {
+    //       infoView.infoFile = imgInfo
+    //       infoView.fileContent = await vault.cachedRead(imgInfo)
+    //       infoView.render()
+    //     }
+    //   }
+    // })
   }
 }

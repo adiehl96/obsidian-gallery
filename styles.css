@@ -134,6 +134,8 @@
 .gallery-info-section-value {
     color: var(--text-a);
     overflow-wrap: anywhere;
+    display: inline-flex;
+    flex-wrap: wrap;
 }
 
 .gallery-info-color {
@@ -148,6 +150,25 @@
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.gallery-info-section-pill {
+    --icon-size: var(
+    --icon-xs);
+    --icon-stroke: var(
+    --icon-xs-stroke-width);
+    display: flex;
+    align-items: center;
+    background-color: var(--pill-background);
+    border: var(--pill-border-width) solid var(--pill-border-color);
+    border-radius: var(--pill-radius);
+    color:  var(--interactive-accent);
+    cursor: var(--cursor);
+    font-weight: var(--pill-weight);
+    padding: var(--pill-padding-y) 0;
+    line-height: 1;
+    max-width: 100%;
+    gap: var(--size-2-1);
 }
 
 .gallery-info-section-tags > .tag {
