@@ -7,6 +7,7 @@
     "license": "MIT",
     "scripts": {
         "svelte-check": "svelte-check",
+        "build": "npm run lint && rollup -c",
         "dev": "rollup --config rollup.config.mjs -w",
         "pub": "release.sh"
     },
