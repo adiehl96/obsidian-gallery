@@ -145,7 +145,7 @@ export class GalleryProcessor
           const file = vault.getAbstractFileByPath(imageGrid.imgResources[e.target.src])
           if (file instanceof TFile)
           {
-            plugin.app.workspace.getUnpinnedLeaf().openFile(file)
+            plugin.app.workspace.getLeaf(false).openFile(file)
           }
         }
       })

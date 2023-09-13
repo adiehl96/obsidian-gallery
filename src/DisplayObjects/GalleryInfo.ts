@@ -71,6 +71,18 @@ export class GalleryInfo
 			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
 			imgLink.href = this.imgFile.path;
 			imgLink.textContent = this.imgFile.path;
+			imgLink.addEventListener('click', async (e) =>
+			{
+				// Open image file (this is needed for the side panel)
+				// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
+				// "app://obsidian.md/Resources/ImageMeta/____Zoe____1.md"
+				// "Resources/ImageMeta/____Zoe____1.md"
+				const file = this.plugin.app.vault.getAbstractFileByPath(this.imgFile.path)
+				if (file instanceof TFile)
+				{
+					this.plugin.app.workspace.getLeaf(false).openFile(file)
+				}
+			})
 		}
 
 		if(!this.infoList.contains("extension"))
@@ -207,6 +219,16 @@ export class GalleryInfo
 					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
 					link.href = this.imgLinks[i].path;
 					link.textContent = this.imgLinks[i].name;
+					link.addEventListener('click', async (e) =>
+					{
+						// Open backlink file (this is needed for the side panel)
+						// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
+						const file = this.plugin.app.vault.getAbstractFileByPath(this.imgLinks[i].path)
+						if (file instanceof TFile)
+						{
+							this.plugin.app.workspace.getLeaf(false).openFile(file)
+						}
+					})
 				}
 			}	
 		}
