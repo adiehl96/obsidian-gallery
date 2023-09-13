@@ -8,6 +8,8 @@ export interface GallerySettings
   galleryLoadPath: string
   imgmetaTemplatePath: string | null
   width: number
+  useMaxHeight: boolean
+  maxHeight: number
   hiddenInfo: string | null
   filterStartOpen: boolean
 }
@@ -29,6 +31,7 @@ export interface GalleryBlockArgs
   exclusive: string
   matchCase: string
   imgWidth: number
+  imgHeight: number
   divWidth: number
   divAlign: string
   reverseOrder: string
@@ -46,6 +49,8 @@ export const SETTINGS: GallerySettings = {
   galleryLoadPath: '/',
   imgmetaTemplatePath: null,
   width: 400,
+  useMaxHeight: false,
+  maxHeight: 400,
   hiddenInfo: "tags;palette",
   filterStartOpen: false
 }
@@ -214,9 +219,13 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
         template = await plugin.app.vault.read(templateTFile);
       }
 
-      infoFile = await vault.create(normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`), initializeInfo(template, imgPath, imgName));
+      const filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
+      await vault.create(filepath, initializeInfo(template, imgPath, imgName));
+      // TODO: this waits a moment for the metadatacache to catch up with the new backlinks, but boy does it feel gross. Need to find out if there's another way to do this
+      await new Promise(f => setTimeout(f, 50));
+      infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
     }
-    return infoFile
+    return infoFile 
   }
 
   // Specified Resources folder does not exist

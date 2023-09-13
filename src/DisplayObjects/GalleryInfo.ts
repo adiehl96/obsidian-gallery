@@ -150,7 +150,7 @@ export class GalleryInfo
 			const newTagEl = currentVal.createEl("input", {cls: "new-tag-input"});
 			newTagEl.name = "new-tag";
 			newTagEl.placeholder = "New Tag";
-			new SuggestionDropdown(newTagEl, () =>{
+			const suggetions = new SuggestionDropdown(newTagEl, () =>{
 				const files = this.plugin.app.vault.getMarkdownFiles();
 				const allTags: string[] = []
 				for(let i = 0; i < files.length; i++)
@@ -192,6 +192,7 @@ export class GalleryInfo
 					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
 					});
 			});
+			suggetions.ignoreList = this.tagList;
 		}
 
 		if(!this.infoList.contains("backlinks"))

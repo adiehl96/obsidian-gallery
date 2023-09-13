@@ -30,7 +30,6 @@ export class GalleryView extends ItemView
     super(leaf)
     this.plugin = plugin
 
-    this.updateDisplay = this.updateDisplay.bind(this)
     // Get View Container Element
     this.headerEl = this.containerEl.querySelector('.view-header')
     // Get View Container Element
@@ -109,7 +108,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.path = pathFilterEl.value.trim();
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // Filter by Name
@@ -123,7 +122,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.name = nameFilterEl.value.trim();
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // Should display order be reversed
@@ -146,7 +145,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.reverse = sortReverseEl.checked;
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // file filter counts
@@ -165,7 +164,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.tag = tagFilterEl.value.trim();
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // Filter Match Case
@@ -188,7 +187,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.matchCase = matchFilterEl.checked;
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // Filter Exclusive or inclusive
@@ -211,7 +210,7 @@ export class GalleryView extends ItemView
       {
         this.imageGrid.exclusive = exclusiveFilterEl.checked;
         await this.updateData();
-        this.updateDisplay();
+        this.imageGrid.updateDisplay();
       });
 
       // image width scaler
@@ -230,7 +229,7 @@ export class GalleryView extends ItemView
         this.imageGrid.maxWidth = parseInt(this.widthScaleEl.value);
         if(this.imageGrid.haveColumnsChanged())
         {
-          this.updateDisplay();
+          this.imageGrid.updateDisplay();
         }
       });
 
@@ -307,7 +306,7 @@ export class GalleryView extends ItemView
             }
 
             await this.updateData();
-            this.updateDisplay();
+            this.imageGrid.updateDisplay();
         });
       }
     }
@@ -317,13 +316,6 @@ export class GalleryView extends ItemView
   {
     await this.imageGrid.updateData();
     this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
-  }
-
-  updateDisplay()
-  {
-    this.imagesContainer.empty()
-
-    this.imageGrid.updateDisplay();
   }
 
   getViewType(): string
@@ -344,7 +336,7 @@ export class GalleryView extends ItemView
   onResize(): void
   {
     this.widthScaleEl.max = (this.imagesContainer.innerWidth+50)+"";
-    this.updateDisplay();
+    this.imageGrid.updateDisplay();
   }
 
   async onClose(): Promise<void>
@@ -367,7 +359,7 @@ export class GalleryView extends ItemView
     this.imageGrid.exclusive = false;
     this.imageGrid.reverse = false;
     await this.updateData();
-    this.updateDisplay();
+    this.imageGrid.updateDisplay();
 
     // Open Info panel
     const workspace = this.app.workspace

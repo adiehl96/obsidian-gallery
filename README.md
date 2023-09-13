@@ -25,6 +25,12 @@
 
 
 # Release Notes
+## 1.0.0 RC1
+ - Fuzzy search auto completer field added to tag block
+ - tag block has Xs to delete tags
+ - Fixed refresh bug in main gallery view
+ - some CICD work to make builds run smoother that was not smooth to set up
+
 ## 0.8.1
  - Added button to copy current main gallery filter in a format that can be pasted in a note to generate a block gallery
  - Added another button to paste the same information back in as a filter to use in the gallery
@@ -49,9 +55,3 @@
  - Fixing critical bug with meta file templates
  - Improves display of gallery filter on mobile
  - Image info blocks now try to resolve the image if the path has changed, and provides some info if it fails
-
-## v0.7.0
-- Total image count now only count file the gallery thinks it can display in the first place
-- More large gallery optimization
-- Added a setting for default hidden info
-- Added the option to set your own template file for the meta files

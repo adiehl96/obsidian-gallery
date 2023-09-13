@@ -45,17 +45,17 @@ export class GallerySettingTab extends PluginSettingTab
     
     // Gallery search bar
     new Setting(containerEl)
-    .setName('Filter starts open in main gallery')
-    .setDesc('Toggle this option to have the filter header start open.')
-    .addToggle((toggle) =>
-    {
-      toggle.setValue(this.plugin.settings.filterStartOpen)
-      toggle.onChange(async (value) =>
+      .setName('Filter starts open in main gallery')
+      .setDesc('Toggle this option to have the filter header start open.')
+      .addToggle((toggle) =>
       {
-        this.plugin.settings.filterStartOpen = value
-        await this.plugin.saveSettings()
-      });
-    })
+        toggle.setValue(this.plugin.settings.filterStartOpen)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.settings.filterStartOpen = value
+          await this.plugin.saveSettings()
+        });
+      })
 
     // Default image width
     new Setting(containerEl)
@@ -74,6 +74,43 @@ export class GallerySettingTab extends PluginSettingTab
           this.plugin.settings.width = Math.abs(numValue)
           await this.plugin.saveSettings()
         }))
+     
+    
+    // Use max height?
+    new Setting(containerEl)
+      .setName('Use max image height')
+      .setDesc('Toggle this option to set a max image height for images to display in collumns.')
+      .addToggle((toggle) =>
+      {
+        toggle.setValue(this.plugin.settings.useMaxHeight)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.settings.useMaxHeight = value;
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      })
+
+    // Max image height
+    if(this.plugin.settings.useMaxHeight)
+    {
+      new Setting(containerEl)
+      .setName('Max image height')
+      .setDesc('Max image height in `pixels` for images to display in collumns.')
+      .addText(text => text
+        .setPlaceholder(`${this.plugin.settings.maxHeight}`)
+        .onChange(async (value) =>
+        {
+          const numValue = parseInt(value)
+          if (isNaN(numValue))
+          {
+            return;
+          }
+
+          this.plugin.settings.maxHeight = Math.abs(numValue)
+          await this.plugin.saveSettings()
+        }))
+    }
     
     // Hidden meta fields
     new Setting(containerEl)

@@ -4,6 +4,7 @@ export class SuggestionDropdown
 {
 	target: HTMLInputElement
 	showOnClick: boolean = true
+	ignoreList: string[]
 	onGetItems: () => string[]
 	onSubmit: (submission: string) => void
 	onEmptyBackspace: () => void
@@ -167,6 +168,11 @@ export class SuggestionDropdown
 		const matches: [string,number][] = []
 		for (let i = 1; i < items.length; i++) 
 		{
+			if(this.ignoreList.contains(items[i]))
+			{
+				continue;
+			}
+			
 			const result = fuzzySearch({fuzzy: input.split(""), query: input, tokens: input.split(" ") }, items[i]);
 			if(result)
 			{
