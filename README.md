@@ -25,6 +25,18 @@
 
 
 # Release Notes
+## 1.0.1 RC2
+ - Fix for GH#4 images with extra file extensions in their title could be incorrectly detected as videos
+ - Fix for suggestion text sometimes missing items due to unawaited async functionality
+ - Hitting escape twice now exits the tag input field
+ - Hitting left and right while in the new tag input field no longer changes image focus
+ - Re-focuses the new tag input field when a tag has been submitted
+ - Don't suggest tags already on image
+ - Don't resize for small resize increases
+ - GH#5 Don't redraw for resizes unless there is column shifting
+ - GH#6 New optional setting for max image height
+ - Fix for meta file not immediately being available for edit after initial creation
+
 ## 1.0.0 RC1
  - Fuzzy search auto completer field added to tag block
  - tag block has Xs to delete tags
@@ -50,8 +62,3 @@
 
 ### Fixed
  - gh#1 Meta file overwritten by sidebar
-
-## v0.7.1
- - Fixing critical bug with meta file templates
- - Improves display of gallery filter on mobile
- - Image info blocks now try to resolve the image if the path has changed, and provides some info if it fails
