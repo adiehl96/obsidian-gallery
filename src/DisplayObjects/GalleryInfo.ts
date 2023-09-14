@@ -1,6 +1,7 @@
 import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "./SuggestionDropdown"
+import { getSearch } from "../utils"
 
 
 export class GalleryInfo
@@ -69,7 +70,6 @@ export class GalleryInfo
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Path";
 			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
-			imgLink.href = this.imgFile.path;
 			imgLink.textContent = this.imgFile.path;
 			imgLink.addEventListener('click', async (e) =>
 			{
@@ -132,14 +132,12 @@ export class GalleryInfo
 				{
 					const pill = currentVal.createDiv("gallery-info-section-pill");	
 					pill.style.backgroundColor = this.#accentColorDark;
-					// TODO: for visual consistency I want to change this, but I don't know how to get the link functionality yet
-					// const currentTag = pill.createSpan("multi-select-pill-content")
-					// currentTag.textContent = this.tagList[i];
-					const currentTag = pill.createEl("a", { cls: 'tag' })
-					currentTag.target = "_blank";
-					currentTag.rel = "noopener";
-					currentTag.href = this.tagList[i];
+					const currentTag = pill.createSpan("multi-select-pill-content")
 					currentTag.textContent = this.tagList[i];
+					currentTag.addEventListener("click", 
+					async (s) =>{
+						getSearch("tag:"+this.tagList[i].replace("#",""), this.plugin.app)
+					});
 					const removal = pill.createDiv("multi-select-pill-remove-button")
 					removal.createSpan().textContent = "X";
 					removal.addEventListener("click", 
@@ -217,7 +215,6 @@ export class GalleryInfo
 				for(let i = 0; i < this.imgLinks.length; i++)
 				{
 					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
-					link.href = this.imgLinks[i].path;
 					link.textContent = this.imgLinks[i].name;
 					link.addEventListener('click', async (e) =>
 					{

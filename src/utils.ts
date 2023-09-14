@@ -1,4 +1,4 @@
-import type { DataAdapter, Vault, MetadataCache } from 'obsidian'
+import type { DataAdapter, Vault, MetadataCache, App } from 'obsidian'
 import { TFolder, TFile, getAllTags, normalizePath } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 
@@ -161,6 +161,17 @@ const initializeInfo = (template: string, imgPath: string, imgName: string): str
   final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(N|n)(A|a)(M|m)(E|e)\s*%>/g), imgName);
 
   return final;
+}
+
+/**
+ * Open the search window to a query. 
+ * !!!This uses unsafe internal references and may break at any time!!!
+ * @param someSearchQuery text of the query
+ * @param app ref to the app
+ */
+export const getSearch = async (someSearchQuery: string, app: App) : Promise<void> => {
+  //@ts-ignore
+  app.internalPlugins.getPluginById('global-search').instance.openGlobalSearch(someSearchQuery);
 }
 
 /**
