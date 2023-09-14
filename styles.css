@@ -25,10 +25,6 @@
     padding: 10px;
 }
 
-.ob-gallery-filter-checkbox-input{
-
-}
-
 .ob-gallery-filter-slider-input{
     width: 125px !important;
     left: 5px;
@@ -42,11 +38,12 @@
     left: 5px;
     position: static;
     margin-right: 5px;
-    display: inline-block !important;
+    display: flex !important;
 }
 
 .ob-gallery-filter-input {
-    width: 21% !important;
+    width: -webkit-fill-available !important;
+    min-width: 10% !important;
     left: 10px;
     position: static;
     margin-right: 10px;
@@ -129,6 +126,28 @@
 
 .gallery-info-section-label {
     margin-right: 20px;
+}
+
+.view-action{
+    margin: 5px;
+}
+
+.gallery-search-bar {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.gallery-search-bar label{
+    margin-top: 10px;
+}
+
+.gallery-search-bar input[type=range]{
+    margin-top: 15px;
+}
+
+.gallery-search-bar input[type=checkbox]{
+    margin-top: 5px;
 }
 
 .gallery-info-section-value {

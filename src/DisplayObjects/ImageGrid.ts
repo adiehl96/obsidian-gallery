@@ -18,6 +18,9 @@ export class ImageGrid
 	reverse : boolean = false
 	maxWidth : number
 	maxHeight : number
+	random : number
+	customList: number[]
+
 	imgResources!: ImageResources
 	imgList: string[] = []
 	totalCount: number = 0
@@ -65,6 +68,29 @@ export class ImageGrid
 			this.plugin)
 		
 		this.imgList = Object.keys(this.imgResources)
+
+		if(this.random > 0)
+		{
+			this.customList = [];
+			if(this.random < this.imgList.length)
+			{
+				while(this.customList.length < this.random)
+				{
+					const value = Math.floor(Math.random()*this.imgList.length);
+
+					if(!this.customList.contains(value))
+					{
+						this.customList.push(value);
+					}
+				}
+			}
+		}
+		
+		if (this.customList && this.customList.length > 0)
+		{
+			this.imgList = this.customList.filter(value => !Number.isNaN(value)).map(i => this.imgList[i])
+		}
+
 		if(this.reverse)
 		{
 			this.imgList = this.imgList.reverse()

@@ -36,6 +36,7 @@ export interface GalleryBlockArgs
   divAlign: string
   reverseOrder: string
   customList: string
+  random: number
 }
 
 export interface InfoBlockArgs

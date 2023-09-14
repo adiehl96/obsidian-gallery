@@ -29,7 +29,8 @@ export class GalleryProcessor
       divWidth: 100,
       divAlign: 'left',
       reverseOrder: 'false',
-      customList: ''
+      customList: '',
+      random: 0
     };
 
     source.split('\n').map(e =>
@@ -53,7 +54,6 @@ export class GalleryProcessor
       return;
     }
     
-    
     const imagesContainer = elCanvas.createEl('ul')
     const imageGrid = new ImageGrid(imagesContainer, plugin);
     imageGrid.path = args.path;
@@ -68,12 +68,14 @@ export class GalleryProcessor
     imageGrid.exclusive = args.exclusive === 'true';
     imageGrid.matchCase = args.matchCase === 'true';
     imageGrid.reverse = args.reverseOrder === 'true';
-    await imageGrid.updateData();
-
+    imageGrid.random = args.random;
+    
     if (args.customList)
     {
-      imageGrid.imgList = args.customList.split(' ').map(i => parseInt(i)).filter(value => !Number.isNaN(value)).map(i => imageGrid.imgList[i])
+      imageGrid.customList = args.customList.split(' ').map(i => parseInt(i));
     }
+
+    await imageGrid.updateData();
 
     if (args.type === 'grid')
     {

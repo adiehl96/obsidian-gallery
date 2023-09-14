@@ -25,6 +25,8 @@ export class GalleryView extends ItemView
   imageGrid: ImageGrid
   widthScaleEl: HTMLInputElement
 
+  #randomEl: HTMLInputElement
+
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
     super(leaf)
@@ -93,8 +95,8 @@ export class GalleryView extends ItemView
 
     if(this.filterEl)
     {
-      const filterTopDiv = this.filterEl.createDiv();
-      const filterBottomDiv = this.filterEl.createDiv();
+      const filterTopDiv = this.filterEl.createDiv({cls:"gallery-search-bar"});
+      const filterBottomDiv = this.filterEl.createDiv({cls:"gallery-search-bar"});
 
       // Filter by path
       const pathFilterEl = filterTopDiv.createEl('input', {
@@ -151,7 +153,6 @@ export class GalleryView extends ItemView
       // file filter counts
       this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': 'Number of files displayed by filter out of files the gallery could display'}});
       this.countEl.textContent = "counts";
-
 
       // Filter by Tags
       const tagFilterEl = filterBottomDiv.createEl('input', {
@@ -233,6 +234,46 @@ export class GalleryView extends ItemView
         }
       });
 
+      // Add action button to show random options and randomize them
+      const randomDiv = filterBottomDiv.createDiv();
+      const randomButton = filterTopDiv.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Randomise images' } })
+      setIcon(randomButton, 'dice')
+      randomDiv.style.display = "none";
+      randomDiv.style.marginLeft= "auto";
+      this.#randomEl = randomDiv.createEl('input', {
+        cls: 'ob-gallery-filter-input',
+        type: 'number',
+        attr: { 'aria-label': 'number of random images to grab', min:"1", value: "10" }
+      })
+      this.#randomEl.style.marginLeft= "auto";
+      this.#randomEl.addEventListener("focus", async ()=>{
+        await this.updateData();
+        this.imageGrid.updateDisplay();
+      })
+      this.#randomEl.addEventListener("input", async ()=>{
+        this.imageGrid.random = parseInt(this.#randomEl.value);
+        await this.updateData();
+        this.imageGrid.updateDisplay();
+      })
+
+      randomButton.onClickEvent(async () =>
+      {
+        const currentMode = randomDiv.style.getPropertyValue('display')
+        if (currentMode === 'block')
+        {
+          randomDiv.style.setProperty('display', 'none')
+          this.imageGrid.random = 0;
+          this.imageGrid.customList = [];
+          await this.updateData();
+          this.imageGrid.updateDisplay();
+          return;
+        }
+        randomDiv.style.setProperty('display', 'block')
+        this.imageGrid.random = parseInt(this.#randomEl.value);
+        await this.updateData();
+        this.imageGrid.updateDisplay();
+      });
+
       // Copy button functionality
       if(copyFilterButton)
       {
@@ -248,6 +289,10 @@ export class GalleryView extends ItemView
           filterCopy += "\nexclusive=" + exclusiveFilterEl.checked;
           filterCopy += "\nimgWidth=" + parseInt(this.widthScaleEl.value);
           filterCopy += "\nreverseOrder=" + sortReverseEl.checked;
+          if(randomDiv.style.getPropertyValue('display') === 'block')
+          {
+            filterCopy += "\nrandom=" + parseInt(this.#randomEl.value);
+          }
           filterCopy += "\n```"
 
           await navigator.clipboard.writeText(filterCopy);
@@ -301,6 +346,11 @@ export class GalleryView extends ItemView
                 sortReverseEl.checked = (parts[1] === "true"); 
                 this.imageGrid.reverse = (parts[1] === "true");
                 break;
+                case 'random' : 
+                this.#randomEl.value = parts[1]; 
+                this.imageGrid.random = parseInt(parts[1]);
+                randomDiv.style.setProperty('display', 'block')
+                break;
                 default : continue;
               }
             }
@@ -316,6 +366,7 @@ export class GalleryView extends ItemView
   {
     await this.imageGrid.updateData();
     this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
+    this.#randomEl.max = this.imageGrid.totalCount+"";
   }
 
   getViewType(): string
