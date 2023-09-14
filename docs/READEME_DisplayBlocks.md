@@ -47,6 +47,8 @@ default=false
 Should image order be flipped
 ## customList
 Specify images to display from the filtered list by their order in the list
+## random
+Specify number of random images to display from the filtered list. If zero or greater than the number of results from the filter it is ignored
 ## type
 default=grid
 Type of gallery display to use. Can be grid or active-thumb

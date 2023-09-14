@@ -234,7 +234,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
       const filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
       await vault.create(filepath, initializeInfo(template, imgPath, imgName));
       // TODO: this waits a moment for the metadatacache to catch up with the new backlinks, but boy does it feel gross. Need to find out if there's another way to do this
-      await new Promise(f => setTimeout(f, 50));
+      await new Promise(f => setTimeout(f, 100));
       infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
     }
     return infoFile 
