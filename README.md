@@ -25,6 +25,13 @@
 
 
 # Release Notes
+## 1.0.2 RC3
+ - Added a license
+ - GH#11 side panel links were not working, they should now
+ - GH#7 Support for a randomized subset of filter by either tapping on the dice icon in the main gallery or adding field to the block galleries
+ - attempting to retain scroll position on redraw of gallery
+ - Relocate suggestions if they would be partially offscreen
+
 ## 1.0.1 RC2
  - Fix for GH#4 images with extra file extensions in their title could be incorrectly detected as videos
  - Fix for suggestion text sometimes missing items due to unawaited async functionality
