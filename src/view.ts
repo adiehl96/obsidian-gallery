@@ -91,7 +91,6 @@ export class GalleryView extends ItemView
         return;
       }
       this.#scrollPosition = this.displayEl.scrollTop;
-      new Notice(this.displayEl.scrollTop+"");
     })
 
     this.imagesContainer = this.displayEl.createEl('ul')

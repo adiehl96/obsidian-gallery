@@ -1,4 +1,5 @@
 import { fuzzySearch } from "obsidian";
+import { offScreenPartial } from "../utils";
 
 export class SuggestionDropdown
 {
@@ -14,6 +15,7 @@ export class SuggestionDropdown
 	#showing: boolean = false
 	#selected: HTMLDivElement
 	#input: string
+	#leftLocked: boolean
 	
 	constructor(target: HTMLInputElement, getItems: () => string[], onSubmit: (submission: string) => void)
 	{
@@ -26,15 +28,15 @@ export class SuggestionDropdown
 		this.#suggestions.style.maxHeight = 300+"px";
 		this.#suggestions.style.overflowY = "auto";
 		
-		this.target.addEventListener("input", () =>{
-			this.#updateSuggestions(this.target.value)
+		this.target.addEventListener("input", async() =>{
+			await this.#updateSuggestions(this.target.value)
 			this.#show();
 		});
 		
-		this.target.addEventListener("click", () =>{
+		this.target.addEventListener("click", async () =>{
 			if(this.showOnClick)
 			{
-				this.#updateSuggestions(this.target.value)
+				await this.#updateSuggestions(this.target.value)
 				this.#show();
 			}
 		});
@@ -219,7 +221,7 @@ export class SuggestionDropdown
 		item.addClass("is-selected");
 	}
 
-	#show()
+	async #show()
 	{
 		let top, left;
 		[top, left] = this.getCoords();
@@ -227,6 +229,14 @@ export class SuggestionDropdown
 		this.#self.style.left = left+"px";
 		this.#self.style.top = top+"px";
 		this.#showing = true;
+
+		if(this.#leftLocked || offScreenPartial(this.#self))
+		{
+			this.#leftLocked = true
+			const box = this.#self.getBoundingClientRect();
+			this.#self.style.left = (left-box.width)+"px";
+			this.#self.style.top = (top-box.height)+"px";
+		}
 	}
 
 	getCoords()
@@ -262,6 +272,7 @@ export class SuggestionDropdown
 			this.#self.remove();
 		}
 
+		this.#leftLocked = false;
 		this.#showing = false;
 	}
 }

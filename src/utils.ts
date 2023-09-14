@@ -176,6 +176,30 @@ export const getSearch = async (someSearchQuery: string, app: App) : Promise<voi
 }
 
 /**
+ * Figures out if the element is partially offscreen
+ * @param el element to check
+ * @returns 
+ */
+export const offScreenPartial = function(el:HTMLElement) : boolean {
+  var rect = el.getBoundingClientRect();
+  const a = (rect.x + rect.width) > window.innerWidth
+  const b = (rect.y + rect.height) > window.innerHeight
+  const c = rect.x < 0
+  const d = rect.y < 0
+  return a || b || c || d;
+};
+
+export const offscreenFull = function(el:HTMLElement) : boolean {
+  var rect = el.getBoundingClientRect();
+  return (
+           (rect.x + rect.width) < 0 
+             || (rect.y + rect.height) < 0
+             || (rect.x > window.innerWidth 
+              || rect.y > window.innerHeight)
+         );
+};
+
+/**
  * Return Image Info File, if not present create it
  * @param imgPath - Obsidian Vault Image relative path
  * @param vault - Vault handler
@@ -244,6 +268,12 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
   return null
 };
 
+/**
+ * used to find potential correct links for when a path has broken
+ * @param path old path that is broken
+ * @param plugin plugin ref
+ * @returns list of file paths that match the file name
+ */
 export const searchForFile = async (path: string, plugin: GalleryTagsPlugin): Promise<string[]> =>
 {
   const foundPaths: string[] = []
