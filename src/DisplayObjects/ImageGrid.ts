@@ -28,6 +28,7 @@ export class ImageGrid
 	imgResources!: ImageResources
 	imgList: string[] = []
 	totalCount: number = 0
+	selectMode: boolean
 	
 	#tempImg: string
 	#redraw: boolean
@@ -38,7 +39,6 @@ export class ImageGrid
 	#imgFocusIndex: number
 	#pausedVideo: HTMLVideoElement 
 	#pausedVideoUrl: string = ''
-	#shiftDown: boolean
 
 	constructor(parent: HTMLElement, plugin: GalleryTagsPlugin)
 	{
@@ -287,27 +287,12 @@ export class ImageGrid
 				return;
 			}
 
-			if(Keymap.isModEvent(evt as UserEvent))
+			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
 			{
-				new Notice("mod event");
-				return;
-			}
-			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.#shiftDown)
-			{
-				new Notice("shift event");
 				evt.stopImmediatePropagation();
 
 				const visualEl = evt.target as (HTMLVideoElement | HTMLImageElement)
-				if(this.#selectedEls.contains(visualEl))
-				{
-					this.#selectedEls.remove(visualEl);
-					visualEl.removeClass("selected-item");
-				}
-				else
-				{
-					this.#selectedEls.push(visualEl);
-					visualEl.addClass("selected-item");
-				}
+				this.#selectElement(visualEl);
 				
 				if(infoView)
 				{
@@ -315,8 +300,6 @@ export class ImageGrid
 				}
 				return;
 			}
-			
-			new Notice("Other click: "+evt.buttons);
 
 			if (evt.target instanceof HTMLImageElement)
 			{
@@ -396,16 +379,16 @@ export class ImageGrid
 			// Mobile clicks don't seem to include shift key information
 			if(event.shiftKey)
 			{
-				this.#shiftDown = true;
+				this.selectMode = true;
 			}
 
 		}, false)
 
 		document.addEventListener('keyup', async (event) =>
 		{
-			if(this.#shiftDown && !event.shiftKey)
+			if(this.selectMode && !event.shiftKey)
 			{
-				this.#shiftDown = false;
+				this.selectMode = false;
 			}
 
 			if (imageFocusEl.style.getPropertyValue('display') != 'block')
@@ -432,6 +415,21 @@ export class ImageGrid
 
 		}, false)
 	}
+
+	selectAll()
+	{
+		this.#selectedEls = [];
+
+		for (let col = 0; col < this.#columnEls.length; col++) 
+		{
+			const column = this.#columnEls[col];
+
+			for (let index = 0; index < column.childElementCount; index++) 
+			{
+				this.#selectElement(column.children[index] as (HTMLVideoElement | HTMLImageElement));
+			}
+		}
+	}
 	
 	clearSelection()
 	{
@@ -443,6 +441,20 @@ export class ImageGrid
 			}
 
 			this.#selectedEls = []
+		}
+	}
+
+	#selectElement(visualEl:(HTMLVideoElement | HTMLImageElement))
+	{
+		if(this.#selectedEls.contains(visualEl))
+		{
+			this.#selectedEls.remove(visualEl);
+			visualEl.removeClass("selected-item");
+		}
+		else
+		{
+			this.#selectedEls.push(visualEl);
+			visualEl.addClass("selected-item");
 		}
 	}
 

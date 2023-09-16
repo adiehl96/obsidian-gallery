@@ -1,7 +1,7 @@
 import type { ImageGrid } from "./ImageGrid";
 import type GalleryTagsPlugin from "../main";
 import { getImgInfo, offScreenPartial } from "../utils";
-import { TFile } from "obsidian";
+import { Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyTags } from "./FuzzySuggestions";
 
@@ -35,31 +35,43 @@ export class ImageMenu
 
 		if(this.#targets.length == 0)
 		{
-			return;
+			if(!Platform.isDesktopApp)
+			{
+				items.push(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+			}
+			items.push("Select all");
 		}
-
-		if(this.#targets.length == 1)
+		else
 		{
-			const info = this.#options.createDiv({cls: "suggestion-item"});
-			info.innerText = '"'+this.#imageGrid.imgResources[this.#targets[0].src]+'" selected';
-			items.push("Open image file");
-			items.push("Open meta file");
-		}
+			if(this.#targets.length == 1)
+			{
+				const info = this.#options.createDiv({cls: "suggestion-item"});
+				info.innerText = '"'+this.#imageGrid.imgResources[this.#targets[0].src]+'" selected';
+				items.push("Open image file");
+				items.push("Open meta file");
+			}
 
-		if(this.#targets.length > 1)
-		{
-			const info = this.#options.createDiv({cls: "suggestion-item"});
-			info.innerText = this.#targets.length+" selected";
-			items.push("Clear selection");
-		}
+			if(this.#targets.length > 1)
+			{
+				const info = this.#options.createDiv({cls: "suggestion-item"});
+				info.innerText = this.#targets.length+" selected";
+				items.push("Clear selection");
+			}
 
-		items.push("Add tag");
-		// items.push("Remove tag");
-		// items.push("Move images");
-		// items.push("Move meta");
-		// items.push("Delete meta");
-		// items.push("Delete both");
-		// items.push("Rename both");
+			if(!Platform.isDesktopApp)
+			{
+				items.push(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+			}
+			items.push("Select all");
+
+			items.push("Add tag");
+			// items.push("Remove tag");
+			// items.push("Move images");
+			// items.push("Move meta");
+			// items.push("Delete meta");
+			// items.push("Delete both");
+			// items.push("Rename both");
+		}
 
 		for (let i = 0; i < items.length; i++) 
 		{
@@ -109,6 +121,9 @@ export class ImageMenu
 		{
 			case "Open image file": this.#resultOpenImage(); break;
 			case "Open meta file": this.#resultOpenMeta(); break;
+			case "Start Selection": this.#imageGrid.selectMode = true; break;
+			case "End Selection": this.#imageGrid.selectMode = false; break;
+			case "Select all": this.#imageGrid.selectAll(); break;
 			case "Clear selection": this.#imageGrid.clearSelection(); break;
 			case "Add tag": this.#resultAddTag(); break;
 		}
