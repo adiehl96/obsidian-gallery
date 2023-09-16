@@ -25,6 +25,21 @@
 
 
 # Release Notes
+## 1.0.3 RC4
+ - Shift click to select multiple images in a gallery view (highlights in accent color)
+ - Context menu for gallery views that includes options to
+	 - Select all
+	 - Start tap selection(mobile only)
+	 - Clear selection
+	 - Open single image
+	 - Open single meta file
+	 - Add a tag to selected files
+	 - Copy selected images links to clipboard
+	 - Copy selected meta links to clipboard
+	 - Delete selected meta files
+	 - Delete selected images(and their meta files)
+ - Added new option to gallery blocks to limit the block's height(and create a scroll bar if needed)
+
 ## 1.0.2 RC3
  - Added a license
  - GH#11 side panel links were not working, they should now
@@ -49,12 +64,3 @@
  - tag block has Xs to delete tags
  - Fixed refresh bug in main gallery view
  - some CICD work to make builds run smoother that was not smooth to set up
-
-## 0.8.1
- - Added button to copy current main gallery filter in a format that can be pasted in a note to generate a block gallery
- - Added another button to paste the same information back in as a filter to use in the gallery
- - Gallery blocks now support match case setting
- - Better handling for dots in the image file name
- - Gallery view optimizations
- - Auto resizing gallery views when the window resizes
- - removed old version specific codemirror dependencies
