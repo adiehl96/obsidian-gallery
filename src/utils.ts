@@ -169,7 +169,7 @@ const initializeInfo = (template: string, imgPath: string, imgName: string): str
   {
     template = defaultTemplate;
   }
-  const uri = imgPath.replaceAll(' ', '%20');
+  const uri = preprocessUri(imgPath);
   const infoBlock = "```gallery-info\nimgPath="+imgPath+"\n```";
   const link = "["+imgName+"]("+uri+")";
   const embed = "![]("+uri+")";
@@ -183,6 +183,13 @@ const initializeInfo = (template: string, imgPath: string, imgName: string): str
   final = final.replaceAll(new RegExp(/<%\s*(I|i)(M|m)(G|g)\s*(N|n)(A|a)(M|m)(E|e)\s*%>/g), imgName);
 
   return final;
+}
+
+export const preprocessUri = (original: string): string =>
+{
+  const uri = original.replaceAll(' ', '%20');
+
+  return uri;
 }
 
 /**

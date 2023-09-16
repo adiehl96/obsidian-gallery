@@ -1,7 +1,7 @@
 import type { ImageGrid } from "./ImageGrid";
 import type GalleryTagsPlugin from "../main";
-import { getImgInfo, offScreenPartial } from "../utils";
-import { Platform, TFile } from "obsidian";
+import { getImgInfo, offScreenPartial, preprocessUri } from "../utils";
+import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyTags } from "./FuzzySuggestions";
 
@@ -31,15 +31,18 @@ export class ImageMenu
 			this.#cleanUp();
 		});
 
-		const items:string[] = [];
-
 		if(this.#targets.length == 0)
 		{
+			const info = this.#options.createDiv({cls: "suggestion-item"});
+			info.innerText = 'Nothing selected';
+
+			this.#options.createDiv({cls: "suggestion-item-separator"});
+
 			if(!Platform.isDesktopApp)
 			{
-				items.push(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+				this.#createItem(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
 			}
-			items.push("Select all");
+			this.#createItem("Select all");
 		}
 		else
 		{
@@ -47,52 +50,68 @@ export class ImageMenu
 			{
 				const info = this.#options.createDiv({cls: "suggestion-item"});
 				info.innerText = '"'+this.#imageGrid.imgResources[this.#targets[0].src]+'" selected';
-				items.push("Open image file");
-				items.push("Open meta file");
+
+				this.#options.createDiv({cls: "suggestion-item-separator"});
+
+				this.#createItem("Open image file");
+				this.#createItem("Open meta file");
 			}
 
 			if(this.#targets.length > 1)
 			{
 				const info = this.#options.createDiv({cls: "suggestion-item"});
 				info.innerText = this.#targets.length+" selected";
-				items.push("Clear selection");
+
+				this.#options.createDiv({cls: "suggestion-item-separator"});
+
+				this.#createItem("Clear selection");
 			}
 
 			if(!Platform.isDesktopApp)
 			{
-				items.push(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+				this.#createItem(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
 			}
-			items.push("Select all");
+			this.#createItem("Select all");
+			
+			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			items.push("Add tag");
-			// items.push("Remove tag");
-			// items.push("Move images");
-			// items.push("Move meta");
-			// items.push("Rename both");
-			items.push("Delete image(and meta)");
-			items.push("Delete just meta");
-		}
+			this.#createItem("Copy image links");
+			this.#createItem("Copy meta links");
+			
+			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-		for (let i = 0; i < items.length; i++) 
-		{
-			const item = this.#options.createDiv({cls: "suggestion-item"});
-			item.textContent = items[i];
-			item.addEventListener("mouseover", (e) => {
-				this.#select(item)
-			});
-			item.addEventListener("mousedown", () => {
-				this.#submit();
-			})
+			this.#createItem("Add tag");
+			// this.#createItem("Remove tag");
+			// this.#options.createDiv({cls: "suggestion-item-separator"});
+			// this.#createItem("Move images");
+			// this.#createItem("Rename");
+			
+			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			if(items[i].contains("Delete"))
-			{
-				item.style.color = "#cc2222";
-			}
+			this.#createItem("Delete image(and meta)");
+			this.#createItem("Delete just meta");
 		}
 
 		this.#self.addEventListener("blur", () => {this.#cleanUp()});
 
 		this.#show(posX,posY);
+	}
+
+	#createItem(text: string)
+	{
+		const item = this.#options.createDiv({cls: "suggestion-item"});
+		item.textContent = text;
+		item.addEventListener("mouseover", (e) => {
+			this.#select(item)
+		});
+		item.addEventListener("mousedown", () => {
+			this.#submit();
+		})
+
+		if(text.contains("Delete"))
+		{
+			item.style.color = "#cc2222";
+		}
 	}
 
 	#select(item: HTMLDivElement)
@@ -130,6 +149,8 @@ export class ImageMenu
 			case "End Selection": this.#imageGrid.selectMode = false; break;
 			case "Select all": this.#imageGrid.selectAll(); break;
 			case "Clear selection": this.#imageGrid.clearSelection(); break;
+			case "Copy image links": this.#resultCopyImageLink(); break;
+			case "Copy meta links": this.#resultCopyMetaLink(); break;
 			case "Add tag": this.#resultAddTag(); break;
 			case "Delete image(and meta)": this.#resultDeleteImage(); break;
 			case "Delete just meta": this.#resultDeleteMeta(); break;
@@ -166,6 +187,56 @@ export class ImageMenu
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
 		}
+	}
+
+	async #resultCopyImageLink()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+		
+		let links = "";
+
+		for (let i = 0; i < this.#targets.length; i++) 
+		{
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
+			if(file instanceof TFile)
+			{
+				links += `![${file.basename}](${preprocessUri(file.path)})\n`
+			}
+		}
+
+		await navigator.clipboard.writeText(links);
+
+		new Notice("Links copied to clipboard");
+	}
+
+	async #resultCopyMetaLink()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+		
+		let links = "";
+
+		for (let i = 0; i < this.#targets.length; i++) 
+		{
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+				this.#plugin.app.vault,
+				this.#plugin.app.metadataCache,
+				this.#plugin,
+				true);
+			if(infoFile)
+			{
+				links += `[${infoFile.basename}](${preprocessUri(infoFile.path)})\n`
+			}
+		}
+
+		await navigator.clipboard.writeText(links);
+
+		new Notice("Links copied to clipboard");
 	}
 
 	#resultAddTag()
@@ -235,7 +306,7 @@ export class ImageMenu
 
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[0].src])
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
 			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
