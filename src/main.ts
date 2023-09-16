@@ -55,6 +55,17 @@ export default class GalleryTagsPlugin extends Plugin
 
     this.refreshColors()
     
+		let style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = '.icon-checked { color: '+this.accentColor+'; }';
+		document.getElementsByTagName('head')[0].appendChild(style);	
+
+		style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = '.selected-item { border: 5px solid '+this.accentColorLight+'; }';
+		document.getElementsByTagName('head')[0].appendChild(style);	
+    
+    
     // this.registerEvent(
     //   this.app.workspace.on("file-menu", (menu, file, source) => { new Notice(source);}));
       
