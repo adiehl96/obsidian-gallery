@@ -3,6 +3,7 @@ import type GalleryTagsPlugin from "../main";
 import { getImgInfo, offScreenPartial } from "../utils";
 import { TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
+import { FuzzyTags } from "./FuzzySuggestions";
 
 export class ImageMenu
 {
@@ -52,7 +53,7 @@ export class ImageMenu
 			items.push("Clear selection");
 		}
 
-		// items.push("Add tag");
+		items.push("Add tag");
 		// items.push("Remove tag");
 		// items.push("Move images");
 		// items.push("Move meta");
@@ -94,7 +95,7 @@ export class ImageMenu
 		item.addClass("is-selected");
 	}
 
-	async #submit()
+	#submit()
 	{
 		let result:string = "";
 		if(this.#selected)
@@ -106,44 +107,83 @@ export class ImageMenu
 
 		switch(result)
 		{
-			case "Open image file":
-				if(this.#infoView)
-				{
-					this.#infoView.clear()
-				}
+			case "Open image file": this.#resultOpenImage(); break;
+			case "Open meta file": this.#resultOpenMeta(); break;
+			case "Clear selection": this.#imageGrid.clearSelection(); break;
+			case "Add tag": this.#resultAddTag(); break;
+		}
+	}
 
-				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[0].src])
-				if (file instanceof TFile)
-				{
-					this.#plugin.app.workspace.getLeaf(false).openFile(file)
-				}
-				break;
-			case "Open meta file":
-				if(this.#infoView)
-				{
-					this.#infoView.clear()
-				}
+	#resultOpenImage()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
 
-				const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[0].src],
+		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[0].src])
+		if (file instanceof TFile)
+		{
+			this.#plugin.app.workspace.getLeaf(false).openFile(file)
+		}
+	}
+
+	async #resultOpenMeta()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+
+		const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[0].src],
+			this.#plugin.app.vault,
+			this.#plugin.app.metadataCache,
+			this.#plugin,
+			true);
+		if (infoFile instanceof TFile)
+		{
+			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
+		}
+	}
+
+	#resultAddTag()
+	{
+		const fuzzyTags = new FuzzyTags(this.#plugin.app)
+		fuzzyTags.onSelection = async (s) =>{
+			const tag = s.trim();
+			if(tag === '')
+			{
+				return;
+			}
+			for (let i = 0; i < this.#targets.length; i++) 
+			{
+				const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
 					this.#plugin.app.vault,
 					this.#plugin.app.metadataCache,
 					this.#plugin,
 					true);
-				if (infoFile instanceof TFile)
-				{
-					this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
-				}
-				break;
-			case "Clear selection":
-				this.#imageGrid.clearSelection();
-				break;
-			case "Add tag":
+				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
+					let tags = frontmatter.tags ?? []
+					if (!Array.isArray(tags)) 
+					{ 
+						tags = [tags]; 
+					}
 
-				break;
+					if(tags.contains(tag))
+					{
+						return;
+					}
+
+					tags.push(tag);
+					frontmatter.tags = tags;
+					});
+			}
 		}
+
+		fuzzyTags.open()
 	}
 
-	async #show(posX:number,posY:number)
+	#show(posX:number,posY:number)
 	{
 		activeDocument.body.appendChild(this.#self);
 		
