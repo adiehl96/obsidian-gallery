@@ -187,14 +187,14 @@ export class ImageMenu
 	{
 		activeDocument.body.appendChild(this.#self);
 		
-		this.#self.style.left = posX+"px";
-		this.#self.style.top = posY+"px";
+		this.#self.style.left = (posX-4)+"px";
+		this.#self.style.top = (posY-4)+"px";
 
 		if(offScreenPartial(this.#self))
 		{
 			const box = this.#self.getBoundingClientRect();
-			this.#self.style.left = (posX-box.width)+"px";
-			this.#self.style.top = (posY-box.height)+"px";
+			this.#self.style.left = (posX-box.width+4)+"px";
+			this.#self.style.top = (posY-box.height+4)+"px";
 		}
 	}
 
