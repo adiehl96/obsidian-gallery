@@ -68,6 +68,11 @@
     float: unset !important;
 }
 
+.icon-toggle{
+    margin: 5px;
+    color: darkgray;
+}
+
 .image-info-edit {
     position: fixed;
     right: 0px;

@@ -8,6 +8,7 @@ import {
 	updateFocus
   } from '../utils'
 import type { GalleryInfoView } from "../view"
+import { ImageMenu } from "./ImageMenu"
 
 export class ImageGrid
 {
@@ -53,6 +54,7 @@ export class ImageGrid
 		var style = document.createElement('style');
 		style.type = 'text/css';
 		style.innerHTML = '.selected-item { border: 5px solid '+plugin.accentColorLight+'; }';
+		style.innerHTML = '.icon-checked { color: '+plugin.accentColor+'; }';
 		document.getElementsByTagName('head')[0].appendChild(style);	
 	}
 
@@ -209,6 +211,64 @@ export class ImageGrid
 		setLazyLoading();
 	}
 
+	getFilter(): string
+	{
+		let filterCopy = "```gallery"
+		filterCopy += "\npath=" + this.path
+		filterCopy += "\nname=" + this.name
+		filterCopy += "\ntags=" + this.tag
+		filterCopy += "\nmatchCase=" + this.matchCase
+		filterCopy += "\nexclusive=" + this.exclusive
+		filterCopy += "\nimgWidth=" + this.maxWidth
+		filterCopy += "\nreverseOrder=" + this.reverse
+		filterCopy += "\nrandom=" + this.random
+		filterCopy += "\n```"
+
+		return filterCopy;
+	}
+
+	setFilter(filter:string)
+	{		
+		const lines = filter.split('\n');
+		for(let i = 0; i < lines.length; i++)
+		{
+		  const parts = lines[i].split('=');
+		  if(parts.length <2)
+		  {
+			continue;
+		  }
+
+		  switch(parts[0].toLocaleLowerCase())
+		  {
+			case 'path' : 
+			this.path = parts[1];
+			break;
+			case 'name' : 
+			this.name = parts[1];
+			break;
+			case 'tags' : 
+			this.tag = parts[1];
+			break;
+			case 'matchcase' : 
+			this.matchCase = (parts[1] === "true");
+			break;
+			case 'exclusive' : 
+			this.exclusive = (parts[1] === "true");
+			break;
+			case 'imgwidth' : 
+			this.maxWidth = parseInt(parts[1]);
+			break;
+			case 'reverseorder' : 
+			this.reverse = (parts[1] === "true");
+			break;
+			case 'random' : 
+			this.random = parseInt(parts[1]);
+			break;
+			default : continue;
+		  }
+		}
+	}
+
 	setupClickEvents(displayEl: HTMLElement, imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
 	{
 		displayEl.onclick = async (evt) =>
@@ -299,20 +359,13 @@ export class ImageGrid
 
 		displayEl.addEventListener('contextmenu', async (e) =>
 		{
-			if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement)
+			if(this.#selectedEls.length == 0 && (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement))
 			{
-				if(infoView)
-				{
-					// Clear the preview and editor history
-					infoView.clear()
-				}
-
-				// Open image file
-				const file = this.plugin.app.vault.getAbstractFileByPath(this.imgResources[e.target.src])
-				if (file instanceof TFile)
-				{
-					this.plugin.app.workspace.getLeaf(false).openFile(file)
-				}
+				new ImageMenu(e.pageX, e.pageY, [e.target], this, this.plugin);
+			}
+			else
+			{
+				new ImageMenu(e.pageX, e.pageY, this.#selectedEls, this, this.plugin);
 			}
 		})
 

@@ -134,23 +134,22 @@ export class GalleryView extends ItemView
 
       // Should display order be reversed
       const sortReverseDiv = filterTopDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox',
+        cls: 'icon-toggle',
         attr: { 'aria-label': 'Should the sort order be reversed'}
       })
-      const sortReverseEl = sortReverseDiv.createEl('input', {
-        cls: 'ob-gallery-filter-checkbox-input',
-        type: 'checkbox'
-      })
-      sortReverseEl.name = 'sortReverse'
-      sortReverseEl.id = 'sortReverse'
+      setIcon(sortReverseDiv, "arrow-up-down")
 
-      const sortReverseLabelEl = sortReverseDiv.createEl('label');
-      sortReverseLabelEl.textContent = "Flip";
-      sortReverseLabelEl.htmlFor = "sortReverse"
-
-      sortReverseEl.addEventListener('input', async () =>
+      sortReverseDiv.addEventListener('mousedown', async () =>
       {
-        this.imageGrid.reverse = sortReverseEl.checked;
+        this.imageGrid.reverse = !this.imageGrid.reverse;
+        if(this.imageGrid.reverse)
+        {
+          sortReverseDiv.addClass("icon-checked");
+        }
+        else
+        {
+          sortReverseDiv.removeClass("icon-checked");
+        }
         await this.updateData();
         this.updateDisplay();
       });
@@ -175,46 +174,44 @@ export class GalleryView extends ItemView
 
       // Filter Match Case
       const matchFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox',
+        cls: 'icon-toggle',
         attr: { 'aria-label': 'Should tags match exact case'}
       })
-      const matchFilterEl = matchFilterDiv.createEl('input', {
-        cls: 'ob-gallery-filter-checkbox-input',
-        type: 'checkbox'
-      })
-      matchFilterEl.name = 'match'
-      matchFilterEl.id = 'match'
+      setIcon(matchFilterDiv, "case-sensitive")
 
-      const matchFilterLabelEl = matchFilterDiv.createEl('label');
-      matchFilterLabelEl.textContent = "Aa";
-      matchFilterLabelEl.htmlFor = "match"
-
-      matchFilterEl.addEventListener('input', async () =>
+      matchFilterDiv.addEventListener('mousedown', async () =>
       {
-        this.imageGrid.matchCase = matchFilterEl.checked;
+        this.imageGrid.matchCase = !this.imageGrid.matchCase;
+        if(this.imageGrid.matchCase)
+        {
+          matchFilterDiv.addClass("icon-checked");
+        }
+        else
+        {
+          matchFilterDiv.removeClass("icon-checked");
+        }
         await this.updateData();
         this.updateDisplay();
       });
 
       // Filter Exclusive or inclusive
       const exclusiveFilterDiv = filterBottomDiv.createDiv({
-        cls: 'ob-gallery-filter-checkbox',
-        attr: { 'aria-label': 'When set will only include results that contain ALL of the tags listed. Otherwise the search is for ANY except those that contain explicit exclusions(eg -fan)'}
+        cls: 'icon-toggle',
+        attr: { 'aria-label': 'Should tags match exact case'}
       })
-      const exclusiveFilterEl = exclusiveFilterDiv.createEl('input', {
-        cls: 'ob-gallery-filter-checkbox-input',
-        type: 'checkbox'
-      })
-      exclusiveFilterEl.name = 'exclusive'
-      exclusiveFilterEl.id = 'exclusive'
+      setIcon(exclusiveFilterDiv, "check-check")
 
-      const exclusiveFilterLabelEl = exclusiveFilterDiv.createEl('label');
-      exclusiveFilterLabelEl.textContent = "All";
-      exclusiveFilterLabelEl.htmlFor = "exclusive"
-
-      exclusiveFilterEl.addEventListener('input', async () =>
+      exclusiveFilterDiv.addEventListener('mousedown', async () =>
       {
-        this.imageGrid.exclusive = exclusiveFilterEl.checked;
+        this.imageGrid.exclusive = !this.imageGrid.exclusive;
+        if(this.imageGrid.exclusive)
+        {
+          exclusiveFilterDiv.addClass("icon-checked");
+        }
+        else
+        {
+          exclusiveFilterDiv.removeClass("icon-checked");
+        }
         await this.updateData();
         this.updateDisplay();
       });
@@ -286,21 +283,7 @@ export class GalleryView extends ItemView
 
         copyFilterButton.onClickEvent(async () =>
         {
-          let filterCopy = "```gallery"
-          filterCopy += "\npath=" + pathFilterEl.value.trim();
-          filterCopy += "\nname=" + nameFilterEl.value.trim();
-          filterCopy += "\ntags=" + tagFilterEl.value.trim();
-          filterCopy += "\nmatchCase=" + matchFilterEl.checked;
-          filterCopy += "\nexclusive=" + exclusiveFilterEl.checked;
-          filterCopy += "\nimgWidth=" + parseInt(this.widthScaleEl.value);
-          filterCopy += "\nreverseOrder=" + sortReverseEl.checked;
-          if(randomDiv.style.getPropertyValue('display') === 'block')
-          {
-            filterCopy += "\nrandom=" + parseInt(this.#randomEl.value);
-          }
-          filterCopy += "\n```"
-
-          await navigator.clipboard.writeText(filterCopy);
+          await navigator.clipboard.writeText(this.imageGrid.getFilter());
         });
       }
 
@@ -312,52 +295,44 @@ export class GalleryView extends ItemView
         pasteFilterButton.onClickEvent(async () =>
         {
             const filterString = await navigator.clipboard.readText();
-            const lines = filterString.split('\n');
-            for(let i = 0; i < lines.length; i++)
+            this.imageGrid.setFilter(filterString);
+            
+            pathFilterEl.value = this.imageGrid.path;
+            nameFilterEl.value = this.imageGrid.name;
+            tagFilterEl.value = this.imageGrid.tag;
+            this.widthScaleEl.value = this.imageGrid.maxWidth+"px";
+            if(this.imageGrid.reverse)
             {
-              const parts = lines[i].split('=');
-              if(parts.length <2)
-              {
-                continue;
-              }
-
-              switch(parts[0].toLocaleLowerCase())
-              {
-                case 'path' : 
-                pathFilterEl.value = parts[1]; 
-                this.imageGrid.path = parts[1];
-                break;
-                case 'name' : 
-                nameFilterEl.value = parts[1]; 
-                this.imageGrid.name = parts[1];
-                break;
-                case 'tags' : 
-                tagFilterEl.value = parts[1]; 
-                this.imageGrid.tag = parts[1];
-                break;
-                case 'matchcase' : 
-                matchFilterEl.checked = (parts[1] === "true"); 
-                this.imageGrid.matchCase = (parts[1] === "true");
-                break;
-                case 'exclusive' : 
-                exclusiveFilterEl.checked = (parts[1] === "true"); 
-                this.imageGrid.exclusive = (parts[1] === "true");
-                break;
-                case 'imgwidth' : 
-                this.widthScaleEl.value = parts[1]; 
-                this.imageGrid.maxWidth = parseInt(parts[1]);
-                break;
-                case 'reverseorder' : 
-                sortReverseEl.checked = (parts[1] === "true"); 
-                this.imageGrid.reverse = (parts[1] === "true");
-                break;
-                case 'random' : 
-                this.#randomEl.value = parts[1]; 
-                this.imageGrid.random = parseInt(parts[1]);
-                randomDiv.style.setProperty('display', 'block')
-                break;
-                default : continue;
-              }
+              sortReverseDiv.addClass("icon-checked");
+            }
+            else
+            {
+              sortReverseDiv.removeClass("icon-checked");
+            }
+            if(this.imageGrid.matchCase)
+            {
+              matchFilterDiv.addClass("icon-checked");
+            }
+            else
+            {
+              matchFilterDiv.removeClass("icon-checked");
+            }
+            if(this.imageGrid.exclusive)
+            {
+              exclusiveFilterDiv.addClass("icon-checked");
+            }
+            else
+            {
+              exclusiveFilterDiv.removeClass("icon-checked");
+            }
+            if(this.imageGrid.random > 0)
+            {
+              this.#randomEl.value = this.imageGrid.random+"";
+              randomDiv.style.setProperty('display', 'block');
+            }
+            else
+            {
+              randomDiv.style.setProperty('display', 'none');
             }
 
             await this.updateData();
