@@ -28,6 +28,7 @@ export class GalleryProcessor
       imgHeight: 0,
       divWidth: 100,
       divAlign: 'left',
+      divHeight: 0,
       reverseOrder: 'false',
       customList: '',
       random: 0
@@ -44,7 +45,7 @@ export class GalleryProcessor
 
     const elCanvas = el.createDiv({
       cls: 'ob-gallery-display-block',
-      attr: { style: `width: ${args.divWidth}%; height: auto; float: ${args.divAlign}` }
+      attr: { style: `width: ${args.divWidth}%; height: ${(args.divHeight >10 )? args.divHeight+"px" : "auto"}; float: ${args.divAlign}` }
     })
 
     // Handle problematic arguments

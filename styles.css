@@ -15,6 +15,12 @@
     overflow-x: auto;
 }
 
+.ob-gallery-display-block {
+    position: relative;
+    background-color: var(--background-primary);
+    overflow-x: auto;
+}
+
 .ob-gallery-filter {
     height: auto;
     width: 100%;

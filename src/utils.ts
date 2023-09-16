@@ -34,6 +34,7 @@ export interface GalleryBlockArgs
   imgHeight: number
   divWidth: number
   divAlign: string
+  divHeight: number
   reverseOrder: string
   customList: string
   random: number

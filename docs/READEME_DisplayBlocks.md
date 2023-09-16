@@ -36,6 +36,9 @@ Should tags be required to match case of the filter
 ## imgWidth
 default= assigned in settings
 Max width of the columns in pixels
+## divHeight
+default=0
+Height of the display block in pixels. If less than 10 it switchs to automatically fit the size of the contents. If greater than 10 it limits the view area and creates a scroll area if needed to display all results
 ## divWidth
 default=100
 Percentage of the whole available width to use for displaying the gallery
