@@ -6,7 +6,7 @@ import
   {
     EXTENSIONS, GALLERY_DISPLAY_USAGE, EXTRACT_COLORS_OPTIONS,
     VIDEO_REGEX,
-    getImgInfo, updateFocus, GALLERY_INFO_USAGE, searchForFile
+    getImgInfo, GALLERY_INFO_USAGE, searchForFile
   } from './utils'
 import type GalleryTagsPlugin from './main'
 import { ImageGrid } from './DisplayObjects/ImageGrid'
@@ -55,7 +55,7 @@ export class GalleryProcessor
     }
     
     const imagesContainer = elCanvas.createEl('ul')
-    const imageGrid = new ImageGrid(imagesContainer, plugin);
+    const imageGrid = new ImageGrid(elCanvas, imagesContainer, plugin);
     imageGrid.path = args.path;
     imageGrid.name = args.name;
     imageGrid.tag = args.tags;
@@ -90,7 +90,7 @@ export class GalleryProcessor
       const focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } });
       const focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin: auto;' } });
 
-      imageGrid.setupClickEvents(elCanvas, imageFocusEl, focusVideo, focusImage);
+      imageGrid.setupClickEvents(imageFocusEl, focusVideo, focusImage);
     }
 
     if (args.type === 'active-thumb')

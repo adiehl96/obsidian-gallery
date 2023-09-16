@@ -14,6 +14,7 @@ export class ImageGrid
 {
 	plugin: GalleryTagsPlugin
 	parent: HTMLElement
+	columnContainer: HTMLElement
 	path: string = ""
 	name: string = ""
 	tag: string = ""
@@ -40,10 +41,11 @@ export class ImageGrid
 	#pausedVideo: HTMLVideoElement 
 	#pausedVideoUrl: string = ''
 
-	constructor(parent: HTMLElement, plugin: GalleryTagsPlugin)
+	constructor(parent: HTMLElement, columnContainer: HTMLElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
 		this.parent = parent;
+		this.columnContainer = columnContainer;
 		this.path = this.plugin.settings.galleryLoadPath;
 		this.maxWidth = this.plugin.settings.width;
 		if(this.plugin.settings.useMaxHeight)
@@ -55,7 +57,7 @@ export class ImageGrid
 
 	haveColumnsChanged(): boolean
 	{
-		const columnCount = Math.ceil(this.parent.offsetWidth/this.maxWidth);
+		const columnCount = Math.ceil(this.columnContainer.offsetWidth/this.maxWidth);
 		const result = columnCount != this.#columnEls.length;
 
 		if(result)
@@ -109,37 +111,38 @@ export class ImageGrid
 		this.#redraw = true;
 	}
 
-	updateDisplay()
+	async updateDisplay()
 	{
-		if(this.parent.offsetWidth <= 0)
+		if(this.columnContainer.offsetWidth <= 0)
 		{
 			return;
 		}
 
 		if(!this.#redraw 
-		&& this.parent.offsetWidth >= this.#oldWidth 
-		&& this.parent.offsetWidth - this.#oldWidth < 20)
+		&& this.columnContainer.offsetWidth >= this.#oldWidth 
+		&& this.columnContainer.offsetWidth - this.#oldWidth < 20)
 		{
 			return;
 		}
 
-		this.#oldWidth = this.parent.offsetWidth;
+		this.#oldWidth = this.columnContainer.offsetWidth;
 
 		if(!this.#redraw && !this.haveColumnsChanged())
 		{
 			this.#resize();
 			return;
 		}
-
-        this.parent.empty();
+		
+		const scrollPosition = this.parent.scrollTop;
+        this.columnContainer.empty();
 		this.#columnEls = [];
 		
-		const columnCount = Math.ceil(this.parent.offsetWidth/this.maxWidth);
-		const columnWidth = (this.parent.offsetWidth-55)/columnCount;
+		const columnCount = Math.ceil(this.columnContainer.offsetWidth/this.maxWidth);
+		const columnWidth = (this.columnContainer.offsetWidth-55)/columnCount;
 
 		for(let col = 0; col < columnCount; col++)
 		{
-			this.#columnEls.push(this.parent.createDiv({ cls: 'gallery-grid-column' }));
+			this.#columnEls.push(this.columnContainer.createDiv({ cls: 'gallery-grid-column' }));
 			this.#columnEls[col].style.width = columnWidth+"px";
 		}
 
@@ -204,6 +207,10 @@ export class ImageGrid
 
 		this.#redraw = false;
 		setLazyLoading();
+		
+		this.parent.scrollTop = scrollPosition;
+		await new Promise(f => setTimeout(f, 100));
+		this.parent.scrollTop = scrollPosition;
 	}
 
 	getFilter(): string
@@ -264,9 +271,9 @@ export class ImageGrid
 		}
 	}
 
-	setupClickEvents(displayEl: HTMLElement, imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
+	setupClickEvents(imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
 	{
-		displayEl.onclick = async (evt) =>
+		this.parent.onclick = async (evt) =>
 		{
 			if (imageFocusEl.style.getPropertyValue('display') === 'block')
 			{
@@ -335,7 +342,7 @@ export class ImageGrid
 			}
 		};
 
-		displayEl.addEventListener('contextmenu', async (e) =>
+		this.parent.addEventListener('contextmenu', async (e) =>
 		{
 			if(this.#selectedEls.length == 0 && (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement))
 			{
@@ -460,7 +467,7 @@ export class ImageGrid
 
 	#resize()
 	{
-		const columnWidth = (this.parent.offsetWidth-55)/this.#columnEls.length;
+		const columnWidth = (this.columnContainer.offsetWidth-55)/this.#columnEls.length;
 
 		for(let col = 0; col < this.#columnEls.length; col++)
 		{

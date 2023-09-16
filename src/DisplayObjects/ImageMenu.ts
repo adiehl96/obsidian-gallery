@@ -68,9 +68,9 @@ export class ImageMenu
 			// items.push("Remove tag");
 			// items.push("Move images");
 			// items.push("Move meta");
-			// items.push("Delete meta");
-			// items.push("Delete both");
 			// items.push("Rename both");
+			items.push("Delete image(and meta)");
+			items.push("Delete just meta");
 		}
 
 		for (let i = 0; i < items.length; i++) 
@@ -83,6 +83,11 @@ export class ImageMenu
 			item.addEventListener("mousedown", () => {
 				this.#submit();
 			})
+
+			if(items[i].contains("Delete"))
+			{
+				item.style.color = "#cc2222";
+			}
 		}
 
 		this.#self.addEventListener("blur", () => {this.#cleanUp()});
@@ -126,6 +131,8 @@ export class ImageMenu
 			case "Select all": this.#imageGrid.selectAll(); break;
 			case "Clear selection": this.#imageGrid.clearSelection(); break;
 			case "Add tag": this.#resultAddTag(); break;
+			case "Delete image(and meta)": this.#resultDeleteImage(); break;
+			case "Delete just meta": this.#resultDeleteMeta(); break;
 		}
 	}
 
@@ -196,6 +203,57 @@ export class ImageMenu
 		}
 
 		fuzzyTags.open()
+	}
+
+	async #resultDeleteMeta()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+
+		for (let i = 0; i < this.#targets.length; i++) 
+		{
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+				this.#plugin.app.vault,
+				this.#plugin.app.metadataCache,
+				this.#plugin,
+				false);
+			if(infoFile)
+			{
+				this.#plugin.app.vault.delete(infoFile);
+			}
+		}
+	}
+
+	async #resultDeleteImage()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+
+		for (let i = 0; i < this.#targets.length; i++) 
+		{
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[0].src])
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+				this.#plugin.app.vault,
+				this.#plugin.app.metadataCache,
+				this.#plugin,
+				false);
+			if(file)
+			{
+				await this.#plugin.app.vault.delete(file);
+			}
+			if(infoFile)
+			{
+				this.#plugin.app.vault.delete(infoFile);
+			}
+		}
+
+		await new Promise(f => setTimeout(f, 100));
+		await this.#imageGrid.updateData();
+		await this.#imageGrid.updateDisplay();
 	}
 
 	#show(posX:number,posY:number)

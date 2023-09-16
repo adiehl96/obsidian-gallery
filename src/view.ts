@@ -91,7 +91,7 @@ export class GalleryView extends ItemView
     })
 
     this.imagesContainer = this.displayEl.createEl('ul')
-    this.imageGrid = new ImageGrid(this.imagesContainer, plugin);
+    this.imageGrid = new ImageGrid(this.displayEl, this.imagesContainer, plugin);
 
     this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
@@ -352,11 +352,6 @@ export class GalleryView extends ItemView
   async updateDisplay()
   {
     this.imageGrid.updateDisplay();
-    this.displayEl.scrollTop = this.#scrollPosition;
-
-    await new Promise(f => setTimeout(f, 100));
-
-    this.displayEl.scrollTop = this.#scrollPosition;
   }
 
   getViewType(): string
@@ -492,7 +487,7 @@ export class GalleryInfoView extends ItemView
 		{
       this.galleryView = gallery.view
       
-      this.galleryView.imageGrid.setupClickEvents(this.galleryView.displayEl, this.galleryView.imageFocusEl, this.galleryView.focusVideo, this.galleryView.focusImage, this);
+      this.galleryView.imageGrid.setupClickEvents(this.galleryView.imageFocusEl, this.galleryView.focusVideo, this.galleryView.focusImage, this);
     }
   }
 
