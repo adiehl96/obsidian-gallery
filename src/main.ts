@@ -1,5 +1,5 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice } from 'obsidian'
-import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon } from './utils'
+import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryProcessor } from './block'
 import { GalleryView, GalleryInfoView } from './view'
@@ -8,6 +8,9 @@ export default class GalleryTagsPlugin extends Plugin
 {
   settings!: GallerySettings;
   containerEl!: HTMLElement;
+	accentColor: string
+	accentColorDark: string
+  accentColorLight: string
   onResize: () => void;
 
   async onload()
@@ -49,6 +52,8 @@ export default class GalleryTagsPlugin extends Plugin
 
     // Save settings
     this.saveSettings()
+
+    this.refreshColors()
     
     // this.registerEvent(
     //   this.app.workspace.on("file-menu", (menu, file, source) => { new Notice(source);}));
@@ -74,7 +79,6 @@ export default class GalleryTagsPlugin extends Plugin
 		// 		this.testOption
 		// 	)
 		// );
-    
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
@@ -87,6 +91,14 @@ export default class GalleryTagsPlugin extends Plugin
           new Notice("clicked option");
         });
     });
+  }
+
+  refreshColors()
+  {
+		// @ts-ignore
+		this.accentColor = this.app.vault.getConfig('accentColor')
+		this.accentColorDark = scaleColor(this.accentColor, 0.25);
+		this.accentColorLight = scaleColor(this.accentColor, 1.5);
   }
 
   onunload()
@@ -120,3 +132,4 @@ export default class GalleryTagsPlugin extends Plugin
     workspace.getLeaf(false).setViewState({ type: OB_GALLERY })
   };
 }
+

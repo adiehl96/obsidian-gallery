@@ -15,13 +15,10 @@ export class GalleryView extends ItemView
   displayEl: HTMLElement
   filterEl: HTMLElement
   countEl: HTMLLabelElement
-  imageFocusEl: HTMLElement
+  imageFocusEl: HTMLDivElement
   focusImage: HTMLImageElement
   focusVideo: HTMLVideoElement
   imagesContainer: HTMLUListElement
-  imgFocusIndex: number
-  pausedVideo: HTMLVideoElement 
-  pausedVideoUrl: string = ''
   imageGrid: ImageGrid
   widthScaleEl: HTMLInputElement
 
@@ -100,7 +97,6 @@ export class GalleryView extends ItemView
     const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
     this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
     this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
-    this.imgFocusIndex = 0
 
     if(this.filterEl)
     {
@@ -462,7 +458,6 @@ export class GalleryInfoView extends ItemView
   sourceEl: HTMLElement
   editorEl: HTMLTextAreaElement
   infoFile: TFile | null = null
-  imgPath: string
   galleryView: GalleryView
   plugin: GalleryTagsPlugin
   fileContent: string
@@ -515,145 +510,20 @@ export class GalleryInfoView extends ItemView
   }
 
   onload(): void
-  {
-    // Add listener to change active file
-    const gallery = this.app.workspace.getLeavesOfType(OB_GALLERY)[0]
-    if (gallery?.view instanceof GalleryView)
-    {
+  {    
+		// Add listener to change active file
+		const gallery = this.app.workspace.getLeavesOfType(OB_GALLERY)[0]
+		if (gallery?.view instanceof GalleryView)
+		{
       this.galleryView = gallery.view
-      const displayEl = this.galleryView.displayEl
-
-      displayEl.onclick = async (evt) =>
-      {
-        const currentMode = this.galleryView.imageFocusEl.style.getPropertyValue('display')
-        if (currentMode === 'block')
-        {
-          this.galleryView.imageFocusEl.style.setProperty('display', 'none')
-          // Clear Focus video
-          this.galleryView.focusVideo.src = ''
-          // Clear Focus image
-          this.galleryView.focusImage.src = ''
-          // Set Video Url back to disabled grid video
-          if (this.galleryView.pausedVideo)
-          {
-            this.galleryView.pausedVideo.src = this.galleryView.pausedVideoUrl
-          }
-          // Hide focus image div
-          this.galleryView.focusImage.style.setProperty('display', 'none')
-          // Hide focus video div
-          this.galleryView.focusVideo.style.setProperty('display', 'none')
-          return;
-        }
-
-        if (evt.target instanceof HTMLImageElement)
-        {
-          // Read New image info
-          this.imgPath = evt.target.src
-          this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
-          this.galleryView.imageFocusEl.style.setProperty('display', 'block')
-          updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-            this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
-
-          await this.updateInfoDisplay()
-        }
-
-        if (evt.target instanceof HTMLVideoElement)
-        {
-          // Read video info
-          this.imgPath = evt.target.src
-          this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.indexOf(this.imgPath)
-          this.galleryView.imageFocusEl.style.setProperty('display', 'block')
-          // Save clicked video info to set it back later
-          this.galleryView.pausedVideo = evt.target
-          this.galleryView.pausedVideoUrl = this.galleryView.pausedVideo.src
-          // disable clicked video
-          this.galleryView.pausedVideo.src = ''
-          updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-            this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
-
-          await this.updateInfoDisplay()
-        }
-      };
-
-      displayEl.addEventListener('contextmenu', async (e) =>
-      {
-        if (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement)
-        {
-          // Clear the preview and editor history
-          this.clear()
-
-          // Open image file
-          const file = this.app.vault.getAbstractFileByPath(this.galleryView.imageGrid.imgResources[e.target.src])
-          if (file instanceof TFile)
-          {
-            this.app.workspace.getLeaf(false).openFile(file)
-          }
-        }
-      })
-
-      document.addEventListener('keyup', async (event) =>
-      {
-        if (this.galleryView.imageFocusEl.style.getPropertyValue('display') != 'block')
-        {
-          return;
-        }
-
-        if (this.sourceEl.style.getPropertyValue('display') === 'block')
-        {
-          return;
-        }
-
-        switch (event.key)
-        {
-          case 'ArrowLeft':
-            this.galleryView.imgFocusIndex--
-            if (this.galleryView.imgFocusIndex < 0)
-            {
-              this.galleryView.imgFocusIndex = this.galleryView.imageGrid.imgList.length - 1
-            }
-            if (this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
-            {
-              updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
-            }
-            else
-            {
-              updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
-            }
-            // Read New image info
-            this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
-            await this.updateInfoDisplay()
-            break;
-          case 'ArrowRight':
-            this.galleryView.imgFocusIndex++
-            if (this.galleryView.imgFocusIndex >= this.galleryView.imageGrid.imgList.length)
-            {
-              this.galleryView.imgFocusIndex = 0
-            }
-            if (this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex].match(VIDEO_REGEX))
-            {
-              updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], true)
-            }
-            else
-            {
-              updateFocus(this.galleryView.focusImage, this.galleryView.focusVideo,
-                this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex], false)
-            }
-            // Read New image info
-            this.imgPath = this.galleryView.imageGrid.imgList[this.galleryView.imgFocusIndex]
-            await this.updateInfoDisplay()
-            break;
-        }
-
-      }, false)
+      
+      this.galleryView.imageGrid.setupClickEvents(this.galleryView.displayEl, this.galleryView.imageFocusEl, this.galleryView.focusVideo, this.galleryView.focusImage, this);
     }
   }
 
-  async updateInfoDisplay()
+  async updateInfoDisplay(imgPath: string)
   {
-    this.infoFile = await getImgInfo(this.galleryView.imageGrid.imgResources[this.imgPath],
+    this.infoFile = await getImgInfo(this.galleryView.imageGrid.imgResources[imgPath],
       this.app.vault,
       this.app.metadataCache,
       this.plugin,

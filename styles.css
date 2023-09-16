@@ -98,9 +98,11 @@
     float: left;
     flex: 50%;
 }
+
 .gallery-grid-vid{
     display: block;
 }
+
 .gallery-grid-img{
     display: block;
 }

@@ -19,35 +19,11 @@ export class GalleryInfo
     imgLinks: Array<{path : string, name: string}>
     frontmatter: FrontMatterCache
     infoList: string[]
-	
-	#accentColor: string
-	#accentColorDark: string
 
 	constructor(parent: HTMLDivElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
 		this.parent = parent;
-		// @ts-ignore
-		this.#accentColor = this.plugin.app.vault.getConfig('accentColor')
-		this.#accentColorDark = this.darkenColor(this.#accentColor);
-	}
-
-	darkenColor(color: string) : string
-	{
-		let rcode = color.substring(1,3);
-		let gcode = color.substring(3,5);
-		let bcode = color.substring(5,7);
-		let r = parseInt(rcode, 16);
-		let g = parseInt(gcode, 16);
-		let b = parseInt(bcode, 16);
-
-		r *= 0.25;
-		g *= 0.25;
-		b *= 0.25;
-		rcode = Math.ceil(r).toString(16).padStart(2, '0');
-		gcode = Math.ceil(g).toString(16).padStart(2, '0');
-		bcode = Math.ceil(b).toString(16).padStart(2, '0');
-		return "#"+rcode+gcode+bcode+"44"
 	}
 
 	updateDisplay()
@@ -131,7 +107,7 @@ export class GalleryInfo
 				for(let i = 0; i < this.tagList.length; i++)
 				{
 					const pill = currentVal.createDiv("gallery-info-section-pill");	
-					pill.style.backgroundColor = this.#accentColorDark;
+					pill.style.backgroundColor = this.plugin.accentColorDark+"44";
 					const currentTag = pill.createSpan("multi-select-pill-content")
 					currentTag.textContent = this.tagList[i];
 					currentTag.addEventListener("click", 

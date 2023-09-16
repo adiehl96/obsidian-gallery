@@ -138,6 +138,26 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
 
 const defaultTemplate = '---\ntags:\n---\n<%IMGEMBED%>\n<%IMGINFO%>\n%% Description %%\n'
 
+
+export const scaleColor = (color: string, percent: number) : string =>
+{
+  let rcode = color.substring(1,3);
+  let gcode = color.substring(3,5);
+  let bcode = color.substring(5,7);
+  let r = parseInt(rcode, 16);
+  let g = parseInt(gcode, 16);
+  let b = parseInt(bcode, 16);
+
+  r *= percent;
+  g *= percent;
+  b *= percent;
+
+  rcode = Math.ceil(Math.clamp(r,0,255)).toString(16).padStart(2, '0');
+  gcode = Math.ceil(Math.clamp(g,0,255)).toString(16).padStart(2, '0');
+  bcode = Math.ceil(Math.clamp(b,0,255)).toString(16).padStart(2, '0');
+  return "#"+rcode+gcode+bcode
+}
+
 /**
  * Return initial img info file content
  * @param imgPath - Relative vault path of related image
