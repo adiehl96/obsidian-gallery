@@ -3,7 +3,7 @@ import type GalleryTagsPlugin from "../main";
 import { getImgInfo, offScreenPartial, preprocessUri } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
-import { FuzzyTags } from "./FuzzySuggestions";
+import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
 
 export class ImageMenu
 {
@@ -82,9 +82,12 @@ export class ImageMenu
 
 			this.#createItem("Add tag");
 			// this.#createItem("Remove tag");
-			// this.#options.createDiv({cls: "suggestion-item-separator"});
-			// this.#createItem("Move images");
-			// this.#createItem("Rename");
+			this.#createItem("Move images");
+			
+			// if(this.#targets.length == 1)
+			// {
+			// 	this.#createItem("Rename");
+			// }
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
@@ -152,8 +155,12 @@ export class ImageMenu
 			case "Copy image links": this.#resultCopyImageLink(); break;
 			case "Copy meta links": this.#resultCopyMetaLink(); break;
 			case "Add tag": this.#resultAddTag(); break;
+			case "Remove tag":  break;
+			case "Move images": this.#resultMoveImages(); break;
+			case "Rename":  break;
 			case "Delete image(and meta)": this.#resultDeleteImage(); break;
 			case "Delete just meta": this.#resultDeleteMeta(); break;
+			default: new Notice(`context options "${result}" is not accounted for`);
 		}
 	}
 
@@ -274,6 +281,50 @@ export class ImageMenu
 		}
 
 		fuzzyTags.open()
+	}
+
+	#resultMoveImages()
+	{
+		const fuzzyFolders = new FuzzyFolders(this.#plugin.app)
+        fuzzyFolders.onSelection = async (s) =>
+		{
+			for (let i = 0; i < this.#targets.length; i++) 
+			{
+				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
+				const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+					this.#plugin.app.vault,
+					this.#plugin.app.metadataCache,
+					this.#plugin,
+					false);
+				if(file)
+				{
+					const oldPath = file.path
+					const newPath = s+"/"+file.name
+					// new Notice(newPath);
+					await this.#plugin.app.vault.rename(file, newPath);
+
+					if(infoFile)
+					{
+						// update the links in the meta file
+						this.#plugin.app.vault.process(infoFile, (data) =>{
+							data = data.replaceAll(oldPath, newPath);
+
+							const oldUri = preprocessUri(oldPath)
+							const newUri = preprocessUri(newPath)
+							data = data.replaceAll(oldUri, newUri);
+
+							return data;
+						});
+					}
+				}
+			}
+	
+			await new Promise(f => setTimeout(f, 100));
+			await this.#imageGrid.updateData();
+			await this.#imageGrid.updateDisplay();
+		}
+
+		fuzzyFolders.open()
 	}
 
 	async #resultDeleteMeta()
