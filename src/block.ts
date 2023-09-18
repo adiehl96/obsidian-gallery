@@ -244,7 +244,6 @@ export class GalleryProcessor
       if (imgInfoCache)
       {
         imgTags = getAllTags(imgInfoCache)
-        
       }
     }
 

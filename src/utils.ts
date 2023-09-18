@@ -1,6 +1,7 @@
 import type { DataAdapter, Vault, MetadataCache, App } from 'obsidian'
 import { TFolder, TFile, getAllTags, normalizePath } from 'obsidian'
 import type GalleryTagsPlugin from './main'
+import { ExifParserFactory } from 'ts-exif-parser'
 
 export interface GallerySettings
 {
@@ -288,6 +289,10 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
       // TODO: this waits a moment for the metadatacache to catch up with the new backlinks, but boy does it feel gross. Need to find out if there's another way to do this
       await new Promise(f => setTimeout(f, 100));
       infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
+
+      
+      const imgTFile = plugin.app.vault.getAbstractFileByPath(imgPath) as TFile
+      await addEmbededTags(imgTFile, infoFile, plugin);
     }
     return infoFile 
   }
@@ -295,6 +300,99 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
   // Specified Resources folder does not exist
   return null
 };
+
+/**
+ * Attempt to scrape the file for tags and add them to the meta
+ * @param imgTFile file to scrape
+ * @param infoTFile meta file to add tags to
+ * @param plugin reference to the plugin
+ */
+export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<void> =>
+{
+  let keywords: string[] = null;
+
+  if(imgTFile.path.contains(".jpg"))
+  {
+    keywords = await getJpgTags(imgTFile, plugin);
+  }
+
+  if(keywords)
+  {
+    await plugin.app.fileManager.processFrontMatter(infoTFile, (frontmatter) => {
+      let tags = frontmatter.tags ?? []
+      if (!Array.isArray(tags)) 
+      { 
+        tags = [tags]; 
+      }
+
+      for (let i = 0; i < keywords.length; i++) 
+      {
+        const tag = keywords[i].trim();
+        if(tag === '')
+        {
+          continue;
+        }
+        if(tags.contains(tag))
+        {
+          continue;
+        }
+        
+        tags.push(tag);
+      }
+
+      frontmatter.tags = tags;
+    });
+  }
+}
+
+const getJpgTags = async (imgTFile: TFile, plugin: GalleryTagsPlugin): Promise<string[]> =>
+{
+  let keywords: string[] = [];
+
+  if(imgTFile instanceof TFile)
+  {
+    const bits = await plugin.app.vault.readBinary(imgTFile as TFile)
+    const parser = ExifParserFactory.create(bits);
+    //const tagInfo = await EXIF.readFromBinaryFile(bits)
+    const tagInfo = parser.parse()
+    if(tagInfo.tags && tagInfo.tags.XPKeywords)
+    {
+      let found = ""
+      if(Array.isArray(tagInfo.tags.XPKeywords) )
+      {
+        var enc = new TextDecoder("utf-8");
+        //@ts-ignore
+        const tagbinary = new Uint8Array(tagInfo.tags.XPKeywords).buffer
+        found = enc.decode(tagbinary)
+        //new Notice("utf-8: "+found)
+      }
+      else
+      {
+        found = tagInfo.tags.XPKeywords;
+        //new Notice("string: "+found)
+      }
+
+      if(found.contains("\0"))
+      {
+        var enc = new TextDecoder("utf-16");
+        //@ts-ignore
+        const tagbinary = new Uint16Array(tagInfo.tags.XPKeywords).buffer
+        found = enc.decode(tagbinary)
+        //new Notice("utf-16: "+found)
+      }
+
+      if(found.contains("\0"))
+      {
+        found = found.replaceAll("\0","")
+        //new Notice("utf-32: "+found)
+      }
+
+      keywords = found.split(";");
+    }
+  }
+
+  return keywords
+}
 
 /**
  * used to find potential correct links for when a path has broken
