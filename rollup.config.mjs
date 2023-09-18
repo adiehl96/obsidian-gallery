@@ -33,7 +33,8 @@ export default {
                 { src: './main.js', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' },
                 { src: './manifest.json', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' },
                 { src: './styles.css', dest: '../PluginDev/.obsidian/plugins/tagged-gallery' }
-            ]
-        }),
-    ],
+            ],
+            hook: 'writeBundle'
+        })
+    ]
 };
