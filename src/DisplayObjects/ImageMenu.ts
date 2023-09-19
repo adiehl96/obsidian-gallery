@@ -84,7 +84,7 @@ export class ImageMenu
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
 			this.#createItem("Add tag");
-			this.#createItem("Pull tags from file");
+			this.#createItem("Pull meta from file");
 			// this.#createItem("Remove tag");
 			this.#createItem("Move images");
 			
@@ -179,7 +179,7 @@ export class ImageMenu
 			case "Copy image links": this.#resultCopyImageLink(); break;
 			case "Copy meta links": this.#resultCopyMetaLink(); break;
 			case "Add tag": this.#resultAddTag(); break;
-			case "Pull tags from file": this.#resultPullTags(); break;
+			case "Pull meta from file": this.#resultPullTags(); break;
 			case "Remove tag":  break;
 			case "Move images": this.#resultMoveImages(); break;
 			case "Rename":  break;
@@ -359,13 +359,24 @@ export class ImageMenu
 
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
+			let infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
 				this.#plugin,
-				true);
-
-			promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
+				false);
+				
+			if(infoFile)
+			{
+				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
+			}
+			else
+			{
+				infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
+					this.#plugin.app.vault,
+					this.#plugin.app.metadataCache,
+					this.#plugin,
+					true);
+			}
 		}
 
 		await Promise.all(promises);

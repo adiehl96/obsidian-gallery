@@ -1,7 +1,8 @@
 import type { DataAdapter, Vault, MetadataCache, App } from 'obsidian'
-import { TFolder, TFile, getAllTags, normalizePath, Notice } from 'obsidian'
+import { TFolder, TFile, getAllTags, normalizePath, Notice, Platform } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
+import { extractColors, type FinalColor } from '../node_modules/extract-colors'
 
 export interface GallerySettings
 {
@@ -315,37 +316,65 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  */
 export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<void> =>
 {
-  let keywords: string[] = null;
+  const keywords: string[] = await getJpgTags(imgTFile, plugin);
+  const data = plugin.app.metadataCache.getFileCache(infoTFile)
+  const shouldColor =(!imgTFile.path.match(VIDEO_REGEX) 
+  && Platform.isDesktopApp
+  && !(data.frontmatter.Palette && data.frontmatter.Palette.length > 0))
+  let colors: FinalColor[]
 
+  if(shouldColor)
   {
-    keywords = await getJpgTags(imgTFile, plugin);
+    const measureEl = new Image();
+    measureEl.src = plugin.app.vault.adapter.getResourcePath(imgTFile.path);
+
+    colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
   }
 
-  if(keywords)
+  if(keywords || shouldColor)
   {
-    await plugin.app.fileManager.processFrontMatter(infoTFile, (frontmatter) => {
-      let tags = frontmatter.tags ?? []
-      if (!Array.isArray(tags)) 
-      { 
-        tags = [tags]; 
-      }
-
-      for (let i = 0; i < keywords.length; i++) 
+    await plugin.app.fileManager.processFrontMatter(infoTFile, async (frontmatter) => {
+      if(keywords)
       {
-        const tag = keywords[i].trim();
-        if(tag === '')
-        {
-          continue;
+        let tags = frontmatter.tags ?? []
+        if (!Array.isArray(tags)) 
+        { 
+          tags = [tags]; 
         }
-        if(tags.contains(tag))
+        let newTags = false;
+        for (let i = 0; i < keywords.length; i++) 
         {
-          continue;
+          const tag = keywords[i].trim();
+          if(tag === '')
+          {
+            continue;
+          }
+          if(tags.contains(tag))
+          {
+            continue;
+          }
+          
+          newTags = true;
+          tags.push(tag);
+        }
+        if(newTags)
+        {
+          frontmatter.tags = tags;
+        }
+      }
+      
+      // Get image colors
+      if (shouldColor)
+      {
+        const hexList: string[] = [];
+        
+        for(let i = 0; i < colors.length; i++)
+        {
+          hexList.push(colors[i].hex);
         }
         
-        tags.push(tag);
+        frontmatter.Palette = hexList;
       }
-
-      frontmatter.tags = tags;
     });
   }
 }
@@ -527,7 +556,7 @@ const containsTags = async (file: TFile, tags: string, matchCase: boolean, exclu
 
   let filterTags: string[] = tags.split(' ');
   let imgTags: string[] = [];
-  let infoFile: TFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
+  let infoFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
   if(infoFile)
   {
     let imgInfoCache = plugin.app.metadataCache.getFileCache(infoFile)
