@@ -5,6 +5,7 @@ import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
 import { ConfirmModal } from "./ConfirmPopup";
+import { ProgressModal } from "./ProgressPopup";
 
 export class ImageMenu
 {
@@ -26,6 +27,7 @@ export class ImageMenu
 		this.#self.focus();
 		this.#options = this.#self.createDiv("#suggestions-scroll");
 		this.#options.style.maxHeight = 500+"px";
+		this.#options.style.maxWidth = 200+"px";
 		this.#options.style.overflowY = "auto";
 
 		this.#self.addEventListener("mouseleave", (e) => {
@@ -146,7 +148,12 @@ export class ImageMenu
 
 		this.#cleanUp();
 
-		if(this.#targets.length > 50)
+		if(this.#targets.length > 50 &&
+			!(result == "Start Selection" ||
+			result == "End Selection" ||
+			result == "Select all" ||
+			result == "Clear selection" ||
+			result == "Copy image links"))
 		{
 			const confirm = new ConfirmModal(this.#plugin.app, 
 				`There are ${this.#targets.length} files selected for '${result}' are you sure?`,
@@ -249,8 +256,20 @@ export class ImageMenu
 		
 		let links = "";
 
+		let cancel = false;
+		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+		progress.open();
+
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
+			if(cancel)
+			{
+				new Notice("Canceled");
+				return;
+			}
+			
+			progress.updateProgress(i);
+
 			const source = this.#getSource(this.#targets[i]);
 			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
@@ -277,8 +296,21 @@ export class ImageMenu
 			{
 				return;
 			}
+
+			let cancel = false;
+			const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+			progress.open();
+	
 			for (let i = 0; i < this.#targets.length; i++) 
 			{
+				if(cancel)
+				{
+					new Notice("Canceled");
+					return;
+				}
+				
+				progress.updateProgress(i);
+	
 				const source = this.#getSource(this.#targets[i]);
 				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 					this.#plugin.app.vault,
@@ -311,8 +343,20 @@ export class ImageMenu
 	async #resultPullTags()
 	{
 		const promises: Promise<void>[] = []
+
+		let cancel = false;
+		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+		progress.open();
+
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
+			if(cancel)
+			{
+				new Notice("Canceled");
+				return;
+			}
+			progress.updateProgress(i);
+
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
@@ -334,8 +378,20 @@ export class ImageMenu
 		const fuzzyFolders = new FuzzyFolders(this.#plugin.app)
         fuzzyFolders.onSelection = async (s) =>
 		{
+			let cancel = false;
+			const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+			progress.open();
+
 			for (let i = 0; i < this.#targets.length; i++) 
 			{
+				if(cancel)
+				{
+					new Notice("Canceled");
+					return;
+				}
+				
+				progress.updateProgress(i);
+
 				const source = this.#getSource(this.#targets[i]);
 				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
@@ -383,8 +439,20 @@ export class ImageMenu
 			this.#infoView.clear()
 		}
 
+		let cancel = false;
+		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+		progress.open();
+
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
+			if(cancel)
+			{
+				new Notice("Canceled");
+				return;
+			}
+			
+			progress.updateProgress(i);
+
 			const source = this.#getSource(this.#targets[i]);
 			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
@@ -393,7 +461,7 @@ export class ImageMenu
 				false);
 			if(infoFile)
 			{
-				this.#plugin.app.vault.delete(infoFile);
+				await this.#plugin.app.vault.delete(infoFile);
 			}
 		}
 		
@@ -407,8 +475,20 @@ export class ImageMenu
 			this.#infoView.clear()
 		}
 
+		let cancel = false;
+		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+		progress.open();
+
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
+			if(cancel)
+			{
+				new Notice("Canceled");
+				return;
+			}
+			
+			progress.updateProgress(i);
+
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
