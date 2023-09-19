@@ -173,7 +173,8 @@ export class ImageMenu
 			this.#infoView.clear()
 		}
 
-		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[0].src])
+		const source = this.#getSource(this.#targets[0]);
+		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 		if (file instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(file)
@@ -187,7 +188,8 @@ export class ImageMenu
 			this.#infoView.clear()
 		}
 
-		const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[0].src],
+		const source = this.#getSource(this.#targets[0]);
+		const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 			this.#plugin.app.vault,
 			this.#plugin.app.metadataCache,
 			this.#plugin,
@@ -209,7 +211,8 @@ export class ImageMenu
 
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
+			const source = this.#getSource(this.#targets[i]);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 			if(file instanceof TFile)
 			{
 				links += `![${file.basename}](${preprocessUri(file.path)})\n`
@@ -232,7 +235,8 @@ export class ImageMenu
 
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+			const source = this.#getSource(this.#targets[i]);
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
 				this.#plugin,
@@ -259,7 +263,8 @@ export class ImageMenu
 			}
 			for (let i = 0; i < this.#targets.length; i++) 
 			{
-				const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+				const source = this.#getSource(this.#targets[i]);
+				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 					this.#plugin.app.vault,
 					this.#plugin.app.metadataCache,
 					this.#plugin,
@@ -289,8 +294,9 @@ export class ImageMenu
 	{
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+			const source = this.#getSource(this.#targets[i]);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
 				this.#plugin,
@@ -307,8 +313,9 @@ export class ImageMenu
 		{
 			for (let i = 0; i < this.#targets.length; i++) 
 			{
-				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
-				const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+				const source = this.#getSource(this.#targets[i]);
+				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
+				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 					this.#plugin.app.vault,
 					this.#plugin.app.metadataCache,
 					this.#plugin,
@@ -353,7 +360,8 @@ export class ImageMenu
 
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+			const source = this.#getSource(this.#targets[i]);
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
 				this.#plugin,
@@ -374,8 +382,9 @@ export class ImageMenu
 
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[this.#targets[i].src])
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[this.#targets[i].src],
+			const source = this.#getSource(this.#targets[i]);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
+			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
 				this.#plugin.app.vault,
 				this.#plugin.app.metadataCache,
 				this.#plugin,
@@ -393,6 +402,15 @@ export class ImageMenu
 		await new Promise(f => setTimeout(f, 100));
 		await this.#imageGrid.updateData();
 		await this.#imageGrid.updateDisplay();
+	}
+
+	#getSource(target: (HTMLVideoElement | HTMLImageElement)) : string
+	{
+		if(target.dataset.src)
+		{
+			return target.dataset.src;
+		}
+		return target.src;
 	}
 
 	#show(posX:number,posY:number)

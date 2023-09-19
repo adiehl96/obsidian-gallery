@@ -241,6 +241,12 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
   {
     return null;
   }
+
+  if(!imgPath || imgPath == "")
+  {
+    return
+  }
+  
   let infoFile = null
   const imgName = imgPath.split('/').slice(-1)[0]
   const infoFolder = vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
