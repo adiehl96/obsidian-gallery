@@ -1,7 +1,7 @@
 import type { DataAdapter, Vault, MetadataCache, App } from 'obsidian'
-import { TFolder, TFile, getAllTags, normalizePath } from 'obsidian'
+import { TFolder, TFile, getAllTags, normalizePath, Notice } from 'obsidian'
 import type GalleryTagsPlugin from './main'
-import { ExifParserFactory } from 'ts-exif-parser'
+import { ExifData, ExifParserFactory } from 'ts-exif-parser'
 
 export interface GallerySettings
 {
@@ -68,7 +68,7 @@ export const EXTRACT_COLORS_OPTIONS = {
 
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', "webp", "gif", "webm", 'mp4']
 
-export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)\\?')
+export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)($|\\?)')
 
 export const OB_GALLERY = 'ob-gallery'
 
@@ -311,7 +311,6 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
 {
   let keywords: string[] = null;
 
-  if(imgTFile.path.contains(".jpg"))
   {
     keywords = await getJpgTags(imgTFile, plugin);
   }
@@ -347,51 +346,69 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
 
 const getJpgTags = async (imgTFile: TFile, plugin: GalleryTagsPlugin): Promise<string[]> =>
 {
-  let keywords: string[] = [];
+  if(!imgTFile)
+  {
+    return null;
+  }
 
-  if(imgTFile instanceof TFile)
+  let tagInfo: ExifData;
+
+  try
   {
     const bits = await plugin.app.vault.readBinary(imgTFile as TFile)
     const parser = ExifParserFactory.create(bits);
-    //const tagInfo = await EXIF.readFromBinaryFile(bits)
-    const tagInfo = parser.parse()
-    if(tagInfo.tags && tagInfo.tags.XPKeywords)
+    tagInfo = parser.parse();
+  }
+  catch(e: any)
+  {
+    if(e instanceof Error)
     {
-      let found = ""
-      if(Array.isArray(tagInfo.tags.XPKeywords) )
-      {
-        var enc = new TextDecoder("utf-8");
-        //@ts-ignore
-        const tagbinary = new Uint8Array(tagInfo.tags.XPKeywords).buffer
-        found = enc.decode(tagbinary)
-        //new Notice("utf-8: "+found)
-      }
-      else
-      {
-        found = tagInfo.tags.XPKeywords;
-        //new Notice("string: "+found)
-      }
-
-      if(found.contains("\0"))
-      {
-        var enc = new TextDecoder("utf-16");
-        //@ts-ignore
-        const tagbinary = new Uint16Array(tagInfo.tags.XPKeywords).buffer
-        found = enc.decode(tagbinary)
-        //new Notice("utf-16: "+found)
-      }
-
-      if(found.contains("\0"))
-      {
-        found = found.replaceAll("\0","")
-        //new Notice("utf-32: "+found)
-      }
-
-      keywords = found.split(";");
+      new Notice(e.message)
+    }
+    else
+    {
+      new Notice(e)
     }
   }
 
-  return keywords
+  if(!tagInfo || !tagInfo.tags || !tagInfo.tags.XPKeywords)
+  {
+    return null;
+  }
+
+  let found = ""
+  if(Array.isArray(tagInfo.tags.XPKeywords) )
+  {
+    var enc = new TextDecoder("utf-8");
+    //@ts-ignore
+    const tagbinary = new Uint8Array(tagInfo.tags.XPKeywords).buffer
+    found = enc.decode(tagbinary)
+    //new Notice("utf-8: "+found)
+  }
+  else
+  {
+    found = tagInfo.tags.XPKeywords;
+    //new Notice("string: "+found)
+  }
+
+  if(found.contains("\0"))
+  {
+    var enc = new TextDecoder("utf-16");
+    //@ts-ignore
+    const tagbinary = new Uint16Array(tagInfo.tags.XPKeywords).buffer
+    found = enc.decode(tagbinary)
+    //new Notice("utf-16: "+found)
+  }
+
+  if(found.contains("\0"))
+  {
+    found = found.replaceAll("\0","")
+    //new Notice("utf-32: "+found)
+  }
+
+  found = found.replaceAll(" ","_")
+
+  return found.split(/[;,]/);
 }
 
 /**
