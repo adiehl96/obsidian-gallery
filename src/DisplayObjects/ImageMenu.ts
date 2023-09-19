@@ -4,6 +4,7 @@ import { addEmbededTags, getImgInfo, offScreenPartial, preprocessUri } from "../
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
+import { ConfirmModal } from "./ConfirmPopup";
 
 export class ImageMenu
 {
@@ -145,6 +146,21 @@ export class ImageMenu
 
 		this.#cleanUp();
 
+		if(this.#targets.length > 50)
+		{
+			const confirm = new ConfirmModal(this.#plugin.app, 
+				`There are ${this.#targets.length} files selected for '${result}' are you sure?`,
+				() => {this.#results(result);})
+			confirm.open();
+		}
+		else
+		{
+			this.#results(result);
+		}
+	}
+
+	#results(result: string)
+	{
 		switch(result)
 		{
 			case "Open image file": this.#resultOpenImage(); break;
@@ -285,6 +301,8 @@ export class ImageMenu
 					frontmatter.tags = tags;
 					});
 			}
+			
+			new Notice("Tag added to files");
 		}
 
 		fuzzyTags.open()
@@ -292,6 +310,7 @@ export class ImageMenu
 
 	async #resultPullTags()
 	{
+		const promises: Promise<void>[] = []
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
 			const source = this.#getSource(this.#targets[i]);
@@ -302,8 +321,12 @@ export class ImageMenu
 				this.#plugin,
 				true);
 
-			addEmbededTags(file as TFile,infoFile, this.#plugin)
+			promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
 		}
+
+		await Promise.all(promises);
+		
+		new Notice("Tags added to files");
 	}
 
 	#resultMoveImages()
@@ -343,6 +366,8 @@ export class ImageMenu
 				}
 			}
 	
+			new Notice("Images moved");
+
 			await new Promise(f => setTimeout(f, 100));
 			await this.#imageGrid.updateData();
 			await this.#imageGrid.updateDisplay();
@@ -371,6 +396,8 @@ export class ImageMenu
 				this.#plugin.app.vault.delete(infoFile);
 			}
 		}
+		
+		new Notice("Meta deleted");
 	}
 
 	async #resultDeleteImage()
@@ -398,6 +425,8 @@ export class ImageMenu
 				this.#plugin.app.vault.delete(infoFile);
 			}
 		}
+
+		new Notice("Images and meta deleted");
 
 		await new Promise(f => setTimeout(f, 100));
 		await this.#imageGrid.updateData();
