@@ -14,6 +14,7 @@ export interface GallerySettings
   maxHeight: number
   hiddenInfo: string | null
   filterStartOpen: boolean
+  skipMetadataOverwrite: boolean
 }
 
 export type ImageResources = Record<string, string>
@@ -56,7 +57,8 @@ export const SETTINGS: GallerySettings = {
   useMaxHeight: false,
   maxHeight: 400,
   hiddenInfo: "tags;palette",
-  filterStartOpen: false
+  filterStartOpen: false,
+  skipMetadataOverwrite: false
 }
 
 export const EXTRACT_COLORS_OPTIONS = {
@@ -324,11 +326,16 @@ export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): P
  */
 export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
-  const keywords: string[] = await getJpgTags(imgTFile, plugin);
+  let keywords: string[];
   const data = plugin.app.metadataCache.getFileCache(infoTFile)
   if(!data)
   {
     return false;
+  }
+
+  if(!plugin.settings.skipMetadataOverwrite || !(data.frontmatter && data.frontmatter.tags && data.frontmatter.tags.length > 0 ))
+  {
+    keywords = await getJpgTags(imgTFile, plugin);
   }
   const shouldColor =(!imgTFile.path.match(VIDEO_REGEX) 
   && Platform.isDesktopApp

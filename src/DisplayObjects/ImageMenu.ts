@@ -336,7 +336,7 @@ export class ImageMenu
 		const promises: Promise<boolean>[] = []
 
 		let cancel = false;
-		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+		const progress = new ProgressModal(this.#plugin, this.#targets.length+1, ()=>{cancel = true;})
 		progress.open();
 
 		for (let i = 0; i < this.#targets.length; i++) 
@@ -357,6 +357,7 @@ export class ImageMenu
 		}
 
 		await Promise.all(promises);
+		progress.updateProgress(this.#targets.length);
 		
 		new Notice("Tags added to files");
 	}

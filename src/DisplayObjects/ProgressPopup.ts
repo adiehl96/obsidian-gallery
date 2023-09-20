@@ -20,7 +20,7 @@ export class ProgressModal extends Modal
 
 	updateProgress(complete:number)
 	{
-		if(complete == this.#total-1)
+		if(complete >= this.#total-1)
 		{
 			this.#complete = true;
 			this.close();

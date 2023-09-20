@@ -156,6 +156,21 @@ export class GallerySettingTab extends PluginSettingTab
     infoPathSetting.descEl.createDiv({ text: 'On first activation the default is unspecified. Thus the info functionality of the Main gallery is diabled.' })
     infoPathSetting.descEl.createDiv({ text: 'Folder must already exist (plugin will not create it).', attr: { style: 'font-weight: 900;' } })
     infoPathSetting.descEl.createDiv({ text: 'If a folder is not specified no Image Information notes are created (to be used in the main gallery).' })
+    
+    
+    // Should add keys even if they already exist
+    new Setting(containerEl)
+      .setName('Skip Keyword import for existing keys')
+      .setDesc('If this is toggled then when pulling metadata from the image file, it will be skipped if there is already an internal metadate file with keywords. This saves time on imports, but if you change the meta in the original files those changes will not be reflected.')
+      .addToggle((toggle) =>
+      {
+        toggle.setValue(this.plugin.settings.skipMetadataOverwrite)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.settings.skipMetadataOverwrite = value
+          await this.plugin.saveSettings()
+        });
+      })
 
     // Meta template file    
     const metaTemplatSetting = new Setting(containerEl)
