@@ -5,6 +5,7 @@ import {
 	EXTENSIONS,
 	VIDEO_REGEX,
     createMetaFile,
+	getimageLink,
 	setLazyLoading,
 	updateFocus
   } from '../utils'
@@ -93,34 +94,7 @@ export class ImageGrid
 				progress.updateProgress(i);
 				
 				const info = infoFolder.children[i];
-				let imgLink: string;
-				if (info instanceof TFile)
-				{
-					const fileCache = this.plugin.app.metadataCache.getFileCache(info)
-					if(fileCache.frontmatter && fileCache.frontmatter.targetImage && fileCache.frontmatter.targetImage.length > 0)
-					{
-						imgLink = fileCache.frontmatter.targetImage
-					}
-					else
-					{
-						// find the info block and get the text from there
-						const cache = this.plugin.app.metadataCache.getFileCache(info);
-						if(cache.frontmatter && !(cache.frontmatter.targetImage && cache.frontmatter.targetImage.length > 0))
-						{
-							const infoContent = await this.plugin.app.vault.read(info);
-							const match = /imgPath=.+/.exec(infoContent)
-							if(match)
-							{
-								imgLink = match[0].substring(8);
-				
-								await this.plugin.app.fileManager.processFrontMatter(info, async (frontmatter) => 
-								{
-								frontmatter.targetImage = imgLink;
-								});
-							}
-						}
-					}
-				}
+				let imgLink = await getimageLink(info as TFile, this.plugin);
 		
 				if(info && imgLink)
 				{

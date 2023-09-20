@@ -56,7 +56,7 @@ export const SETTINGS: GallerySettings = {
   width: 400,
   useMaxHeight: false,
   maxHeight: 400,
-  hiddenInfo: "tags;palette",
+  hiddenInfo: "tags;palette;targetimage",
   filterStartOpen: false,
   skipMetadataOverwrite: false
 }
@@ -287,35 +287,83 @@ export const getImgInfo = async (imgPath: string, metadata: MetadataCache, plugi
 
 export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): Promise<TFile> =>
 {      
-			// Info File does not exist, Create it
-			let counter = 1
-			const imgName = imgPath.split('/').slice(-1)[0]
-			let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
-			let filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
-			while (plugin.app.vault.getAbstractFileByPath(filepath))
-			{
-				filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}_${counter}.md`);
-				counter++;
-			}
+  // Info File does not exist, Create it
+  let counter = 1
+  const imgName = imgPath.split('/').slice(-1)[0]
+  let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
+  let filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
+  let infoFile: TFile;
 
-      
-      const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md")) as TFile;
-      let template = defaultTemplate;
-      if(templateTFile)
-      {
-        template = await plugin.app.vault.read(templateTFile);
-      }
-
-      await plugin.app.vault.create(filepath, initializeInfo(template, imgPath, imgName));
-      // TODO: this waits a moment for the metadatacache to catch up with the new backlinks, but boy does it feel gross. Need to find out if there's another way to do this
-      await new Promise(f => setTimeout(f, 100));
-      const infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
-
-      
-      const imgTFile = plugin.app.vault.getAbstractFileByPath(imgPath) as TFile
-      await addEmbededTags(imgTFile, infoFile, plugin);
-
+  while (infoFile = (plugin.app.vault.getAbstractFileByPath(filepath )as TFile))
+  {
+    let imgLink = await getimageLink(infoFile as TFile, plugin);
+    if(imgLink == imgPath)
+    {
       return infoFile;
+    }
+    filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}_${counter}.md`);
+    counter++;
+  }
+
+  
+  const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md")) as TFile;
+  let template = defaultTemplate;
+  if(templateTFile)
+  {
+    template = await plugin.app.vault.read(templateTFile);
+  }
+
+  plugin.embedQueue[filepath] = imgPath;
+
+  try
+  {
+    return await plugin.app.vault.create(filepath, initializeInfo(template, imgPath, imgName));
+  }
+  catch(e)
+  {
+    infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile;
+    if(infoFile)
+    {
+      return infoFile;
+    }
+    console.warn(`Unable to get meta file for '${imgPath}', file exists at path '${filepath}' but cannot be read at this time.`);
+    new Notice(`Unable to get meta file for '${imgPath}', file exists at path '${filepath}' but cannot be read at this time.`);
+  }
+}
+
+export const getimageLink = async (info: TFile, plugin: GalleryTagsPlugin) : Promise<string> =>
+{
+  let imgLink: string;
+  if (info instanceof TFile)
+  {
+    const fileCache = plugin.app.metadataCache.getFileCache(info)
+    if(fileCache.frontmatter && fileCache.frontmatter.targetImage && fileCache.frontmatter.targetImage.length > 0)
+    {
+      imgLink = fileCache.frontmatter.targetImage
+    }
+    else
+    {
+      // find the info block and get the text from there
+      const cache = plugin.app.metadataCache.getFileCache(info);
+      if(cache.frontmatter && !(cache.frontmatter.targetImage && cache.frontmatter.targetImage.length > 0))
+      {
+        const infoContent = await plugin.app.vault.read(info);
+        const match = /imgPath=.+/.exec(infoContent)
+        if(match)
+        {
+          imgLink = match[0].trim().substring(8);
+          imgLink = normalizePath(imgLink);
+  
+          await plugin.app.fileManager.processFrontMatter(info, async (frontmatter) => 
+          {
+            frontmatter.targetImage = imgLink;
+          });
+        }
+      }
+    }
+  }
+
+  return imgLink;
 }
 
 /**

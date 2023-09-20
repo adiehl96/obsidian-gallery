@@ -1,6 +1,6 @@
 import type { ImageGrid } from "./ImageGrid";
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, offScreenPartial, preprocessUri } from "../utils";
+import { addEmbededTags, createMetaFile, offScreenPartial, preprocessUri } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
@@ -24,15 +24,11 @@ export class ImageMenu
 		this.#infoView = infoView;
 		this.#targets = targets;
 		this.#self = createDiv({cls: "suggestion-container"})
-		this.#self.focus();
 		this.#options = this.#self.createDiv("#suggestions-scroll");
-		this.#options.style.maxHeight = 500+"px";
-		this.#options.style.maxWidth = 200+"px";
+		this.#options.style.maxHeight = "500px";
+		this.#options.style.maxWidth = "200px";
 		this.#options.style.overflowY = "auto";
-
-		this.#self.addEventListener("mouseleave", (e) => {
-			this.#cleanUp();
-		});
+		this.#self.tabIndex = 0;
 
 		if(this.#targets.length == 0)
 		{
@@ -99,9 +95,20 @@ export class ImageMenu
 			this.#createItem("Delete just meta");
 		}
 
-		this.#self.addEventListener("blur", () => {this.#cleanUp()});
+		this.#self.addEventListener("blur",async () => 
+		{
+			await new Promise(f => setTimeout(f, 100));
+			this.#cleanUp();
+		});
+
+		this.#self.addEventListener("mouseleave", (e) => 
+		{
+			this.#cleanUp();
+		});
 
 		this.#show(posX,posY);
+		
+		this.#self.focus();
 	}
 
 	#createItem(text: string)
@@ -333,7 +340,7 @@ export class ImageMenu
 
 	async #resultPullTags()
 	{
-		const promises: Promise<boolean>[] = []
+		const promises: Promise<any>[] = []
 
 		let cancel = false;
 		const progress = new ProgressModal(this.#plugin, this.#targets.length+1, ()=>{cancel = true;})
@@ -351,9 +358,22 @@ export class ImageMenu
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
 			let infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-				true);
+				false);
+
+			if(infoFile)
+			{
+				this.#imageGrid.metaResources[file.path] = infoFile.path
+				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
+			}
+			else
+			{
+				infoFile = await createMetaFile(this.#imageGrid.imgResources[source], this.#plugin);
 				
-			promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
+				if(infoFile)
+				{
+					this.#imageGrid.metaResources[file.path] = infoFile.path;
+				}
+			}
 		}
 
 		await Promise.all(promises);
@@ -506,14 +526,17 @@ export class ImageMenu
 	{
 		activeDocument.body.appendChild(this.#self);
 		
-		this.#self.style.left = (posX-4)+"px";
-		this.#self.style.top = (posY-4)+"px";
+		this.#self.style.left = (posX)+"px";
+		this.#self.style.top = (posY)+"px";
+
+		const optionsRect = this.#options.getBoundingClientRect();
+		this.#self.style.width = optionsRect.width+"px";
 
 		if(offScreenPartial(this.#self))
 		{
 			const box = this.#self.getBoundingClientRect();
-			this.#self.style.left = (posX-box.width+4)+"px";
-			this.#self.style.top = (posY-box.height+4)+"px";
+			this.#self.style.left = (posX-box.width)+"px";
+			this.#self.style.top = (posY-box.height)+"px";
 		}
 	}
 

@@ -1,5 +1,5 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice } from 'obsidian'
-import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor } from './utils'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, type CachedMetadata, TFile } from 'obsidian'
+import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryProcessor } from './block'
 import { GalleryView, GalleryInfoView } from './view'
@@ -8,10 +8,11 @@ export default class GalleryTagsPlugin extends Plugin
 {
   settings!: GallerySettings;
   containerEl!: HTMLElement;
-	accentColor: string
-	accentColorDark: string
-  accentColorLight: string
+	accentColor: string;
+	accentColorDark: string;
+  accentColorLight: string;
   onResize: () => void;
+  embedQueue: ImageResources = {};
 
   async onload()
   {
@@ -79,6 +80,19 @@ export default class GalleryTagsPlugin extends Plugin
         catch(e)
         {
           this.onResize = null;
+        }
+      }));
+      
+    this.registerEvent(
+      this.app.metadataCache.on("changed", async (file) => 
+      {
+        if(this.embedQueue[file.path])
+        {
+          const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]) as TFile
+
+          delete this.embedQueue[file.path];
+          
+          await addEmbededTags(imgTFile, file, this);
         }
       }));
 
