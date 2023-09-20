@@ -8,6 +8,7 @@ export class ProgressModal extends Modal
 	#complete: boolean = false
 	#total: number
 	#progressEl: HTMLDivElement
+	#settingEl: Setting
 
 	constructor(plugin: GalleryTagsPlugin, total: number, onCancel: () => void) 
 	{
@@ -31,7 +32,8 @@ export class ProgressModal extends Modal
 			return;
 		}
 
-		this.#progressEl.style.width = (complete*100/this.#total)+"%"
+		this.#progressEl.style.width = (complete*100/this.#total)+"%";
+		this.#settingEl.descEl.innerText = `${complete}/${this.#total}`;
 	}
 
 	onOpen() 
@@ -50,7 +52,8 @@ export class ProgressModal extends Modal
 
 		if(this.#onCancel)
 		{
-			new Setting(contentEl)
+			this.#settingEl = new Setting(contentEl)
+			.setDesc('')
 			.addButton((btn) =>
 			btn
 			.setButtonText("Cancel")

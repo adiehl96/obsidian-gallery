@@ -1,5 +1,5 @@
-import type { DataAdapter, Vault, MetadataCache, App } from 'obsidian'
-import { TFolder, TFile, getAllTags, normalizePath, Notice, Platform } from 'obsidian'
+import type { MetadataCache, App } from 'obsidian'
+import { TFolder, TFile, normalizePath, Notice, Platform } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
 import { extractColors, type FinalColor } from '../node_modules/extract-colors'
@@ -236,7 +236,7 @@ export const offscreenFull = function(el:HTMLElement) : boolean {
  * @param metadata - Vaulat metadata handler
  * @param plugin - Gallery plugin handler
  */
-export const getImgInfo = async (imgPath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
+export const getImgInfo = async (imgPath: string, metadata: MetadataCache, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
 {
   if(plugin.settings.imgDataFolder == null)
   {
@@ -250,7 +250,7 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
   
   let infoFile = null
   const imgName = imgPath.split('/').slice(-1)[0]
-  const infoFolder = vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
+  const infoFolder = plugin.app.vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
   const infoFileList: string[] = []
   if (infoFolder instanceof TFolder)
   {
@@ -273,15 +273,28 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
 
     if (!infoFile && create)
     {
-      // Info File does not exist, Create it
-      await plugin.saveSettings()
-      let counter = 1
-      let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
-      while (infoFileList.contains(fileName))
-      {
-        fileName = `${fileName}_${counter}`
-        counter++;
-      }
+			infoFile = createMetaFile(imgPath, plugin);
+    }
+
+    return infoFile 
+  }
+
+  // Specified Resources folder does not exist
+  return null
+};
+
+export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): Promise<TFile> =>
+{      
+			// Info File does not exist, Create it
+			let counter = 1
+			const imgName = imgPath.split('/').slice(-1)[0]
+			let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
+			let filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
+			while (plugin.app.vault.getAbstractFileByPath(filepath))
+			{
+				filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}_${counter}.md`);
+				counter++;
+			}
 
       
       const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md")) as TFile;
@@ -291,22 +304,17 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
         template = await plugin.app.vault.read(templateTFile);
       }
 
-      const filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
-      await vault.create(filepath, initializeInfo(template, imgPath, imgName));
+      await plugin.app.vault.create(filepath, initializeInfo(template, imgPath, imgName));
       // TODO: this waits a moment for the metadatacache to catch up with the new backlinks, but boy does it feel gross. Need to find out if there's another way to do this
       await new Promise(f => setTimeout(f, 100));
-      infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
+      const infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile
 
       
       const imgTFile = plugin.app.vault.getAbstractFileByPath(imgPath) as TFile
       await addEmbededTags(imgTFile, infoFile, plugin);
-    }
-    return infoFile 
-  }
 
-  // Specified Resources folder does not exist
-  return null
-};
+      return infoFile;
+}
 
 /**
  * Attempt to scrape the file for tags and add them to the meta
@@ -314,13 +322,19 @@ export const getImgInfo = async (imgPath: string, vault: Vault, metadata: Metada
  * @param infoTFile meta file to add tags to
  * @param plugin reference to the plugin
  */
-export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<void> =>
+export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
   const keywords: string[] = await getJpgTags(imgTFile, plugin);
   const data = plugin.app.metadataCache.getFileCache(infoTFile)
+  if(!data)
+  {
+    return false;
+  }
   const shouldColor =(!imgTFile.path.match(VIDEO_REGEX) 
   && Platform.isDesktopApp
-  && !(data.frontmatter.Palette && data.frontmatter.Palette.length > 0))
+  && !(data.frontmatter && data.frontmatter.Palette && data.frontmatter.Palette.length > 0))
+  
+  const shouldLink = !(data.frontmatter && data.frontmatter.targetImage && data.frontmatter.targetImage.length > 0)
   let colors: FinalColor[]
 
   if(shouldColor)
@@ -331,9 +345,15 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
     colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
   }
 
-  if(keywords || shouldColor)
+  if(shouldLink || keywords || shouldColor)
   {
-    await plugin.app.fileManager.processFrontMatter(infoTFile, async (frontmatter) => {
+    await plugin.app.fileManager.processFrontMatter(infoTFile, async (frontmatter) => 
+    {
+      if(shouldLink)
+      {
+        frontmatter.targetImage = imgTFile.path;
+      }
+
       if(keywords)
       {
         let tags = frontmatter.tags ?? []
@@ -376,7 +396,10 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
         frontmatter.Palette = hexList;
       }
     });
+    return true;
   }
+
+  return false;
 }
 
 const getJpgTags = async (imgTFile: TFile, plugin: GalleryTagsPlugin): Promise<string[]> =>
@@ -469,48 +492,6 @@ export const searchForFile = async (path: string, plugin: GalleryTagsPlugin): Pr
   return foundPaths;
 }
 
-/**
- * Return images in the specified directory
- * @param path - path to project e.g. 'Test Project/First Sub Project'
- * @param name - image name to filter by
- * @param vaultFiles - list of all TFiles of Obsidian vault
- * @param handler - Obsidian vault handler
- */
-export const getImageResources = async (path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean, vaultFiles: TFile[], handler: DataAdapter, plugin: GalleryTagsPlugin): Promise<[ImageResources,number]> =>
-{
-  const imgList: ImageResources = {}
-  
-  path = normalizePath(path);
-
-  let reg
-  try 
-  {
-    reg = new RegExp(`^${path}.*${name}.*$`)
-    if (path === '/')
-    {
-      reg = new RegExp(`^.*${name}.*$`)
-    }
-  } catch (error)
-  {
-    console.log('Gallery Search - BAD REGEX! regex set to `.*` as default!!')
-    reg = '.*'
-  }
-
-  let count: number = 0;
-  for (const file of vaultFiles)
-  {
-    if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) )
-    {
-      count++;
-      if( await containsTags(file, tag, matchCase, exclusive, plugin))
-      {
-        imgList[handler.getResourcePath(file.path)] = file.path
-      }
-    }
-  }
-  return [imgList, count];
-};
-
 export const setLazyLoading = () =>
 {
   const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
@@ -537,117 +518,6 @@ export const setLazyLoading = () =>
   } else {
     // Possibly fall back to event handlers here
   }
-}
-
-/**
- * assesses if file matches the tag patterns passed
- * @param file - the image file to assess
- * @param tags - string that contains all the tags filter by separated by spaces
- * @param exclusive - if true filter requires all tags to match, if false filter matches for any tag
- * @param plugin - a link to the plugin for access to resources
- * @returns - true if the file should be included by the filter
- */
-const containsTags = async (file: TFile, tags: string, matchCase: boolean, exclusive: boolean, plugin: GalleryTagsPlugin): Promise<boolean> =>
-{
-  if(tags == null || tags == "")
-  {
-    return true;
-  }
-
-  let filterTags: string[] = tags.split(' ');
-  let imgTags: string[] = [];
-  let infoFile = await getImgInfo(file.path, plugin.app.vault, plugin.app.metadataCache, plugin, false);
-  if(infoFile)
-  {
-    let imgInfoCache = plugin.app.metadataCache.getFileCache(infoFile)
-    if (imgInfoCache)
-    {
-      imgTags = getAllTags(imgInfoCache)
-    }
-  }
-  
-  for(let k = 0; k < filterTags.length; k++)
-  {
-    if(filterTags[k][0] == '-')
-    {
-      filterTags.unshift(filterTags[k]);
-      filterTags.splice(k+1, 1);
-    }
-  }
-
-  let hasPositive: boolean = false;
-
-  for(let k = 0; k < filterTags.length; k++)
-  {
-    let negate: boolean = false;
-    let tag = filterTags[k];
-    if(tag[0] == '-')
-    {
-      tag = tag.substring(1);
-      negate = true;
-    }
-    else
-    {
-      hasPositive = true;
-    }
-
-    if(tag == "")
-    {
-      continue;
-    }
-
-    if(containsTag(tag, imgTags, matchCase))
-    {
-      if(negate)
-      {
-        return false;
-      }
-      
-      if(!exclusive)
-      {
-        return true;
-      }
-    }
-    else if(exclusive && !negate)
-    {
-      return false;
-    }
-  }
-
-  if(!hasPositive)
-  {
-    return true;
-  }
-  
-  return exclusive;
-};
-
-const containsTag = (tagFilter:string, tags: string[], matchCase: boolean): boolean =>
-{
-  if(!matchCase)
-  {
-    tagFilter = tagFilter.toLowerCase();
-  }
-
-  for(let i = 0; i < tags.length; i++)
-  {
-    if(matchCase)
-    {
-      if(tags[i].contains(tagFilter))
-      {
-        return true;
-      }
-    }
-    else
-    {
-      if(tags[i].toLowerCase().contains(tagFilter))
-      {
-        return true;
-      } 
-    }
-  }
-
-  return false;
 }
 
 export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, src: string, isVideo: boolean): void =>

@@ -1,6 +1,6 @@
 import type { ImageGrid } from "./ImageGrid";
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, getImgInfo, offScreenPartial, preprocessUri } from "../utils";
+import { addEmbededTags, offScreenPartial, preprocessUri } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../view";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
@@ -212,10 +212,7 @@ export class ImageMenu
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-			this.#plugin.app.vault,
-			this.#plugin.app.metadataCache,
-			this.#plugin,
+		const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 			true);
 		if (infoFile instanceof TFile)
 		{
@@ -271,10 +268,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-				this.#plugin.app.vault,
-				this.#plugin.app.metadataCache,
-				this.#plugin,
+			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 				true);
 			if(infoFile)
 			{
@@ -312,10 +306,7 @@ export class ImageMenu
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-					this.#plugin.app.vault,
-					this.#plugin.app.metadataCache,
-					this.#plugin,
+				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 					true);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
@@ -342,7 +333,7 @@ export class ImageMenu
 
 	async #resultPullTags()
 	{
-		const promises: Promise<void>[] = []
+		const promises: Promise<boolean>[] = []
 
 		let cancel = false;
 		const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
@@ -359,24 +350,10 @@ export class ImageMenu
 
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-			let infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-				this.#plugin.app.vault,
-				this.#plugin.app.metadataCache,
-				this.#plugin,
-				false);
+			let infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
+				true);
 				
-			if(infoFile)
-			{
-				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
-			}
-			else
-			{
-				infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-					this.#plugin.app.vault,
-					this.#plugin.app.metadataCache,
-					this.#plugin,
-					true);
-			}
+			promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
 		}
 
 		await Promise.all(promises);
@@ -405,10 +382,7 @@ export class ImageMenu
 
 				const source = this.#getSource(this.#targets[i]);
 				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-				const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-					this.#plugin.app.vault,
-					this.#plugin.app.metadataCache,
-					this.#plugin,
+				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 					false);
 				if(file)
 				{
@@ -465,10 +439,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-				this.#plugin.app.vault,
-				this.#plugin.app.metadataCache,
-				this.#plugin,
+			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 				false);
 			if(infoFile)
 			{
@@ -502,10 +473,7 @@ export class ImageMenu
 
 			const source = this.#getSource(this.#targets[i]);
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-			const infoFile = await getImgInfo(this.#imageGrid.imgResources[source],
-				this.#plugin.app.vault,
-				this.#plugin.app.metadataCache,
-				this.#plugin,
+			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
 				false);
 			if(file)
 			{

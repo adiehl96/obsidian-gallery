@@ -35,7 +35,6 @@ export class GalleryInfo
 
 		if(!this.infoList.contains("name"))
 		{
-			
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Name";
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.basename;

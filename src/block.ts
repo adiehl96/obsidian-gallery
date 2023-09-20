@@ -76,6 +76,7 @@ export class GalleryProcessor
       imageGrid.customList = args.customList.split(' ').map(i => parseInt(i));
     }
 
+    await imageGrid.updateResources();
     await imageGrid.updateData();
 
     if (args.type === 'grid')
@@ -146,6 +147,8 @@ export class GalleryProcessor
       return;
     }
 
+    const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+
     if (!imgTFile)
     {
       const found = await searchForFile(args.imgPath, plugin);
@@ -163,8 +166,6 @@ export class GalleryProcessor
         imgURL = vault.adapter.getResourcePath(found[0])
 
         // replace file path for future usage
-        const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-
         if (view) 
         {
           for(let i = 0; i < view.editor.lineCount(); i++)
@@ -178,7 +179,6 @@ export class GalleryProcessor
             }
           }
         }
-
       }
       else
       {
@@ -193,6 +193,8 @@ export class GalleryProcessor
         return;
       }
     }
+
+
 
     let measureEl, isVideo
     let hexList: string[] = [];
@@ -222,7 +224,7 @@ export class GalleryProcessor
     }
 
     // Handle disabled img info functionality or missing info block
-    const imgInfo = await getImgInfo(imgTFile.path, vault, metadata, plugin, false)
+    const imgInfo = await getImgInfo(imgTFile.path, metadata, plugin, false)
     let imgTags = null
 
     let imgInfoCache = null

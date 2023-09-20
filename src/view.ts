@@ -1,7 +1,7 @@
 import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile, Notice } from 'obsidian'
 import
   {
-    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, VIDEO_REGEX, getImgInfo, updateFocus
+    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING
   } from './utils'
 import { ImageGrid } from './DisplayObjects/ImageGrid'
 import type GalleryTagsPlugin from './main'
@@ -23,7 +23,6 @@ export class GalleryView extends ItemView
   widthScaleEl: HTMLInputElement
 
   #randomEl: HTMLInputElement
-  #scrollPosition: number
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
@@ -82,13 +81,6 @@ export class GalleryView extends ItemView
     
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
-    this.displayEl.addEventListener("scroll", ()=>{
-      if(this.displayEl.scrollTop == 0)
-      {
-        return;
-      }
-      this.#scrollPosition = this.displayEl.scrollTop;
-    })
 
     this.imagesContainer = this.displayEl.createEl('ul')
     this.imageGrid = new ImageGrid(this.displayEl, this.imagesContainer, plugin);
@@ -340,6 +332,9 @@ export class GalleryView extends ItemView
         });
       }
     }
+
+    
+    this.imageGrid.updateResources();
   }
 
   async updateData()
@@ -493,11 +488,7 @@ export class GalleryInfoView extends ItemView
 
   async updateInfoDisplay(imgPath: string)
   {
-    this.infoFile = await getImgInfo(this.galleryView.imageGrid.imgResources[imgPath],
-      this.app.vault,
-      this.app.metadataCache,
-      this.plugin,
-      true)
+    this.infoFile = await this.galleryView.imageGrid.getImageInfo(this.galleryView.imageGrid.imgResources[imgPath], true);
 
     // Handle disabled img info functionality or missing info block
     let infoText = GALLERY_RESOURCES_MISSING

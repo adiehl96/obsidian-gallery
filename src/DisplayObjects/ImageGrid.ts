@@ -1,14 +1,16 @@
-import { Keymap, Notice, TFile, type UserEvent } from "obsidian"
+import { Keymap, Notice, TFile, normalizePath, type UserEvent, getAllTags, TFolder } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import type { ImageResources } from '../utils'
 import {
+	EXTENSIONS,
 	VIDEO_REGEX,
-    getImageResources,
+    createMetaFile,
 	setLazyLoading,
 	updateFocus
   } from '../utils'
 import type { GalleryInfoView } from "../view"
 import { ImageMenu } from "./ImageMenu"
+import { ProgressModal } from "./ProgressPopup"
 
 export class ImageGrid
 {
@@ -27,6 +29,7 @@ export class ImageGrid
 	customList: number[]
 
 	imgResources!: ImageResources
+	metaResources!: ImageResources
 	imgList: string[] = []
 	totalCount: number = 0
 	selectMode: boolean
@@ -68,17 +71,72 @@ export class ImageGrid
 		return result;
 	}
 
+	async updateResources(): Promise<void>
+	{
+		this.metaResources = {}
+		const infoFolder = this.plugin.app.vault.getAbstractFileByPath(this.plugin.settings.imgDataFolder)
+	
+		if (infoFolder instanceof TFolder)
+		{
+			let cancel = false;
+			const progress = new ProgressModal(this.plugin, infoFolder.children.length, ()=>{cancel = true;})
+			progress.open();
+
+			for (let i = 0; i < infoFolder.children.length; i++) 
+			{
+				if(cancel)
+				{
+					new Notice("Canceled indexing, Tag search may be limited");
+					return;
+				}
+				
+				progress.updateProgress(i);
+				
+				const info = infoFolder.children[i];
+				let imgLink: string;
+				if (info instanceof TFile)
+				{
+					const fileCache = this.plugin.app.metadataCache.getFileCache(info)
+					if(fileCache.frontmatter && fileCache.frontmatter.targetImage && fileCache.frontmatter.targetImage.length > 0)
+					{
+						imgLink = fileCache.frontmatter.targetImage
+					}
+					else
+					{
+						// find the info block and get the text from there
+						const cache = this.plugin.app.metadataCache.getFileCache(info);
+						if(cache.frontmatter && !(cache.frontmatter.targetImage && cache.frontmatter.targetImage.length > 0))
+						{
+							const infoContent = await this.plugin.app.vault.read(info);
+							const match = /imgPath=.+/.exec(infoContent)
+							if(match)
+							{
+								imgLink = match[0].substring(8);
+				
+								await this.plugin.app.fileManager.processFrontMatter(info, async (frontmatter) => 
+								{
+								frontmatter.targetImage = imgLink;
+								});
+							}
+						}
+					}
+				}
+		
+				if(info && imgLink)
+				{
+					this.metaResources[imgLink] = info.path
+				}
+			}
+		}
+	}
+
 	async updateData()
 	{
-		[this.imgResources, this.totalCount ] = await getImageResources(this.path,
+		[this.imgResources, this.totalCount ] = await this.#getImageResources(this.path,
 			this.name,
 			this.tag,
 			this.matchCase,
-			this.exclusive,
-			this.plugin.app.vault.getFiles(),
-			this.plugin.app.vault.adapter,
-			this.plugin)
-		
+			this.exclusive)
 		this.imgList = Object.keys(this.imgResources)
 
 		if(this.random > 0)
@@ -269,6 +327,38 @@ export class ImageGrid
 			default : continue;
 		  }
 		}
+	}
+
+	async getImageInfo(imgPath:string, create:boolean): Promise<TFile|null>
+	{
+		if(this.plugin.settings.imgDataFolder == null)
+		{
+		  return null;
+		}
+	  
+		if(!imgPath || imgPath == "")
+		{
+		  return
+		}
+		
+		let infoFile = null
+		let infoPath = this.metaResources[imgPath];
+		infoFile = this.plugin.app.vault.getAbstractFileByPath(infoPath);
+
+		if(infoFile)
+		{
+			return infoFile as TFile;
+		}
+	  
+		if (create)
+		{
+			infoFile = await createMetaFile(imgPath, this.plugin);
+			this.metaResources[imgPath] = infoFile.path
+			return infoFile;
+		}
+	  
+		// Not found, don't create
+		return null
 	}
 
 	setupClickEvents(imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
@@ -474,4 +564,156 @@ export class ImageGrid
 			this.#columnEls[col].style.width = columnWidth+"px";
 		}
 	}
+
+	
+	async #getImageResources(path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean): Promise<[ImageResources,number]>
+	{
+		const imgList: ImageResources = {}
+		const vaultFiles = this.plugin.app.vault.getFiles()
+		
+		path = normalizePath(path);
+
+		let reg
+		try 
+		{
+			reg = new RegExp(`^${path}.*${name}.*$`)
+			if (path === '/')
+			{
+				reg = new RegExp(`^.*${name}.*$`)
+			}
+		} 
+		catch (error)
+		{
+			console.log('Gallery Search - BAD REGEX! regex set to `.*` as default!!')
+			reg = '.*'
+		}
+		
+		let filterTags: string[] = null;
+		
+		if(tag != null && tag != "")
+		{
+			filterTags = tag.split(' ');
+			for(let k = 0; k < filterTags.length; k++)
+			{
+				if(filterTags[k][0] == '-')
+				{
+					filterTags.unshift(filterTags[k]);
+					filterTags.splice(k+1, 1);
+				}
+				if(filterTags[k].trim() == '')
+				{
+					filterTags.splice(k+1, 1);
+				}
+			}
+		}
+
+		let count: number = 0;
+		for (const file of vaultFiles)
+		{
+			if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) )
+			{
+				count++;
+				if( await this.#containsTags(file, filterTags, matchCase, exclusive))
+				{
+					imgList[this.plugin.app.vault.adapter.getResourcePath(file.path)] = file.path
+				}
+			}
+		}
+		return [imgList, count];
+	}
+	
+	async #containsTags(file: TFile, filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
+	{
+		if(filterTags == null || filterTags.length == 0)
+		{
+			return true;
+		}
+
+		let imgTags: string[] = [];
+		this.plugin.app.metadataCache.getFileCache(file)
+		let infoFile = await this.getImageInfo(file.path, false);
+		if(infoFile)
+		{
+			let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
+			if (imgInfoCache)
+			{
+				imgTags = getAllTags(imgInfoCache)
+			}
+		}
+
+		let hasPositive: boolean = false;
+
+		for(let k = 0; k < filterTags.length; k++)
+		{
+			let negate: boolean = false;
+			let tag = filterTags[k];
+			if(tag[0] == '-')
+			{
+				tag = tag.substring(1);
+				negate = true;
+			}
+			else
+			{
+				hasPositive = true;
+			}
+
+			if(tag == "")
+			{
+				continue;
+			}
+
+			if(this.#containsTag(tag, imgTags, matchCase))
+			{
+				if(negate)
+				{
+					return false;
+				}
+				
+				if(!exclusive)
+				{
+					return true;
+				}
+			}
+			else if(exclusive && !negate)
+			{
+				return false;
+			}
+		}
+
+		if(!hasPositive)
+		{
+			return true;
+		}
+		
+		return exclusive;
+	};
+
+	#containsTag(tagFilter:string, tags: string[], matchCase: boolean): boolean
+	{
+		if(!matchCase)
+		{
+			tagFilter = tagFilter.toLowerCase();
+		}
+
+		for(let i = 0; i < tags.length; i++)
+		{
+			if(matchCase)
+			{
+				if(tags[i].contains(tagFilter))
+				{
+					return true;
+				}
+			}
+			else
+			{
+				if(tags[i].toLowerCase().contains(tagFilter))
+				{
+					return true;
+				} 
+			}
+		}
+
+		return false;
+	}
+
 }
