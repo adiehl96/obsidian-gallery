@@ -69,3 +69,5 @@ NOTE: there is a new indexing system which should improve search performance, bu
  - GH#5 Don't redraw for resizes unless there is column shifting
  - GH#6 New optional setting for max image height
  - Fix for meta file not immediately being available for edit after initial creation
+
+This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
