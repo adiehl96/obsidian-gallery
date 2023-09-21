@@ -95,7 +95,7 @@ export class GalleryInfo
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = new Date(this.imgFile.stat.ctime).toDateString();
 		}
 
-		if(!this.infoList.contains("image-tags"))
+		if(!this.infoList.contains("imagetags"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Image Tags";
@@ -205,7 +205,7 @@ export class GalleryInfo
 			}	
 		}
 
-		if(!this.infoList.contains("color-palette") && this.colorList.length > 0)
+		if(!this.infoList.contains("colorpalette") && this.colorList.length > 0)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Color Palette";

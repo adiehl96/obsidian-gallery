@@ -12,7 +12,7 @@ export interface GallerySettings
   width: number
   useMaxHeight: boolean
   maxHeight: number
-  hiddenInfo: string | null
+  hiddenInfoTicker: Record<string, boolean>
   filterStartOpen: boolean
   skipMetadataOverwrite: boolean
 }
@@ -49,6 +49,22 @@ export interface InfoBlockArgs
   ignoreInfo: string
 }
 
+export const defaultHiddenInfo = 
+{
+  name:false,
+  path:false,
+  extension:false,
+  size:false,
+  dimensions:false,
+  date:false,
+  imageTags:false,
+  backlinks:false,
+  colorPalette:false,
+  tags:true,
+  palette:true,
+  targetImage:true
+}
+
 export const SETTINGS: GallerySettings = {
   imgDataFolder: null,
   galleryLoadPath: '/',
@@ -56,7 +72,7 @@ export const SETTINGS: GallerySettings = {
   width: 400,
   useMaxHeight: false,
   maxHeight: 400,
-  hiddenInfo: "tags;palette;targetimage",
+  hiddenInfoTicker: defaultHiddenInfo,
   filterStartOpen: false,
   skipMetadataOverwrite: false
 }

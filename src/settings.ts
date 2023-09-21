@@ -1,6 +1,7 @@
 import { type App, PluginSettingTab, Setting } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { FuzzyFiles, FuzzyFolders } from './DisplayObjects/FuzzySuggestions'
+import { defaultHiddenInfo } from './utils'
 
 
 export class GallerySettingTab extends PluginSettingTab
@@ -19,6 +20,7 @@ export class GallerySettingTab extends PluginSettingTab
     let hiddenInfoInput = ''
     let fuzzyFolders = new FuzzyFolders(this.app)
     let fuzzyFiles = new FuzzyFiles(this.app)
+
 
     containerEl.empty()
 
@@ -113,23 +115,39 @@ export class GallerySettingTab extends PluginSettingTab
     }
     
     // Hidden meta fields
-    new Setting(containerEl)
+    const hiddenInfoSetting = new Setting(containerEl)
       .setName('Default hidden info')
-      .setDesc(`When no hidden info items are specified in an image info block these info items will be hidden.`)
-      .addButton(text => text
-        .setButtonText('Save')
-        .onClick(() =>
-        {
-          this.plugin.settings.hiddenInfo = hiddenInfoInput
-          hiddenInfoInput = ''
-          this.plugin.saveSettings()
-        }))
+      .setTooltip(`When no hidden info items are specified in an image info block these info items will be hidden.`)
+      .setDesc(``)
       .addText(text => text
-        .setPlaceholder(this.plugin.settings.hiddenInfo)
+        .setPlaceholder("New Hidden Field")
         .onChange(async (value) =>
         {
-          hiddenInfoInput = value.trim()
+          value = value.trim();
+          hiddenInfoInput = value;
         }))
+      .addButton(text => text
+        .setButtonText('Add')
+        .setTooltip("Add this field to hidden info list")
+        .onClick(() =>
+        {
+          this.plugin.settings.hiddenInfoTicker[hiddenInfoInput] = true;
+          hiddenInfoInput = '';
+          this.plugin.saveSettings();
+          this.display();
+        }))
+      .addButton(text => text
+        .setButtonText('Reset')
+        .setTooltip("Reset hidden info list to defaults")
+        .onClick(() =>
+        {
+          this.plugin.settings.hiddenInfoTicker = Object.assign({}, defaultHiddenInfo);
+          this.plugin.saveSettings();
+          this.display();
+        }));
+      
+      this.drawInfoLists(hiddenInfoSetting.descEl);
+    
 
     // Gallery Meta Section
     containerEl.createEl('h2', { text: 'Image Metadata' })
@@ -196,5 +214,38 @@ export class GallerySettingTab extends PluginSettingTab
     metaTemplatSetting.descEl.createDiv({ text: '<% IMG URI %> : The formatted URI for the image that can be used to generate a link to it' })
     metaTemplatSetting.descEl.createDiv({ text: '<% IMG PATH %> : Path to the image(including file name)' })
     metaTemplatSetting.descEl.createDiv({ text: '<% IMG NAME %> : File name for the image' })
+  }
+
+  drawInfoLists(containerEl:HTMLElement)
+  {
+    const fields = Object.keys(this.plugin.settings.hiddenInfoTicker)
+    for (let i = 0; i < fields.length; i++) 
+    {
+      const element = fields[i];
+      new Setting(containerEl)
+        .setName(fields[i])
+        .addToggle((toggle) =>
+        {
+          toggle.setValue(this.plugin.settings.hiddenInfoTicker[fields[i]])
+          toggle.onChange(async (value) =>
+          {
+            this.plugin.settings.hiddenInfoTicker[fields[i]] = value;
+            await this.plugin.saveSettings();
+          });
+        })
+        .addButton(text => 
+        {
+          text
+          .setButtonText("X")
+          .setTooltip("Remove from list")
+          .onClick(async () => 
+          {
+            delete this.plugin.settings.hiddenInfoTicker[fields[i]];
+            await this.plugin.saveSettings();
+            this.display();
+          })
+        })
+    }
+    
   }
 }

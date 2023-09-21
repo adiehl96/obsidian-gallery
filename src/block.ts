@@ -124,10 +124,14 @@ export class GalleryProcessor
       }
     })
 
-    let infoList = args.ignoreInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+    let infoList = args.ignoreInfo.split(';')
+      .map(param => param.trim().toLowerCase())
+      .filter(e => e !== '')
     if(infoList.length == 0)
     {
-      infoList = plugin.settings.hiddenInfo.split(';').map(param => param.trim().toLowerCase()).filter(e => e !== '')
+      infoList = Object.keys(plugin.settings.hiddenInfoTicker)
+      .filter(e => e !== '' && plugin.settings.hiddenInfoTicker[e])
+      .map(param => param.trim().toLowerCase())
     }
 
     args.imgPath = normalizePath(args.imgPath);
