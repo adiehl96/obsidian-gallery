@@ -25,6 +25,17 @@
 
 
 # Release Notes
+## 1.1.0
+NOTE: there is a new indexing system which should improve search performance, but it will need to run against all existing meta files once before it works properly. You will see it pop up the first time you open a gallery (though if you don't have a lot of meta files it might flash away before you notice) It is advised not to cancel this process and then use the gallery, but if you cancel it and close the gallery it should pick back up where it left off the next time you open it.
+ - Context option to move selected image(and update their metadata)
+ - GH#2 Attempts to pull tags out of images and store them in the meta data when the metadata file first created
+ - Option to manually pull the metadata for the selected images
+ - Fixed a bug with lazy loading
+ - Confirmation popup before large file operations
+ - Progress bar with cancel for large file operations
+ - New indexing system to improve search performance
+ - Fixed a mobile bug with context menu display
+
 ## 1.0.3 RC4
  - Shift click to select multiple images in a gallery view (highlights in accent color)
  - Context menu for gallery views that includes options to
@@ -58,9 +69,3 @@
  - GH#5 Don't redraw for resizes unless there is column shifting
  - GH#6 New optional setting for max image height
  - Fix for meta file not immediately being available for edit after initial creation
-
-## 1.0.0 RC1
- - Fuzzy search auto completer field added to tag block
- - tag block has Xs to delete tags
- - Fixed refresh bug in main gallery view
- - some CICD work to make builds run smoother that was not smooth to set up
