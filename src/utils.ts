@@ -1,4 +1,4 @@
-import type { MetadataCache, App } from 'obsidian'
+import type { App } from 'obsidian'
 import { TFolder, TFile, normalizePath, Notice, Platform } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'

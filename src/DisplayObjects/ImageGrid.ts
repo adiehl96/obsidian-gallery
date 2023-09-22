@@ -9,9 +9,9 @@ import {
 	setLazyLoading,
 	updateFocus
   } from '../utils'
-import type { GalleryInfoView } from "../view"
-import { ImageMenu } from "./ImageMenu"
-import { ProgressModal } from "./ProgressPopup"
+import type { GalleryInfoView } from "./GalleryInfoView"
+import { ImageMenu } from "../Modals/ImageMenu"
+import { ProgressModal } from "../Modals/ProgressPopup"
 
 export class ImageGrid
 {
@@ -360,51 +360,42 @@ export class ImageGrid
 				return;
 			}
 
+			const visualEl = evt.target as (HTMLVideoElement | HTMLImageElement)
+				
+			if(infoView)
+			{
+				await infoView.updateInfoDisplay(this.imgResources[visualEl.src]);
+			}
+
 			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
 			{
 				evt.stopImmediatePropagation();
 
-				const visualEl = evt.target as (HTMLVideoElement | HTMLImageElement)
 				this.#selectElement(visualEl);
-				
-				if(infoView)
-				{
-					await infoView.updateInfoDisplay(visualEl.src);
-				}
 				return;
 			}
 
-			if (evt.target instanceof HTMLImageElement)
+			if (visualEl instanceof HTMLImageElement)
 			{
 				// Read New image info
-				const focusImagePath = evt.target.src
+				const focusImagePath = visualEl.src
 				this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
 				imageFocusEl.style.setProperty('display', 'block')
 				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], false)
-
-				if(infoView)
-				{
-					await infoView.updateInfoDisplay(focusImagePath);
-				}
 			}
 
-			if (evt.target instanceof HTMLVideoElement)
+			if (visualEl instanceof HTMLVideoElement)
 			{
 				// Read video info
-				const focusImagePath = evt.target.src
+				const focusImagePath = visualEl.src
 				this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
 				imageFocusEl.style.setProperty('display', 'block')
 				// Save clicked video info to set it back later
-				this.#pausedVideo = evt.target
+				this.#pausedVideo = visualEl
 				this.#pausedVideoUrl = this.#pausedVideo.src
 				// disable clicked video
 				this.#pausedVideo.src = ''
 				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], true)
-
-				if(infoView)
-				{
-					await infoView.updateInfoDisplay(focusImagePath);
-				}
 			}
 		};
 
@@ -443,7 +434,7 @@ export class ImageGrid
 			
 			if(infoView)
 			{
-				await infoView.updateInfoDisplay(this.imgList[this.#imgFocusIndex]);
+				await infoView.updateInfoDisplay(this.imgResources[this.imgList[this.#imgFocusIndex]]);
 			}
 		}
 

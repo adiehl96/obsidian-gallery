@@ -1,8 +1,10 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, type CachedMetadata, TFile } from 'obsidian'
-import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags, getImgInfo } from './utils'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile } from 'obsidian'
+import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags } from './utils'
 import { GallerySettingTab } from './settings'
-import { GalleryProcessor } from './block'
-import { GalleryView, GalleryInfoView } from './view'
+import { GalleryBlock } from './Blocks/GalleryBlock'
+import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
+import { GalleryView } from './DisplayObjects/GalleryView'
+import { GalleryInfoView } from './DisplayObjects/GalleryInfoView'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -25,14 +27,14 @@ export default class GalleryTagsPlugin extends Plugin
     // Register gallery display block renderer
     this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
     {
-      const proc = new GalleryProcessor()
+      const proc = new GalleryBlock()
       await proc.galleryDisplay(source, el, this.app.vault, this)
     });
 
     // Register image info block
     this.registerMarkdownCodeBlockProcessor('gallery-info', async (source, el, ctx) =>
     {
-      const proc = new GalleryProcessor()
+      const proc = new ImageInfoBlock()
       await proc.galleryImageInfo(source, el, ctx.sourcePath, this)
     });
 

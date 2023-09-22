@@ -1,6 +1,6 @@
-import { type FrontMatterCache, TFile, getAllTags, WorkspaceLeaf } from "obsidian"
+import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
-import { SuggestionDropdown } from "./SuggestionDropdown"
+import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
 import { getSearch } from "../utils"
 
 

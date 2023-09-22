@@ -1,10 +1,8 @@
-import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile, Notice } from 'obsidian'
-import
-  {
-    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, getImgInfo
-  } from './utils'
-import { ImageGrid } from './DisplayObjects/ImageGrid'
-import type GalleryTagsPlugin from './main'
+import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
+import { OB_GALLERY } from '../utils'
+import { ImageGrid } from './ImageGrid'
+import type GalleryTagsPlugin from '../main'
+import { GalleryInfoView } from './GalleryInfoView'
 
 export class GalleryView extends ItemView
 {
@@ -392,159 +390,9 @@ export class GalleryView extends ItemView
     await this.updateData();
     this.updateDisplay();
 
-    GalleryInfoView.OpenLeaf(this.plugin);
-  }
-}
-
-export class GalleryInfoView extends ItemView
-{
-  viewEl: HTMLElement
-  previewEl: HTMLElement
-  sourceEl: HTMLElement
-  editorEl: HTMLTextAreaElement
-  infoFile: TFile | null = null
-  galleryView: GalleryView
-  plugin: GalleryTagsPlugin
-  fileContent: string
-
-  constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
-  {
-    super(leaf)
-    this.plugin = plugin
-
-    // Get View Container Element
-    this.viewEl = this.containerEl.getElementsByClassName('view-content')[0] as HTMLElement
-    // Add Preview Mode Container
-    this.previewEl = this.viewEl.createDiv({
-      cls: 'markdown-preview-view',
-      attr: { style: 'display: block' }
-    })
-    this.contentEl = this.previewEl.createDiv({
-      cls: 'markdown-preview-sizer markdown-preview-section'
-    })
-    // Add Source Mode Container
-    this.sourceEl = this.viewEl.createDiv({ cls: 'cm-s-obsidian', attr: { style: 'display: none' } })
-    // Add code mirro editor
-    this.editorEl = this.sourceEl.createEl('textarea', { cls: 'image-info-cm-editor' })
-
-    this.render = this.render.bind(this)
-    this.clear = this.clear.bind(this)
-    this.updateInfoDisplay = this.updateInfoDisplay.bind(this)
-  }
-
-  getViewType(): string
-  {
-    return OB_GALLERY_INFO
-  }
-
-  getDisplayText(): string
-  {
-    return 'Image Info'
-  }
-
-  getIcon(): string
-  {
-    return 'fa-Images'
-  }
-
-  async onClose(): Promise<void>
-  {
-    // Clear the preview and editor history
-    this.clear()
-    await Promise.resolve()
-  }
-
-  onload(): void
-  {    
-		// Add listener to change active file
-		const gallery = this.app.workspace.getLeavesOfType(OB_GALLERY)[0]
-		if (gallery?.view instanceof GalleryView)
-		{
-      this.galleryView = gallery.view
-      
-      this.galleryView.imageGrid.setupClickEvents(this.galleryView.imageFocusEl, this.galleryView.focusVideo, this.galleryView.focusImage, this);
-    }
-  }
-
-  static async OpenLeaf(plugin: GalleryTagsPlugin, imgPath:string = null)
-  {
-    // Open Info panel
-    const workspace = plugin.app.workspace
-    workspace.detachLeavesOfType(OB_GALLERY_INFO)
-    const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-    if (infoView)
-    {
-      workspace.revealLeaf(
-        infoView
-      );
-      return;
-    }
-
-    if (!workspace.layoutReady)
-    {
-      return;
-    }
-
-    await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-    workspace.revealLeaf(workspace.getLeavesOfType(OB_GALLERY_INFO)[0]);
-
-    if(imgPath && imgPath.length > 0)
-    {
-      const infoLeaf = workspace.getLeavesOfType(OB_GALLERY_INFO)[0];
- 
-      if (infoLeaf?.view instanceof GalleryInfoView)
-      {
-        infoLeaf.view.updateInfoDisplay(imgPath);
-      }
-    }
-  }
-
-  static closeInfoLeaf(plugin: GalleryTagsPlugin)
-  {
-    plugin.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
-  }
-
-  async updateInfoDisplay(imgPath: string)
-  {
-    this.infoFile = null;
-
-    if(this.galleryView)
-    {
-      const imgSourcedPath = this.galleryView.imageGrid.imgResources[imgPath];
-      if(imgSourcedPath !== "")
-      {
-        this.infoFile = await this.galleryView.imageGrid.getImageInfo(imgSourcedPath, true);
-      }
-    }
+    const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
     
-    if(!this.infoFile)
-    {
-      this.infoFile = await getImgInfo(imgPath, this.plugin, true);
-    }
-
-    // Handle disabled img info functionality or missing info block
-    let infoText = GALLERY_RESOURCES_MISSING
-    if (this.infoFile)
-    {
-      infoText = await this.app.vault.cachedRead(this.infoFile)
-    }
-
-    // Clear the preview and editor history
-    this.clear()
-
-    this.fileContent = infoText
-    this.render()
-  }
-
-  async render(): Promise<void>
-  {
-    this.contentEl.empty()
-    MarkdownRenderer.render(this.app, this.fileContent, this.contentEl, '/', this)
-  }
-
-  clear(): void
-  {
-    this.contentEl.empty()
-    this.fileContent = ''
+    // Add listener to change active file
+    this.imageGrid.setupClickEvents(this.imageFocusEl, this.focusVideo, this.focusImage, infoView);
   }
 }

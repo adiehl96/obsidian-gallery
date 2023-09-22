@@ -1,8 +1,8 @@
-import type { ImageGrid } from "./ImageGrid";
+import type { ImageGrid } from "../DisplayObjects/ImageGrid";
 import type GalleryTagsPlugin from "../main";
 import { addEmbededTags, createMetaFile, offScreenPartial, preprocessUri } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
-import type { GalleryInfoView } from "../view";
+import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
 import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
