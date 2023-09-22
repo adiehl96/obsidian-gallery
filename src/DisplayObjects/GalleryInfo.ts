@@ -110,17 +110,18 @@ export class GalleryInfo
 					removal.addEventListener("click", 
 					async (s) =>{
 						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
-							let tags = frontmatter.tags;
+							let tags = frontmatter.tags ?? [];
 							if (!Array.isArray(tags)) 
 							{ 
 								tags = [tags]; 
 							}
 		
 							tags.remove(this.tagList[i]);
+							tags.remove(this.tagList[i].replace("#",""));
 							frontmatter.tags = tags;
 							this.tagList.remove(this.tagList[i])
 							this.updateDisplay();
-							});
+						});
 					});
 				}
 			}
