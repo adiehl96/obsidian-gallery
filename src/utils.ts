@@ -59,6 +59,7 @@ export const defaultHiddenInfo =
   date:false,
   imageTags:false,
   backlinks:false,
+  infolinks:false,
   colorPalette:false,
   tags:true,
   palette:true,

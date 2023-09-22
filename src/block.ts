@@ -254,15 +254,31 @@ export class GalleryProcessor
     }
 
     const imgLinks: Array<{path : string, name: string}> = []
+    const infoLinks: Array<{path : string, name: string}> = []
     vault.getMarkdownFiles().forEach(mdFile =>
     {
-      metadata.getFileCache(mdFile)?.embeds?.forEach(link =>
+      metadata.getFileCache(mdFile)?.links?.forEach(link =>
       {
         if (link.link === args.imgPath || link.link === imgName)
         {
           imgLinks.push({ path: mdFile.path, name: mdFile.basename })
         }
+        if (link.link === imgInfo.path || link.link === imgInfo.name)
+        {
+          infoLinks.push({ path: mdFile.path, name: mdFile.basename })
+        }
       })
+      metadata.getFileCache(mdFile)?.embeds?.forEach(link =>
+        {
+          if (link.link === args.imgPath || link.link === imgName)
+          {
+            imgLinks.push({ path: mdFile.path, name: mdFile.basename })
+          }
+          if (link.link === imgInfo.path || link.link === imgInfo.name)
+          {
+            infoLinks.push({ path: mdFile.path, name: mdFile.basename })
+          }
+        })
     });
 
     const frontmatter: FrontMatterCache = imgInfoCache?.frontmatter ?? []
@@ -293,32 +309,11 @@ export class GalleryProcessor
       info.tagList = imgTags;
       info.isVideo = isVideo;
       info.imgLinks = imgLinks;
+      info.infoLinks = infoLinks;
       info.frontmatter = frontmatter;
       info.infoList = infoList;
       
       info.updateDisplay();
     }
-
-    // TODO: I'm not sure why I'd ever want this and it was causeing bugs
-    // elCanvas.onClickEvent(async (event) =>
-    // {
-    //   if (event.button === 2)
-    //   {
-    //     // Open image info view in side panel
-    //     const workspace = plugin.app.workspace
-    //     workspace.detachLeavesOfType(OB_GALLERY_INFO)
-    //     await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-    //     workspace.revealLeaf(
-    //       await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-    //     );
-    //     const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]?.view
-    //     if (infoView instanceof GalleryInfoView && imgInfo)
-    //     {
-    //       infoView.infoFile = imgInfo
-    //       infoView.fileContent = await vault.cachedRead(imgInfo)
-    //       infoView.render()
-    //     }
-    //   }
-    // })
   }
 }

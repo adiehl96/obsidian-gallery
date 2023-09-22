@@ -17,6 +17,7 @@ export class GalleryInfo
     colorList: string[]
     isVideo: boolean
     imgLinks: Array<{path : string, name: string}>
+    infoLinks: Array<{path : string, name: string}>
     frontmatter: FrontMatterCache
     infoList: string[]
 
@@ -196,6 +197,31 @@ export class GalleryInfo
 						// Open backlink file (this is needed for the side panel)
 						// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
 						const file = this.plugin.app.vault.getAbstractFileByPath(this.imgLinks[i].path)
+						if (file instanceof TFile)
+						{
+							this.plugin.app.workspace.getLeaf(false).openFile(file)
+						}
+					})
+				}
+			}	
+		}
+
+		if(this.infoLinks.length > 0 && !this.infoList.contains("infolinks"))
+		{
+			current = block.createDiv({ cls: 'gallery-info-section' });
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Info Links";
+			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
+			if(this.infoLinks != null)
+			{
+				for(let i = 0; i < this.infoLinks.length; i++)
+				{
+					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
+					link.textContent = this.infoLinks[i].name;
+					link.addEventListener('click', async (e) =>
+					{
+						// Open backlink file (this is needed for the side panel)
+						// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
+						const file = this.plugin.app.vault.getAbstractFileByPath(this.infoLinks[i].path)
 						if (file instanceof TFile)
 						{
 							this.plugin.app.workspace.getLeaf(false).openFile(file)
