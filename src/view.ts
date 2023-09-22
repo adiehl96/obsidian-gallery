@@ -1,7 +1,7 @@
 import { ItemView, type WorkspaceLeaf, setIcon, MarkdownRenderer, TFile, Notice } from 'obsidian'
 import
   {
-    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING
+    OB_GALLERY, OB_GALLERY_INFO, GALLERY_RESOURCES_MISSING, getImgInfo
   } from './utils'
 import { ImageGrid } from './DisplayObjects/ImageGrid'
 import type GalleryTagsPlugin from './main'
@@ -373,8 +373,8 @@ export class GalleryView extends ItemView
   async onClose(): Promise<void>
   {
     // Hide focus elements
-    this.imageFocusEl.style.setProperty('display', 'none')
-    this.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
+    this.imageFocusEl.style.setProperty('display', 'none');
+    GalleryInfoView.closeInfoLeaf(this.plugin);
     await Promise.resolve()
   }
 
@@ -392,27 +392,7 @@ export class GalleryView extends ItemView
     await this.updateData();
     this.updateDisplay();
 
-    // Open Info panel
-    const workspace = this.app.workspace
-    workspace.detachLeavesOfType(OB_GALLERY_INFO)
-    const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-    if (infoView)
-    {
-      workspace.revealLeaf(
-        infoView
-      );
-      return;
-    }
-
-    if (!workspace.layoutReady)
-    {
-      return;
-    }
-
-    await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-    workspace.revealLeaf(
-      await workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
-    );
+    GalleryInfoView.OpenLeaf(this.plugin);
   }
 }
 
@@ -486,9 +466,61 @@ export class GalleryInfoView extends ItemView
     }
   }
 
+  static async OpenLeaf(plugin: GalleryTagsPlugin, imgPath:string = null)
+  {
+    // Open Info panel
+    const workspace = plugin.app.workspace
+    workspace.detachLeavesOfType(OB_GALLERY_INFO)
+    const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
+    if (infoView)
+    {
+      workspace.revealLeaf(
+        infoView
+      );
+      return;
+    }
+
+    if (!workspace.layoutReady)
+    {
+      return;
+    }
+
+    await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
+    workspace.revealLeaf(workspace.getLeavesOfType(OB_GALLERY_INFO)[0]);
+
+    if(imgPath && imgPath.length > 0)
+    {
+      const infoLeaf = workspace.getLeavesOfType(OB_GALLERY_INFO)[0];
+ 
+      if (infoLeaf?.view instanceof GalleryInfoView)
+      {
+        infoLeaf.view.updateInfoDisplay(imgPath);
+      }
+    }
+  }
+
+  static closeInfoLeaf(plugin: GalleryTagsPlugin)
+  {
+    plugin.app.workspace.detachLeavesOfType(OB_GALLERY_INFO)
+  }
+
   async updateInfoDisplay(imgPath: string)
   {
-    this.infoFile = await this.galleryView.imageGrid.getImageInfo(this.galleryView.imageGrid.imgResources[imgPath], true);
+    this.infoFile = null;
+
+    if(this.galleryView)
+    {
+      const imgSourcedPath = this.galleryView.imageGrid.imgResources[imgPath];
+      if(imgSourcedPath !== "")
+      {
+        this.infoFile = await this.galleryView.imageGrid.getImageInfo(imgSourcedPath, true);
+      }
+    }
+    
+    if(!this.infoFile)
+    {
+      this.infoFile = await getImgInfo(imgPath, this.plugin, true);
+    }
 
     // Handle disabled img info functionality or missing info block
     let infoText = GALLERY_RESOURCES_MISSING

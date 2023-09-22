@@ -108,7 +108,7 @@ export class GalleryProcessor
     }
   }
 
-  async galleryImageInfo(source: string, el: HTMLElement, sourcePath: string, vault: Vault, metadata: MetadataCache, plugin: GalleryTagsPlugin)
+  async galleryImageInfo(source: string, el: HTMLElement, sourcePath: string, plugin: GalleryTagsPlugin)
   {
     const args: InfoBlockArgs = {
       imgPath: '',
@@ -141,8 +141,8 @@ export class GalleryProcessor
       attr: { style: 'width: 100%; height: auto; float: left' }
     })
 
-    let imgTFile = vault.getAbstractFileByPath(args.imgPath)
-    let imgURL = vault.adapter.getResourcePath(args.imgPath)
+    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath)
+    let imgURL = plugin.app.vault.adapter.getResourcePath(args.imgPath)
 
     // Handle problematic arg
     if(!args.imgPath)
@@ -166,8 +166,8 @@ export class GalleryProcessor
       if(found.length == 1)
       {
         // set file and path for current usage
-        imgTFile = vault.getAbstractFileByPath(found[0])
-        imgURL = vault.adapter.getResourcePath(found[0])
+        imgTFile = plugin.app.vault.getAbstractFileByPath(found[0])
+        imgURL = plugin.app.vault.adapter.getResourcePath(found[0])
 
         // replace file path for future usage
         if (view) 
@@ -228,7 +228,7 @@ export class GalleryProcessor
     }
 
     // Handle disabled img info functionality or missing info block
-    const imgInfo = await getImgInfo(imgTFile.path, metadata, plugin, false)
+    const imgInfo = await getImgInfo(imgTFile.path, plugin, false)
     let imgTags = null
 
     let imgInfoCache = null
@@ -246,7 +246,7 @@ export class GalleryProcessor
         });
       }
 
-      imgInfoCache = metadata.getFileCache(imgInfo)
+      imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
       if (imgInfoCache)
       {
         imgTags = getAllTags(imgInfoCache)
@@ -255,9 +255,9 @@ export class GalleryProcessor
 
     const imgLinks: Array<{path : string, name: string}> = []
     const infoLinks: Array<{path : string, name: string}> = []
-    vault.getMarkdownFiles().forEach(mdFile =>
+    plugin.app.vault.getMarkdownFiles().forEach(mdFile =>
     {
-      metadata.getFileCache(mdFile)?.links?.forEach(link =>
+      plugin.app.metadataCache.getFileCache(mdFile)?.links?.forEach(link =>
       {
         if (link.link === args.imgPath || link.link === imgName)
         {
@@ -268,7 +268,7 @@ export class GalleryProcessor
           infoLinks.push({ path: mdFile.path, name: mdFile.basename })
         }
       })
-      metadata.getFileCache(mdFile)?.embeds?.forEach(link =>
+      plugin.app.metadataCache.getFileCache(mdFile)?.embeds?.forEach(link =>
         {
           if (link.link === args.imgPath || link.link === imgName)
           {

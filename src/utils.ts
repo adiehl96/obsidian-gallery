@@ -255,7 +255,7 @@ export const offscreenFull = function(el:HTMLElement) : boolean {
  * @param metadata - Vaulat metadata handler
  * @param plugin - Gallery plugin handler
  */
-export const getImgInfo = async (imgPath: string, metadata: MetadataCache, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
+export const getImgInfo = async (imgPath: string, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
 {
   if(plugin.settings.imgDataFolder == null)
   {
@@ -265,6 +265,19 @@ export const getImgInfo = async (imgPath: string, metadata: MetadataCache, plugi
   if(!imgPath || imgPath == "")
   {
     return
+  }
+
+  if(imgPath.contains("app://"))
+  {
+    const files = plugin.app.vault.getFiles();
+    for (let i = 0; i < files.length; i++) 
+    {
+      if(imgPath.contains(files[i].path))
+      {
+        imgPath = files[i].path;
+        break;
+      }
+    }
   }
   
   let infoFile = null
@@ -278,21 +291,18 @@ export const getImgInfo = async (imgPath: string, metadata: MetadataCache, plugi
       if (info instanceof TFile)
       {
         infoFileList.push(info.basename)
-        const fileCache = metadata.getFileCache(info)
-        const links = fileCache?.embeds
-        links?.forEach(link =>
+        const fileCache = plugin.app.metadataCache.getFileCache(info)
+        const link:string = fileCache?.frontmatter?.targetImage
+        if (link === imgName || imgPath.contains(link))
         {
-          if (link.link === imgName || link.link === imgPath)
-          {
-            infoFile = info
-          }
-        })
+          infoFile = info
+        }
       }
     })
 
     if (!infoFile && create)
     {
-			infoFile = createMetaFile(imgPath, plugin);
+			infoFile = await createMetaFile(imgPath, plugin);
     }
 
     return infoFile 

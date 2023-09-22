@@ -97,6 +97,7 @@ export class ImageMenu
 
 		this.#self.addEventListener("blur",async () => 
 		{
+			// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 			await new Promise(f => setTimeout(f, 100));
 			this.#cleanUp();
 		});
@@ -430,6 +431,7 @@ export class ImageMenu
 	
 			new Notice("Images moved");
 
+          	// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 			await new Promise(f => setTimeout(f, 100));
 			await this.#imageGrid.updateData();
 			await this.#imageGrid.updateDisplay();
@@ -508,6 +510,7 @@ export class ImageMenu
 
 		new Notice("Images and meta deleted");
 
+        // TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 		await new Promise(f => setTimeout(f, 100));
 		await this.#imageGrid.updateData();
 		await this.#imageGrid.updateDisplay();

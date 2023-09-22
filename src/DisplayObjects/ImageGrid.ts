@@ -101,6 +101,8 @@ export class ImageGrid
 					this.metaResources[imgLink] = info.path
 				}
 			}
+			
+			progress.updateProgress(infoFolder.children.length);
 		}
 	}
 

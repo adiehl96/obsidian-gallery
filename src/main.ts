@@ -1,5 +1,5 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, type CachedMetadata, TFile } from 'obsidian'
-import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags } from './utils'
+import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags, getImgInfo } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryProcessor } from './block'
 import { GalleryView, GalleryInfoView } from './view'
@@ -13,6 +13,8 @@ export default class GalleryTagsPlugin extends Plugin
   accentColorLight: string;
   onResize: () => void;
   embedQueue: ImageResources = {};
+  finalizedQueue: ImageResources = {};
+  
 
   async onload()
   {
@@ -31,7 +33,7 @@ export default class GalleryTagsPlugin extends Plugin
     this.registerMarkdownCodeBlockProcessor('gallery-info', async (source, el, ctx) =>
     {
       const proc = new GalleryProcessor()
-      await proc.galleryImageInfo(source, el, ctx.sourcePath, this.app.vault, this.app.metadataCache, this)
+      await proc.galleryImageInfo(source, el, ctx.sourcePath, this)
     });
 
     // Add Gallery Icon
@@ -63,11 +65,7 @@ export default class GalleryTagsPlugin extends Plugin
 		style = document.createElement('style');
 		style.innerHTML = '.selected-item { border: 5px solid '+this.accentColorLight+'; }';
 		document.getElementsByTagName('head')[0].appendChild(style);	
-    
-    
-    // this.registerEvent(
-    //   this.app.workspace.on("file-menu", (menu, file, source) => { new Notice(source);}));
-      
+         
     this.registerEvent(
       this.app.workspace.on("resize", () => {
         try
@@ -89,12 +87,26 @@ export default class GalleryTagsPlugin extends Plugin
         if(this.embedQueue[file.path])
         {
           const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]) as TFile
-
+          
+          this.finalizedQueue[file.path] = this.embedQueue[file.path];
           delete this.embedQueue[file.path];
           
           await addEmbededTags(imgTFile, file, this);
         }
+        else if(this.finalizedQueue[file.path])
+        {
+          GalleryInfoView.OpenLeaf(this, this.finalizedQueue[file.path]);
+        }
       }));
+
+      
+    this.refreshViewTrigger();
+            
+    // this.registerEvent(
+    //   this.app.workspace.on("file-menu", async (menu,editor, info) => 
+    //   {
+    //     new Notice("file Menu")
+    //   }));
 
 		// this.registerEvent(
 		// 	this.app.workspace.on(
@@ -102,6 +114,47 @@ export default class GalleryTagsPlugin extends Plugin
 		// 		this.testOption
 		// 	)
 		// );
+  }
+
+  imgSelector: string = `.workspace-leaf-content[data-type='markdown'] img,`
+                              +`.workspace-leaf-content[data-type='image'] img,`
+                              +`.community-modal-details img,#sr-flashcard-view img,`
+                              +`.workspace-leaf-content[data-type='markdown'] video,`
+                              +`.workspace-leaf-content[data-type='video'] video,`
+                              +`.community-modal-details video,`
+                              +`.video-stream video`
+                              +`#sr-flashcard-view video`;
+  /**
+   * Refresh image context events for main container
+   * This feels gross, but I currently don't know another way to get right click events on images and videos
+   */
+  refreshViewTrigger = (doc?: Document) => 
+  {
+    if (!doc) 
+    {
+      doc = document;
+    }
+
+    doc.off('contextmenu', this.imgSelector, this.clickImage);
+
+    doc.on('contextmenu', this.imgSelector, this.clickImage);
+  }
+  
+  private clickImage = (event: MouseEvent) => 
+  {
+    const targetEl = <HTMLImageElement|HTMLVideoElement>event.target;
+    if (!targetEl) 
+    {
+      return;
+    }
+
+    if(targetEl.classList.contains("gallery-grid-img") || targetEl.classList.contains("gallery-grid-vid"))
+    {
+      return;
+    }
+
+    // This is kinda messy, but it gets the job done for now
+    GalleryInfoView.OpenLeaf(this,targetEl.src);
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
@@ -127,6 +180,8 @@ export default class GalleryTagsPlugin extends Plugin
   onunload()
   {
     console.log('unloading Gallery Plugin')
+    
+    document.off('contextmenu', this.imgSelector, this.clickImage);
   }
 
   async loadSettings()
