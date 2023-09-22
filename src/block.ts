@@ -299,7 +299,7 @@ export class GalleryProcessor
 
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
-      const info = new GalleryInfo(elCanvas, plugin);
+      const info = new GalleryInfo(elCanvas, el.parentElement, plugin);
       info.imgFile = imgTFile;
       info.imgInfo = imgInfo;
       info.width = width;

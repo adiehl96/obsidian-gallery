@@ -1,4 +1,4 @@
-import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
+import { type FrontMatterCache, TFile, getAllTags, WorkspaceLeaf } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "./SuggestionDropdown"
 import { getSearch } from "../utils"
@@ -7,6 +7,7 @@ import { getSearch } from "../utils"
 export class GalleryInfo
 {
 	plugin: GalleryTagsPlugin
+	doc: HTMLElement
 	parent: HTMLElement
 	imgFile: TFile
 	imgInfo: TFile
@@ -21,9 +22,10 @@ export class GalleryInfo
     frontmatter: FrontMatterCache
     infoList: string[]
 
-	constructor(parent: HTMLDivElement, plugin: GalleryTagsPlugin)
+	constructor(parent: HTMLDivElement, doc: HTMLElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
+		this.doc = doc
 		this.parent = parent;
 	}
 
@@ -46,19 +48,8 @@ export class GalleryInfo
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Path";
 			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
+			imgLink.dataset.href = this.imgFile.path;
 			imgLink.textContent = this.imgFile.path;
-			imgLink.addEventListener('click', async (e) =>
-			{
-				// Open image file (this is needed for the side panel)
-				// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
-				// "app://obsidian.md/Resources/ImageMeta/____Zoe____1.md"
-				// "Resources/ImageMeta/____Zoe____1.md"
-				const file = this.plugin.app.vault.getAbstractFileByPath(this.imgFile.path)
-				if (file instanceof TFile)
-				{
-					this.plugin.app.workspace.getLeaf(false).openFile(file)
-				}
-			})
 		}
 
 		if(!this.infoList.contains("extension"))
@@ -191,17 +182,8 @@ export class GalleryInfo
 				for(let i = 0; i < this.imgLinks.length; i++)
 				{
 					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
+					link.dataset.href = this.imgLinks[i].path;
 					link.textContent = this.imgLinks[i].name;
-					link.addEventListener('click', async (e) =>
-					{
-						// Open backlink file (this is needed for the side panel)
-						// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
-						const file = this.plugin.app.vault.getAbstractFileByPath(this.imgLinks[i].path)
-						if (file instanceof TFile)
-						{
-							this.plugin.app.workspace.getLeaf(false).openFile(file)
-						}
-					})
 				}
 			}	
 		}
@@ -216,17 +198,8 @@ export class GalleryInfo
 				for(let i = 0; i < this.infoLinks.length; i++)
 				{
 					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
+					link.dataset.href = this.infoLinks[i].path;
 					link.textContent = this.infoLinks[i].name;
-					link.addEventListener('click', async (e) =>
-					{
-						// Open backlink file (this is needed for the side panel)
-						// TODO: instead of doing this I should search for all links with an href inside obsidian and attatch this listener to them to make user inserted links work too without breaking web links
-						const file = this.plugin.app.vault.getAbstractFileByPath(this.infoLinks[i].path)
-						if (file instanceof TFile)
-						{
-							this.plugin.app.workspace.getLeaf(false).openFile(file)
-						}
-					})
 				}
 			}	
 		}
@@ -255,6 +228,26 @@ export class GalleryInfo
 				current = block.createDiv({ cls: 'gallery-info-section' });
 				current.createSpan({ cls: 'gallery-info-section-label' }).textContent = yaml;
 				current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.frontmatter[yaml];
+			}
+		}
+
+		// Side panel links don't work normally, so this on click helps with that
+		const docLinks = this.doc.querySelectorAll('a.internal-link');
+		for (let i = 0; i < docLinks.length; i++) 
+		{
+			const docLink = docLinks[i] as HTMLElement;
+			const href:string = docLink?.dataset?.href;
+			if(href !== "")
+			{
+				const file = this.plugin.app.vault.getAbstractFileByPath(href);
+				
+				docLink.addEventListener('click', async (e) =>
+				{
+					if (file instanceof TFile)
+					{
+						this.plugin.app.workspace.getLeaf(false).openFile(file);
+					}
+				});
 			}
 		}
 	}
