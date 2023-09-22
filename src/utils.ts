@@ -212,6 +212,12 @@ export const preprocessUri = (original: string): string =>
 
   return uri;
 }
+export const unProcessUri = (original: string): string =>
+{
+  const uri = original.replaceAll('%20', ' ');
+
+  return uri;
+}
 
 /**
  * Open the search window to a query. 
@@ -269,6 +275,8 @@ export const getImgInfo = async (imgPath: string, plugin: GalleryTagsPlugin, cre
 
   if(imgPath.contains("app://"))
   {
+    imgPath = unProcessUri(imgPath);
+    
     const files = plugin.app.vault.getFiles();
     for (let i = 0; i < files.length; i++) 
     {

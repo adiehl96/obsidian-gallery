@@ -154,7 +154,14 @@ export default class GalleryTagsPlugin extends Plugin
     }
 
     // This is kinda messy, but it gets the job done for now
-    GalleryInfoView.OpenLeaf(this,targetEl.src);
+    //@ts-ignore
+    let source : string = targetEl.parentElement?.attributes?.src?.value;
+    if(!source)
+    {
+      source = targetEl.src;
+    }
+
+    GalleryInfoView.OpenLeaf(this,source);
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
