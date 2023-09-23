@@ -128,7 +128,7 @@ export class GallerySettingTab extends PluginSettingTab
           hiddenInfoInput = value;
         }))
       .addButton(text => text
-        .setButtonText('Add')
+        .setIcon("plus")
         .setTooltip("Add this field to hidden info list")
         .onClick(() =>
         {
@@ -138,7 +138,7 @@ export class GallerySettingTab extends PluginSettingTab
           this.display();
         }))
       .addButton(text => text
-        .setButtonText('Reset')
+        .setIcon('rotate-ccw')
         .setTooltip("Reset hidden info list to defaults")
         .onClick(() =>
         {
@@ -237,7 +237,7 @@ export class GallerySettingTab extends PluginSettingTab
         .addButton(text => 
         {
           text
-          .setButtonText("X")
+          .setIcon("trash-2")
           .setTooltip("Remove from list")
           .onClick(async () => 
           {

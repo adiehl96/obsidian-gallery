@@ -1,4 +1,4 @@
-import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
+import { type FrontMatterCache, TFile, getAllTags, setIcon } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
 import { getSearch } from "../utils"
@@ -107,7 +107,7 @@ export class GalleryInfo
 						getSearch("tag:"+this.tagList[i].replace("#",""), this.plugin.app)
 					});
 					const removal = pill.createDiv("multi-select-pill-remove-button")
-					removal.createSpan().textContent = "X";
+					setIcon(removal, 'x')
 					removal.addEventListener("click", 
 					async (s) =>{
 						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
