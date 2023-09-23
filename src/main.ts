@@ -1,10 +1,12 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile } from 'obsidian'
-import { type GallerySettings, SETTINGS, OB_GALLERY, OB_GALLERY_INFO, galleryIcon, gallerySearchIcon, scaleColor, type ImageResources, addEmbededTags } from './utils'
+import { scaleColor, type ImageResources, addEmbededTags } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
 import { GalleryView } from './DisplayObjects/GalleryView'
 import { GalleryInfoView } from './DisplayObjects/GalleryInfoView'
+import type { GallerySettings } from './TechnicalFiles/GallerySettings'
+import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON } from './TechnicalFiles/Constants'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -39,8 +41,8 @@ export default class GalleryTagsPlugin extends Plugin
     });
 
     // Add Gallery Icon
-    addIcon('fa-Images', galleryIcon)
-    addIcon('fa-search', gallerySearchIcon)
+    addIcon('fa-Images', GALLERY_ICON)
+    addIcon('fa-search', GALLERY_SEARCH_ICON)
 
     // Register Main Gallery View
     this.registerView(OB_GALLERY, this.galleryViewCreator.bind(this))
@@ -195,7 +197,7 @@ export default class GalleryTagsPlugin extends Plugin
 
   async loadSettings()
   {
-    this.settings = Object.assign({}, SETTINGS, await this.loadData())
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
   }
 
   async saveSettings()

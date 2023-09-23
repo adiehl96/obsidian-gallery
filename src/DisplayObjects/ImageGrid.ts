@@ -1,14 +1,18 @@
 import { Keymap, Notice, TFile, normalizePath, type UserEvent, getAllTags, TFolder } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import type { ImageResources } from '../utils'
-import {
-	EXTENSIONS,
-	VIDEO_REGEX,
+import
+ {
     createMetaFile,
 	getimageLink,
 	setLazyLoading,
 	updateFocus
-  } from '../utils'
+} from '../utils'
+import 
+{
+	EXTENSIONS,
+	VIDEO_REGEX
+} from '../TechnicalFiles/Constants'
 import type { GalleryInfoView } from "./GalleryInfoView"
 import { ImageMenu } from "../Modals/ImageMenu"
 import { ProgressModal } from "../Modals/ProgressPopup"

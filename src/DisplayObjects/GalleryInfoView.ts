@@ -1,6 +1,7 @@
 import { ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian"
 import type GalleryTagsPlugin from "../main"
-import { GALLERY_RESOURCES_MISSING, OB_GALLERY_INFO, getImgInfo } from "../utils"
+import { getImgInfo } from "../utils"
+import { GALLERY_RESOURCES_MISSING, OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
 
 export class GalleryInfoView extends ItemView
 {

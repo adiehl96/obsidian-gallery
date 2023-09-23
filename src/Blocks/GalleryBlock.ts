@@ -1,10 +1,27 @@
 import type { Vault } from 'obsidian'
 import { MarkdownRenderer } from 'obsidian'
-import type { GalleryBlockArgs } from '../utils'
-import { GALLERY_DISPLAY_USAGE } from '../utils'
+import { GALLERY_DISPLAY_USAGE } from '../TechnicalFiles/Constants'
 import type GalleryTagsPlugin from '../main'
 import { ImageGrid } from '../DisplayObjects/ImageGrid'
 import Gallery from '../svelte/Gallery.svelte'
+
+export interface GalleryBlockArgs
+{
+  type: string
+  path: string
+  name: string
+  tags: string
+  exclusive: string
+  matchCase: string
+  imgWidth: number
+  imgHeight: number
+  divWidth: number
+  divAlign: string
+  divHeight: number
+  reverseOrder: string
+  customList: string
+  random: number
+}
 
 export class GalleryBlock
 {

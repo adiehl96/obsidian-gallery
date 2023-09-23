@@ -1,15 +1,25 @@
 import type { FrontMatterCache, EditorPosition } from 'obsidian'
 import { MarkdownRenderer, TFile, getAllTags, Platform, MarkdownView, normalizePath } from 'obsidian'
 import { extractColors } from '../../node_modules/extract-colors'
-import type { InfoBlockArgs } from '../utils'
 import
-  {
-    EXTENSIONS, EXTRACT_COLORS_OPTIONS,
-    VIDEO_REGEX,
-    getImgInfo, GALLERY_INFO_USAGE, searchForFile
-  } from '../utils'
+{
+  getImgInfo, searchForFile
+} from '../utils'
+import
+{
+  EXTENSIONS, 
+  EXTRACT_COLORS_OPTIONS,
+  VIDEO_REGEX,
+  GALLERY_INFO_USAGE
+} from '../TechnicalFiles/Constants'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfo } from '../DisplayObjects/GalleryInfo'
+
+export interface InfoBlockArgs
+{
+  imgPath: string
+  ignoreInfo: string
+}
 
 export class ImageInfoBlock
 {

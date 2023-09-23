@@ -1,7 +1,7 @@
 import { type App, PluginSettingTab, Setting } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { FuzzyFiles, FuzzyFolders } from './Modals/FuzzySuggestions'
-import { defaultHiddenInfo } from './utils'
+import { DEFAULT_HIDDEN_INFO } from './TechnicalFiles/Constants'
 
 
 export class GallerySettingTab extends PluginSettingTab
@@ -141,7 +141,7 @@ export class GallerySettingTab extends PluginSettingTab
         .setTooltip("Reset hidden info list to defaults")
         .onClick(() =>
         {
-          this.plugin.settings.hiddenInfoTicker = Object.assign({}, defaultHiddenInfo);
+          this.plugin.settings.hiddenInfoTicker = Object.assign({}, DEFAULT_HIDDEN_INFO);
           this.plugin.saveSettings();
           this.display();
         }));

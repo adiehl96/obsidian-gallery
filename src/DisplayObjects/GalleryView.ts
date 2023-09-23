@@ -1,5 +1,5 @@
 import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
-import { OB_GALLERY } from '../utils'
+import { OB_GALLERY } from '../TechnicalFiles/Constants'
 import { ImageGrid } from './ImageGrid'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
