@@ -1,4 +1,5 @@
 import { FuzzySuggestModal, TFile, TFolder, getAllTags } from "obsidian";
+import type GalleryTagsPlugin from "../main";
 
 export class FuzzyFolders extends FuzzySuggestModal<TFolder>
 {
@@ -43,23 +44,18 @@ export class FuzzyFiles extends FuzzySuggestModal<TFile>
 export class FuzzyTags extends FuzzySuggestModal<string>
 {
 	onSelection: (result:string) => void
+	plugin: GalleryTagsPlugin;
+
+	constructor(plugin: GalleryTagsPlugin)
+	{
+		super(plugin.app);
+
+		this.plugin = plugin;
+	}
 
 	getItems(): string[]
 	{
-		const files = this.app.vault.getMarkdownFiles();
-		const allTags: string[] = []
-		for(let i = 0; i < files.length; i++)
-		{
-			const tags = getAllTags(this.app.metadataCache.getFileCache(files[i]));
-			for(let k = 0; k < tags.length; k++)
-			{
-				if(!allTags.contains(tags[k]))
-				{
-					allTags.push(tags[k])
-				}
-			}
-		}
-		return allTags
+		return this.plugin.tagCache;
 	}
 	getItemText(item: string): string
 	{

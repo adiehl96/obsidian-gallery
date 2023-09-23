@@ -325,7 +325,7 @@ export class ImageMenu
 
 	#resultAddTag()
 	{
-		const fuzzyTags = new FuzzyTags(this.#plugin.app)
+		const fuzzyTags = new FuzzyTags(this.#plugin)
 		fuzzyTags.onSelection = async (s) =>{
 			const tag = s.trim();
 			if(tag === '')
@@ -420,7 +420,7 @@ export class ImageMenu
 
 	#resultRemoveTag()
 	{
-		const fuzzyTags = new FuzzyTags(this.#plugin.app)
+		const fuzzyTags = new FuzzyTags(this.#plugin)
 		fuzzyTags.onSelection = async (s) =>{
 			const tag = s.trim();
 			if(tag === '')

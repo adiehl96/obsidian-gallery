@@ -129,48 +129,34 @@ export class GalleryInfo
 			const newTagEl = currentVal.createEl("input", {cls: "new-tag-input"});
 			newTagEl.name = "new-tag";
 			newTagEl.placeholder = loc('IMAGE_INFO_FIELD_NEW_TAG');
-			const suggetions = new SuggestionDropdown(newTagEl, () =>{
-				const files = this.plugin.app.vault.getMarkdownFiles();
-				const allTags: string[] = []
-				for(let i = 0; i < files.length; i++)
-				{
-					const tags = getAllTags(this.plugin.app.metadataCache.getFileCache(files[i]));
-					for(let k = 0; k < tags.length; k++)
-					{
-						if(!allTags.contains(tags[k]))
-						{
-							allTags.push(tags[k])
-						}
-					}
-				}
-				return allTags
-			},
-			async(s) =>{
-				const tag = s.trim();
-				if(tag === '')
-				{
-					return;
-				}
-				await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, (frontmatter) => {
-					let tags = frontmatter.tags ?? []
-					if (!Array.isArray(tags)) 
-					{ 
-						tags = [tags]; 
-					}
-
-					if(tags.contains(tag))
+			const suggetions = new SuggestionDropdown(newTagEl, 
+				() =>{return this.plugin.tagCache;},
+				async(s) =>{
+					const tag = s.trim();
+					if(tag === '')
 					{
 						return;
 					}
+					await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, (frontmatter) => {
+						let tags = frontmatter.tags ?? []
+						if (!Array.isArray(tags)) 
+						{ 
+							tags = [tags]; 
+						}
 
-					tags.push(tag);
-					frontmatter.tags = tags;
-					this.tagList.push(tag)
-					this.updateDisplay();
+						if(tags.contains(tag))
+						{
+							return;
+						}
 
-					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
-					});
-			});
+						tags.push(tag);
+						frontmatter.tags = tags;
+						this.tagList.push(tag)
+						this.updateDisplay();
+
+						(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
+						});
+				});
 			suggetions.ignoreList = this.tagList;
 		}
 

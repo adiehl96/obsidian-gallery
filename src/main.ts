@@ -1,4 +1,4 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile } from 'obsidian'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags } from 'obsidian'
 import { scaleColor, type ImageResources, addEmbededTags } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
@@ -19,6 +19,7 @@ export default class GalleryTagsPlugin extends Plugin
   onResize: () => void;
   embedQueue: ImageResources = {};
   finalizedQueue: ImageResources = {};
+  tagCache:string[] = [];
   
 
   async onload()
@@ -27,19 +28,7 @@ export default class GalleryTagsPlugin extends Plugin
     await this.loadSettings();
     console.log(loc("LOADED_PLUGIN_MESSAGE"));
 
-    // Register gallery display block renderer
-    this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
-    {
-      const proc = new GalleryBlock()
-      await proc.galleryDisplay(source, el, this.app.vault, this)
-    });
-
-    // Register image info block
-    this.registerMarkdownCodeBlockProcessor('gallery-info', async (source, el, ctx) =>
-    {
-      const proc = new ImageInfoBlock()
-      await proc.galleryImageInfo(source, el, ctx.sourcePath, this)
-    });
+    this.#registerCodeBlocks();
 
     // Add Gallery Icon
     addIcon('fa-Images', GALLERY_ICON)
@@ -55,22 +44,46 @@ export default class GalleryTagsPlugin extends Plugin
       await this.showPanel()
     });
 
-    // Add Gallery Settings tab
     this.addSettingTab(new GallerySettingTab(this.app, this))
+    this.saveSettings();
+    this.#buildTagCache();
+    this.#refreshColors();
+    this.#registerEvents();
+    this.#refreshViewTrigger();
+            
+    // this.registerEvent(
+    //   this.app.workspace.on("file-menu", async (menu,editor, info) => 
+    //   {
+    //     new Notice("file Menu")
+    //   }));
 
-    // Save settings
-    this.saveSettings()
+		// this.registerEvent(
+		// 	this.app.workspace.on(
+		// 		"editor-menu",
+		// 		this.testOption
+		// 	)
+		// );
+  }
 
-    this.refreshColors()
-    
-		let style = document.createElement('style');
-		style.innerHTML = '.icon-checked { color: '+this.accentColor+'; }';
-		document.getElementsByTagName('head')[0].appendChild(style);	
+  #registerCodeBlocks()
+  {
+    // Register gallery display block renderer
+    this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
+    {
+      const proc = new GalleryBlock()
+      await proc.galleryDisplay(source, el, this.app.vault, this)
+    });
 
-		style = document.createElement('style');
-		style.innerHTML = '.selected-item { border: 5px solid '+this.accentColorLight+'; }';
-		document.getElementsByTagName('head')[0].appendChild(style);	
-         
+    // Register image info block
+    this.registerMarkdownCodeBlockProcessor('gallery-info', async (source, el, ctx) =>
+    {
+      const proc = new ImageInfoBlock()
+      await proc.galleryImageInfo(source, el, ctx.sourcePath, this)
+    });
+  }
+
+  #registerEvents()
+  {  
     this.registerEvent(
       this.app.workspace.on("resize", () => {
         try
@@ -87,8 +100,9 @@ export default class GalleryTagsPlugin extends Plugin
       }));
       
     this.registerEvent(
-      this.app.metadataCache.on("changed", async (file) => 
+      this.app.metadataCache.on("changed", async (file, data, cache) => 
       {
+        // Used for reacting to meta file creation events in real time
         if(this.embedQueue[file.path])
         {
           const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]) as TFile
@@ -102,26 +116,38 @@ export default class GalleryTagsPlugin extends Plugin
         {
           GalleryInfoView.OpenLeaf(this, this.finalizedQueue[file.path]);
         }
+        
+        // try to catch and cache any new tags
+        const newTags = getAllTags(cache);
+        for(let k = 0; k < newTags.length; k++)
+        {
+          if(!this.tagCache.contains(newTags[k]))
+          {
+            this.tagCache.push(newTags[k])
+          }
+        }
       }));
-
-      
-    this.refreshViewTrigger();
-            
-    // this.registerEvent(
-    //   this.app.workspace.on("file-menu", async (menu,editor, info) => 
-    //   {
-    //     new Notice("file Menu")
-    //   }));
-
-		// this.registerEvent(
-		// 	this.app.workspace.on(
-		// 		"editor-menu",
-		// 		this.testOption
-		// 	)
-		// );
   }
 
-  imgSelector: string = `.workspace-leaf-content[data-type='markdown'] img,`
+  #buildTagCache()
+  {
+    this.tagCache = [];
+    
+		const files = this.app.vault.getMarkdownFiles();
+		for(let i = 0; i < files.length; i++)
+		{
+			const tags = getAllTags(this.app.metadataCache.getFileCache(files[i]));
+			for(let k = 0; k < tags.length; k++)
+			{
+				if(!this.tagCache.contains(tags[k]))
+				{
+					this.tagCache.push(tags[k])
+				}
+			}
+		}
+  }
+
+  #imgSelector: string = `.workspace-leaf-content[data-type='markdown'] img,`
                               +`.workspace-leaf-content[data-type='image'] img,`
                               +`.community-modal-details img,#sr-flashcard-view img,`
                               +`.workspace-leaf-content[data-type='markdown'] video,`
@@ -131,18 +157,18 @@ export default class GalleryTagsPlugin extends Plugin
                               +`#sr-flashcard-view video`;
   /**
    * Refresh image context events for main container
-   * This feels gross, but I currently don't know another way to get right click events on images and videos
+   * This feels gross, but I currently don't know another way to get right click events on all images and videos
    */
-  refreshViewTrigger = (doc?: Document) => 
+  #refreshViewTrigger = (doc?: Document) => 
   {
     if (!doc) 
     {
       doc = document;
     }
 
-    doc.off('contextmenu', this.imgSelector, this.clickImage);
+    doc.off('contextmenu', this.#imgSelector, this.clickImage);
 
-    doc.on('contextmenu', this.imgSelector, this.clickImage);
+    doc.on('contextmenu', this.#imgSelector, this.clickImage);
   }
   
   private clickImage = (event: MouseEvent) => 
@@ -181,19 +207,31 @@ export default class GalleryTagsPlugin extends Plugin
     });
   }
 
-  refreshColors()
+  #refreshColors()
   {
 		// @ts-ignore
-		this.accentColor = this.app.vault.getConfig('accentColor')
+		this.accentColor = this.app.vault.getConfig('accentColor');
 		this.accentColorDark = scaleColor(this.accentColor, 0.25);
 		this.accentColorLight = scaleColor(this.accentColor, 1.5);
+    
+		let style = document.createElement('style');
+		style.innerHTML = '.icon-checked { color: '+this.accentColor+'; }';
+		document.getElementsByTagName('head')[0].appendChild(style);	
+
+		style = document.createElement('style');
+		style.innerHTML = '.selected-item { border: 5px solid '+this.accentColorLight+'; }';
+		document.getElementsByTagName('head')[0].appendChild(style);	
   }
 
   onunload()
   {
     console.log(loc("UNLOADING_PLUGIN_MESSAGE"))
     
-    document.off('contextmenu', this.imgSelector, this.clickImage);
+    document.off('contextmenu', this.#imgSelector, this.clickImage);
+    
+    this.embedQueue = {};
+    this.finalizedQueue = {};
+    this.tagCache = [];
   }
 
   async loadSettings()
