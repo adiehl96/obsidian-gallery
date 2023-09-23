@@ -4,6 +4,7 @@ import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
 import { extractColors, type FinalColor } from '../node_modules/extract-colors'
 import { EXTENSIONS, EXTRACT_COLORS_OPTIONS, VIDEO_REGEX, DEFAULT_TEMPLATE } from './TechnicalFiles/Constants'
+import { loc } from './Loc/Localizer'
 
 export type ImageResources = Record<string, string>
 

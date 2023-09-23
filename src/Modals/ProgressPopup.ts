@@ -1,5 +1,6 @@
-import { App, Modal, Setting } from "obsidian";
+import { Modal, Setting } from "obsidian";
 import type GalleryTagsPlugin from "../main";
+import { loc } from '../Loc/Localizer'
 
 export class ProgressModal extends Modal 
 {
@@ -56,7 +57,7 @@ export class ProgressModal extends Modal
 			.setDesc('')
 			.addButton((btn) =>
 			btn
-			.setButtonText("Cancel")
+			.setButtonText(loc('CANCEL'))
 			.setCta()
 			.onClick(() => {
 				this.#onCancel();

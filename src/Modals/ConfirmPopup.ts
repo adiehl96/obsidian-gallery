@@ -1,11 +1,12 @@
 import { App, Modal, Setting } from "obsidian";
+import { loc } from '../Loc/Localizer'
 
 export class ConfirmModal extends Modal 
 {
 	onConfirm: () => void
 	onCancel: () => void
-	confirmLabel: string = "OK"
-	cancelLabel: string = "Cancel"
+	confirmLabel: string = loc('CONFIRM');
+	cancelLabel: string = loc('CANCEL');
 	#info: string
 
 	constructor(app: App, info: string, onConfirm: () => void) 

@@ -7,6 +7,7 @@ import { GalleryView } from './DisplayObjects/GalleryView'
 import { GalleryInfoView } from './DisplayObjects/GalleryInfoView'
 import type { GallerySettings } from './TechnicalFiles/GallerySettings'
 import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON } from './TechnicalFiles/Constants'
+import { loc } from './Loc/Localizer'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -24,7 +25,7 @@ export default class GalleryTagsPlugin extends Plugin
   {
     // Load message
     await this.loadSettings();
-    console.log('Loaded Gallery Tags Plugin');
+    console.log(loc("LOADED_PLUGIN_MESSAGE"));
 
     // Register gallery display block renderer
     this.registerMarkdownCodeBlockProcessor('gallery', async (source, el, ctx) =>
@@ -190,7 +191,7 @@ export default class GalleryTagsPlugin extends Plugin
 
   onunload()
   {
-    console.log('unloading Gallery Plugin')
+    console.log(loc("UNLOADING_PLUGIN_MESSAGE"))
     
     document.off('contextmenu', this.imgSelector, this.clickImage);
   }

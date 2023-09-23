@@ -2,6 +2,7 @@ import { type FrontMatterCache, TFile, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
 import { getSearch } from "../utils"
+import { loc } from '../Loc/Localizer'
 
 
 export class GalleryInfo
@@ -39,14 +40,14 @@ export class GalleryInfo
 		if(!this.infoList.contains("name"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Name";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_NAME');
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.basename;
 		}
 
 		if(!this.infoList.contains("path"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Path";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_PATH');
 			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
 			imgLink.dataset.href = this.imgFile.path;
 			imgLink.textContent = this.imgFile.path;
@@ -55,21 +56,21 @@ export class GalleryInfo
 		if(!this.infoList.contains("extension"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Extension";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_EXTENSION');
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.extension;
 		}
 
 		if(!this.infoList.contains("size"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Size";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_SIZE');
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = (this.imgFile.stat.size / 1000000).toPrecision(3) + " Mb";
 		}
 
 		if(!this.infoList.contains("dimensions"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Dimensions";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_DIMENSIONS');
 			const dimensionsEl = current.createDiv({ cls: 'gallery-info-section-value' });
 			dimensionsEl.textContent =  this.width +"x"+this.height+" px";
 			if(this.dimensions)
@@ -83,14 +84,14 @@ export class GalleryInfo
 		if(!this.infoList.contains("date"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Date";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_DATE');
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = new Date(this.imgFile.stat.ctime).toDateString();
 		}
 
 		if(!this.infoList.contains("imagetags"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Image Tags";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_IMAGE_TAGS');
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
 			
 			if(this.tagList != null)
@@ -127,7 +128,7 @@ export class GalleryInfo
 			}
 			const newTagEl = currentVal.createEl("input", {cls: "new-tag-input"});
 			newTagEl.name = "new-tag";
-			newTagEl.placeholder = "New Tag";
+			newTagEl.placeholder = loc('IMAGE_INFO_FIELD_NEW_TAG');
 			const suggetions = new SuggestionDropdown(newTagEl, () =>{
 				const files = this.plugin.app.vault.getMarkdownFiles();
 				const allTags: string[] = []
@@ -176,7 +177,7 @@ export class GalleryInfo
 		if(!this.infoList.contains("backlinks"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Backlinks";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_BACKLINKS');
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
 			if(this.imgLinks != null)
 			{
@@ -192,7 +193,7 @@ export class GalleryInfo
 		if(this.infoLinks.length > 0 && !this.infoList.contains("infolinks"))
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Info Links";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_INFOLINKS');
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
 			if(this.infoLinks != null)
 			{
@@ -208,7 +209,7 @@ export class GalleryInfo
 		if(!this.infoList.contains("colorpalette") && this.colorList.length > 0)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
-			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = "Color Palette";
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_PALETTE');
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' })
 			
 			if(this.colorList != null)

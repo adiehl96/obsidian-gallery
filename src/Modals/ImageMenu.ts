@@ -6,6 +6,7 @@ import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
 import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
+import { loc } from '../Loc/Localizer'
 
 export class ImageMenu
 {

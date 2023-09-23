@@ -2,6 +2,7 @@ import { ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { getImgInfo } from "../utils"
 import { GALLERY_RESOURCES_MISSING, OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
+import { loc } from '../Loc/Localizer'
 
 export class GalleryInfoView extends ItemView
 {
@@ -45,7 +46,7 @@ export class GalleryInfoView extends ItemView
 
   getDisplayText(): string
   {
-    return 'Image Info'
+    return loc("IMAGE_INFO_TITLE");
   }
 
   getIcon(): string

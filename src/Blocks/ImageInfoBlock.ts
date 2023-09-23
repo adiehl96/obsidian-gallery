@@ -14,6 +14,7 @@ import
 } from '../TechnicalFiles/Constants'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfo } from '../DisplayObjects/GalleryInfo'
+import { loc } from '../Loc/Localizer'
 
 export interface InfoBlockArgs
 {
@@ -102,13 +103,13 @@ export class ImageInfoBlock
       else
       {
         // too many options, tell the user about it
-        let output = "### File path not found. Were you looking for one of these?\n"
+        let output = loc('IMAGE_PATH_FAILED_FIND_WARNING');
         for(let i = 0; i < found.length; i++)
         {
           output += "- "+found[i]+"\n";
         }
         
-        MarkdownRenderer.render(plugin.app,output, elCanvas, '/', plugin)
+        MarkdownRenderer.render(plugin.app, output, elCanvas, '/', plugin)
         return;
       }
     }

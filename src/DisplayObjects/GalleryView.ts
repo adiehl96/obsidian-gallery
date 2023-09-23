@@ -3,6 +3,7 @@ import { OB_GALLERY } from '../TechnicalFiles/Constants'
 import { ImageGrid } from './ImageGrid'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
+import { loc } from '../Loc/Localizer'
 
 export class GalleryView extends ItemView
 {
@@ -40,13 +41,13 @@ export class GalleryView extends ItemView
     const viewActionsEl = this.containerEl.querySelector('.view-actions');
 
     // Add copy filter button
-    const copyFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Copy filter to clipboard' } })
+    const copyFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('COPY_FILTER_TOOLTIP') } })
 
     // Add paste filter button
-    const pasteFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Paste filter from clipboard' } })
+    const pasteFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('PASTE_FILTER_TOOLTIP') } })
 
     // Add action button to hide / show filter panel
-    const searchPanel = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Search' } })
+    const searchPanel = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('SEARCH_TOOLTIP') } })
     if(searchPanel)
     {
       setIcon(searchPanel, 'fa-search')
@@ -97,7 +98,7 @@ export class GalleryView extends ItemView
       const pathFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { 'aria-label': 'Folder to search', spellcheck: false, placeholder: 'Path' }
+        attr: { 'aria-label': loc('FILTER_PATH_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_PATH_PROMPT') }
       })
       pathFilterEl.value = this.plugin.settings.galleryLoadPath;
 
@@ -112,7 +113,7 @@ export class GalleryView extends ItemView
       const nameFilterEl = filterTopDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { 'aria-label': 'File name contains', spellcheck: false, placeholder: 'Name' }
+        attr: { 'aria-label': loc('FILTER_NAME_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_NAME_PROMPT') }
       })
 
       nameFilterEl.addEventListener('input', async () =>
@@ -125,7 +126,7 @@ export class GalleryView extends ItemView
       // Should display order be reversed
       const sortReverseDiv = filterTopDiv.createDiv({
         cls: 'icon-toggle',
-        attr: { 'aria-label': 'Should the sort order be reversed'}
+        attr: { 'aria-label': loc('SORT_ORDER_TOOLTIP')}
       })
       setIcon(sortReverseDiv, "arrow-up-down")
 
@@ -145,14 +146,14 @@ export class GalleryView extends ItemView
       });
 
       // file filter counts
-      this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': 'Number of files displayed by filter out of files the gallery could display'}});
+      this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
       this.countEl.textContent = "counts";
 
       // Filter by Tags
       const tagFilterEl = filterBottomDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'text',
-        attr: { 'aria-label': 'partial tags seperated by spaces. Minus in front of a tag excludes it. eg "drawing -sketch fant" to include drawing and fantasy tags, but exclude sketches.', spellcheck: false, placeholder: 'Tags' }
+        attr: { 'aria-label': loc('FILTER_TAGS_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_TAGS_PROMPT') }
       })
 
       tagFilterEl.addEventListener('input', async () =>
@@ -165,7 +166,7 @@ export class GalleryView extends ItemView
       // Filter Match Case
       const matchFilterDiv = filterBottomDiv.createDiv({
         cls: 'icon-toggle',
-        attr: { 'aria-label': 'Should tags match exact case'}
+        attr: { 'aria-label': loc('FILTER_MATCH_CASE_TOOLTIP')}
       })
       setIcon(matchFilterDiv, "case-sensitive")
 
@@ -187,7 +188,7 @@ export class GalleryView extends ItemView
       // Filter Exclusive or inclusive
       const exclusiveFilterDiv = filterBottomDiv.createDiv({
         cls: 'icon-toggle',
-        attr: { 'aria-label': 'Should tags match exact case'}
+        attr: { 'aria-label': loc('FILTER_EXCLUSIVE_TOOLTIP')}
       })
       setIcon(exclusiveFilterDiv, "check-check")
 
@@ -210,7 +211,7 @@ export class GalleryView extends ItemView
       this.widthScaleEl = filterBottomDiv.createEl("input", {
         cls: 'ob-gallery-filter-slider-input',
         type: 'range',
-        attr: { 'aria-label': 'Change the display width of columns'}
+        attr: { 'aria-label': loc('FILTER_WIDTH_TOOLTIP')}
       });
       this.widthScaleEl.name = 'maxWidth';
       this.widthScaleEl.id = 'maxWidth';
@@ -228,14 +229,14 @@ export class GalleryView extends ItemView
 
       // Add action button to show random options and randomize them
       const randomDiv = filterBottomDiv.createDiv();
-      const randomButton = filterTopDiv.createEl('a', { cls: 'view-action', attr: { 'aria-label': 'Randomise images' } })
+      const randomButton = filterTopDiv.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('FILTER_RANDOM_TOOLTIP') } })
       setIcon(randomButton, 'dice')
       randomDiv.style.display = "none";
       randomDiv.style.marginLeft= "auto";
       this.#randomEl = randomDiv.createEl('input', {
         cls: 'ob-gallery-filter-input',
         type: 'number',
-        attr: { 'aria-label': 'number of random images to grab', min:"1", value: "10" }
+        attr: { 'aria-label': loc('FILTER_RANDOM_COUNT_TOOLTIP'), min:"1", value: "10" }
       })
       this.#randomEl.style.marginLeft= "auto";
       this.#randomEl.addEventListener("focus", async ()=>{
@@ -354,12 +355,12 @@ export class GalleryView extends ItemView
 
   getDisplayText(): string
   {
-    return 'Gallery'
+    return loc('GALLERY_VIEW_TITLE')
   }
 
   getIcon(): string
   {
-    return 'lines-of-text'
+    return 'fa-Images'
   }
 
   onResize(): void
@@ -377,10 +378,7 @@ export class GalleryView extends ItemView
   }
 
   async onOpen(): Promise<void>
-  {
-    // Set Header Title
-    this.headerEl.querySelector('.view-header-title').setText('Obsidian Gallery')
-    
+  {    
     this.imageGrid.path = this.plugin.settings.galleryLoadPath;
     this.imageGrid.name = "";
     this.imageGrid.tag = "";
