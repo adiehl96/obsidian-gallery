@@ -1,6 +1,6 @@
 #! /bin/bash
 
-input="./package.json"
+input="./manifest-beta.json"
 
 while IFS= read -r line
 do
@@ -10,9 +10,6 @@ do
 	fi
 done < "$input"
 
-git tag -a ${BASH_REMATCH[1]} -m "${BASH_REMATCH[1]}"
-git push origin "${BASH_REMATCH[1]}"
-
-sed -i "/version/ c\    \"version\": \"${BASH_REMATCH[1]}\"," ./manifest-beta.json
+sed -i "/version/ c\    \"version\": \"${BASH_REMATCH[1]}\"," ./manifest.json
 
 read  -n 1 -p "Press any key to close" mainmenuinput
