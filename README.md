@@ -25,6 +25,21 @@
 
 
 # Release Notes
+## 1.1.2
+ - Fix for bug where spaces in the file path would make the right click images anywhere functionality not function
+ - Fixing all(I think) links in the side panel
+ - Fixing bug where removing a tag didn't always work
+ - Started adding globalization system for eventual localization(I'm not a linguist, so that second part may take a while)
+ - New right click option for removing a tag from selected images
+ - Tag suggestions now use cached tags, so should be faster
+ - Some under the hood changes to improve security and maintainability
+
+## 1.1.1
+ - GH#14 Hidden info is now a list of checkboxes for better user experience
+ - adding a section for backlinks to the meta file
+ - Right click image anywhere to open meta file in leaf
+ - fixed some other bugs one to do with indexing
+
 ## 1.1.0
 NOTE: there is a new indexing system which should improve search performance, but it will need to run against all existing meta files once before it works properly. You will see it pop up the first time you open a gallery (though if you don't have a lot of meta files it might flash away before you notice) It is advised not to cancel this process and then use the gallery, but if you cancel it and close the gallery it should pick back up where it left off the next time you open it.
  - Context option to move selected image(and update their metadata)
@@ -50,24 +65,5 @@ NOTE: there is a new indexing system which should improve search performance, bu
 	 - Delete selected meta files
 	 - Delete selected images(and their meta files)
  - Added new option to gallery blocks to limit the block's height(and create a scroll bar if needed)
-
-## 1.0.2 RC3
- - Added a license
- - GH#11 side panel links were not working, they should now
- - GH#7 Support for a randomized subset of filter by either tapping on the dice icon in the main gallery or adding field to the block galleries
- - attempting to retain scroll position on redraw of gallery
- - Relocate suggestions if they would be partially offscreen
-
-## 1.0.1 RC2
- - Fix for GH#4 images with extra file extensions in their title could be incorrectly detected as videos
- - Fix for suggestion text sometimes missing items due to unawaited async functionality
- - Hitting escape twice now exits the tag input field
- - Hitting left and right while in the new tag input field no longer changes image focus
- - Re-focuses the new tag input field when a tag has been submitted
- - Don't suggest tags already on image
- - Don't resize for small resize increases
- - GH#5 Don't redraw for resizes unless there is column shifting
- - GH#6 New optional setting for max image height
- - Fix for meta file not immediately being available for edit after initial creation
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
