@@ -50,6 +50,7 @@ export default
 	MASS_CONTEXT_CONFIRM: "There are {count} files selected for '{commandText}' are you sure?",
 	COPIED_LINKS: "Links copied to clipboard",
 	ADDED_TAG: "Tag added to files",
+	REMOVED_TAG: "Tag removed from files",
 	MOVED_IMAGE: "Images moved",
 	DELETED_META: "Meta deleted",
 	DELETED_IMAGE: "Images and meta deleted",

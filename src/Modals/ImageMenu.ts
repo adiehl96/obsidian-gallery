@@ -88,7 +88,7 @@ export class ImageMenu
 				this.#createItem(Options.ClearSelection);
 			}
 
-			if(!Platform.isDesktopApp)
+			if(this.#imageGrid && !Platform.isDesktopApp)
 			{
 				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
@@ -103,7 +103,7 @@ export class ImageMenu
 
 			this.#createItem(Options.AddTag);
 			this.#createItem(Options.PullMetaFromFile);
-			// this.#createItem("Remove tag");
+			this.#createItem(Options.RemoveTag);
 			this.#createItem(Options.MoveImages);
 			
 			// if(this.#targets.length == 1)
@@ -182,7 +182,7 @@ export class ImageMenu
 
 		this.#cleanUp();
 
-		if(this.#targets.length < 50 &&
+		if(this.#targets.length < 50 ||
 			(result == Options.StartSelection ||
 			result == Options.EndSelection ||
 			result == Options.SelectAll ||
@@ -220,7 +220,7 @@ export class ImageMenu
 			case Options.CopyMetaLinks: this.#resultCopyMetaLink(); break;
 			case Options.AddTag: this.#resultAddTag(); break;
 			case Options.PullMetaFromFile: this.#resultPullTags(); break;
-			case Options.RemoveTag:  break;
+			case Options.RemoveTag: this.#resultRemoveTag(); break;
 			case Options.MoveImages: this.#resultMoveImages(); break;
 			case Options.Rename:  break;
 			case Options.DeleteImage: this.#resultDeleteImage(); break;
@@ -364,7 +364,7 @@ export class ImageMenu
 
 					tags.push(tag);
 					frontmatter.tags = tags;
-					});
+				});
 			}
 			
 			new Notice(loc('ADDED_TAG'));
@@ -415,6 +415,74 @@ export class ImageMenu
 		progress.updateProgress(this.#targets.length);
 		
 		new Notice(loc('ADDED_TAG'));
+	}
+	
+
+	#resultRemoveTag()
+	{
+		const fuzzyTags = new FuzzyTags(this.#plugin.app)
+		fuzzyTags.onSelection = async (s) =>{
+			const tag = s.trim();
+			if(tag === '')
+			{
+				return;
+			}
+
+			let cancel = false;
+			const progress = new ProgressModal(this.#plugin, this.#targets.length, ()=>{cancel = true;})
+			progress.open();
+	
+			for (let i = 0; i < this.#targets.length; i++) 
+			{
+				if(cancel)
+				{
+					new Notice(loc('GENERIC_CANCELED'));
+					return;
+				}
+				
+				progress.updateProgress(i);
+	
+				const source = this.#getSource(this.#targets[i]);
+				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
+					true);
+				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
+					let tags = frontmatter.tags ?? []
+					if (!Array.isArray(tags)) 
+					{ 
+						tags = [tags]; 
+					}
+
+					let change = false;
+					const tagNoHash = tag.replace('#','');
+					const tagAddHash = '#'+tag;
+
+					if(tags.contains(tagNoHash))
+					{
+						tags.remove(tagNoHash);
+						change = true;
+					}
+					if(tags.contains(tag))
+					{
+						tags.remove(tag);
+						change = true;
+					}
+					if(tags.contains(tagAddHash))
+					{
+						tags.remove(tagAddHash);
+						change = true;
+					}
+
+					if(change)
+					{
+						frontmatter.tags = tags;
+					}
+				});
+			}
+			
+			new Notice(loc('REMOVED_TAG'));
+		}
+
+		fuzzyTags.open()
 	}
 
 	#resultMoveImages()
