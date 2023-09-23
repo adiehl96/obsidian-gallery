@@ -8,6 +8,26 @@ import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
 import { loc } from '../Loc/Localizer'
 
+enum Options
+{
+	Error = 0,
+	OpenImageFile = 1,
+	OpenMetaFile = 2,
+	StartSelection = 3,
+	EndSelection = 4,
+	SelectAll = 5,
+	ClearSelection = 6,
+	CopyImageLinks = 7,
+	CopyMetaLinks = 8,
+	AddTag = 9,
+	PullMetaFromFile = 10,
+	RemoveTag = 11,
+	MoveImages = 12,
+	Rename = 13,
+	DeleteImage = 14,
+	DeleteMeta = 15
+}
+
 export class ImageMenu
 {
 	#plugin: GalleryTagsPlugin
@@ -17,6 +37,7 @@ export class ImageMenu
 	#options: HTMLDivElement
 	#selected: HTMLDivElement
 	#targets:(HTMLVideoElement|HTMLImageElement)[]
+
 
 	constructor(posX:number, posY:number, targets:(HTMLVideoElement|HTMLImageElement)[], imageGrid:ImageGrid, plugin: GalleryTagsPlugin, infoView:GalleryInfoView = null)
 	{
@@ -40,9 +61,9 @@ export class ImageMenu
 
 			if(!Platform.isDesktopApp)
 			{
-				this.#createItem(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
-			this.#createItem("Select all");
+			this.#createItem(Options.SelectAll);
 		}
 		else
 		{
@@ -53,8 +74,8 @@ export class ImageMenu
 
 				this.#options.createDiv({cls: "suggestion-item-separator"});
 
-				this.#createItem("Open image file");
-				this.#createItem("Open meta file");
+				this.#createItem(Options.OpenImageFile);
+				this.#createItem(Options.OpenMetaFile);
 			}
 
 			if(this.#targets.length > 1)
@@ -64,26 +85,26 @@ export class ImageMenu
 
 				this.#options.createDiv({cls: "suggestion-item-separator"});
 
-				this.#createItem("Clear selection");
+				this.#createItem(Options.ClearSelection);
 			}
 
 			if(!Platform.isDesktopApp)
 			{
-				this.#createItem(this.#imageGrid.selectMode ? "End Selection" : "Start Selection");
+				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
-			this.#createItem("Select all");
+			this.#createItem(Options.SelectAll);
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			this.#createItem("Copy image links");
-			this.#createItem("Copy meta links");
+			this.#createItem(Options.CopyImageLinks);
+			this.#createItem(Options.CopyMetaLinks);
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			this.#createItem("Add tag");
-			this.#createItem("Pull meta from file");
+			this.#createItem(Options.AddTag);
+			this.#createItem(Options.PullMetaFromFile);
 			// this.#createItem("Remove tag");
-			this.#createItem("Move images");
+			this.#createItem(Options.MoveImages);
 			
 			// if(this.#targets.length == 1)
 			// {
@@ -92,8 +113,8 @@ export class ImageMenu
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			this.#createItem("Delete image(and meta)");
-			this.#createItem("Delete just meta");
+			this.#createItem(Options.DeleteImage);
+			this.#createItem(Options.DeleteMeta);
 		}
 
 		this.#self.addEventListener("blur",async () => 
@@ -113,10 +134,12 @@ export class ImageMenu
 		this.#self.focus();
 	}
 
-	#createItem(text: string)
+	#createItem(command: Options)
 	{
 		const item = this.#options.createDiv({cls: "suggestion-item"});
-		item.textContent = text;
+		//@ts-ignore
+		item.textContent = loc("IMAGE_MENU_COMMAND_"+command);
+		item.dataset.href = Options[command];
 		item.addEventListener("mouseover", (e) => {
 			this.#select(item)
 		});
@@ -124,7 +147,7 @@ export class ImageMenu
 			this.#submit();
 		})
 
-		if(text.contains("Delete"))
+		if(Options[command].contains("Delete"))
 		{
 			item.style.color = "#cc2222";
 		}
@@ -149,52 +172,62 @@ export class ImageMenu
 
 	#submit()
 	{
-		let result:string = "";
+		let result: Options = Options.Error;
 		if(this.#selected)
 		{
-			result = this.#selected.textContent;
+			//@ts-ignore
+			const input : keyof typeof Options = this.#selected.dataset.href;
+			result = Options[input]
 		}
 
 		this.#cleanUp();
 
-		if(this.#targets.length > 50 &&
-			!(result == "Start Selection" ||
-			result == "End Selection" ||
-			result == "Select all" ||
-			result == "Clear selection" ||
-			result == "Copy image links"))
-		{
-			const confirm = new ConfirmModal(this.#plugin.app, 
-				`There are ${this.#targets.length} files selected for '${result}' are you sure?`,
-				() => {this.#results(result);})
-			confirm.open();
-		}
-		else
+		if(this.#targets.length < 50 &&
+			(result == Options.StartSelection ||
+			result == Options.EndSelection ||
+			result == Options.SelectAll ||
+			result == Options.ClearSelection ||
+			result == Options.CopyImageLinks))
 		{
 			this.#results(result);
+			return;
 		}
+
+		//@ts-ignore
+		const commandText = loc("IMAGE_MENU_COMMAND_"+result);
+		let confirmText: string = loc('MASS_CONTEXT_CONFIRM');
+		confirmText = confirmText
+			.replace('{count}', this.#targets.length.toString())
+			.replace('{commandText}', commandText)
+
+		const confirm = new ConfirmModal(this.#plugin.app, 
+			confirmText,
+			() => {this.#results(result);})
+		confirm.open();
 	}
 
-	#results(result: string)
+	#results(result: Options)
 	{
 		switch(result)
 		{
-			case "Open image file": this.#resultOpenImage(); break;
-			case "Open meta file": this.#resultOpenMeta(); break;
-			case "Start Selection": this.#imageGrid.selectMode = true; break;
-			case "End Selection": this.#imageGrid.selectMode = false; break;
-			case "Select all": this.#imageGrid.selectAll(); break;
-			case "Clear selection": this.#imageGrid.clearSelection(); break;
-			case "Copy image links": this.#resultCopyImageLink(); break;
-			case "Copy meta links": this.#resultCopyMetaLink(); break;
-			case "Add tag": this.#resultAddTag(); break;
-			case "Pull meta from file": this.#resultPullTags(); break;
-			case "Remove tag":  break;
-			case "Move images": this.#resultMoveImages(); break;
-			case "Rename":  break;
-			case "Delete image(and meta)": this.#resultDeleteImage(); break;
-			case "Delete just meta": this.#resultDeleteMeta(); break;
-			default: new Notice(`context options "${result}" is not accounted for`);
+			case Options.OpenImageFile: this.#resultOpenImage(); break;
+			case Options.OpenMetaFile: this.#resultOpenMeta(); break;
+			case Options.StartSelection: this.#imageGrid.selectMode = true; break;
+			case Options.EndSelection: this.#imageGrid.selectMode = false; break;
+			case Options.SelectAll: this.#imageGrid.selectAll(); break;
+			case Options.ClearSelection: this.#imageGrid.clearSelection(); break;
+			case Options.CopyImageLinks: this.#resultCopyImageLink(); break;
+			case Options.CopyMetaLinks: this.#resultCopyMetaLink(); break;
+			case Options.AddTag: this.#resultAddTag(); break;
+			case Options.PullMetaFromFile: this.#resultPullTags(); break;
+			case Options.RemoveTag:  break;
+			case Options.MoveImages: this.#resultMoveImages(); break;
+			case Options.Rename:  break;
+			case Options.DeleteImage: this.#resultDeleteImage(); break;
+			case Options.DeleteMeta: this.#resultDeleteMeta(); break;
+			default: 
+				new Notice(`context options "${result}" is not accounted for`);
+				console.error(`context options "${result}" is not accounted for`);
 		}
 	}
 
@@ -250,7 +283,7 @@ export class ImageMenu
 
 		await navigator.clipboard.writeText(links);
 
-		new Notice("Links copied to clipboard");
+		new Notice(loc('COPIED_LINKS'));
 	}
 
 	async #resultCopyMetaLink()
@@ -270,7 +303,7 @@ export class ImageMenu
 		{
 			if(cancel)
 			{
-				new Notice("Canceled");
+				new Notice(loc('GENERIC_CANCELED'));
 				return;
 			}
 			
@@ -287,7 +320,7 @@ export class ImageMenu
 
 		await navigator.clipboard.writeText(links);
 
-		new Notice("Links copied to clipboard");
+		new Notice(loc('COPIED_LINKS'));
 	}
 
 	#resultAddTag()
@@ -308,7 +341,7 @@ export class ImageMenu
 			{
 				if(cancel)
 				{
-					new Notice("Canceled");
+					new Notice(loc('GENERIC_CANCELED'));
 					return;
 				}
 				
@@ -334,7 +367,7 @@ export class ImageMenu
 					});
 			}
 			
-			new Notice("Tag added to files");
+			new Notice(loc('ADDED_TAG'));
 		}
 
 		fuzzyTags.open()
@@ -352,7 +385,7 @@ export class ImageMenu
 		{
 			if(cancel)
 			{
-				new Notice("Canceled");
+				new Notice(loc('GENERIC_CANCELED'));
 				return;
 			}
 			progress.updateProgress(i);
@@ -381,7 +414,7 @@ export class ImageMenu
 		await Promise.all(promises);
 		progress.updateProgress(this.#targets.length);
 		
-		new Notice("Tags added to files");
+		new Notice(loc('ADDED_TAG'));
 	}
 
 	#resultMoveImages()
@@ -397,7 +430,7 @@ export class ImageMenu
 			{
 				if(cancel)
 				{
-					new Notice("Canceled");
+					new Notice(loc('GENERIC_CANCELED'));
 					return;
 				}
 				
@@ -430,7 +463,7 @@ export class ImageMenu
 				}
 			}
 	
-			new Notice("Images moved");
+			new Notice(loc('MOVED_IMAGE'));
 
           	// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 			await new Promise(f => setTimeout(f, 100));
@@ -456,7 +489,7 @@ export class ImageMenu
 		{
 			if(cancel)
 			{
-				new Notice("Canceled");
+				new Notice(loc('GENERIC_CANCELED'));
 				return;
 			}
 			
@@ -471,7 +504,7 @@ export class ImageMenu
 			}
 		}
 		
-		new Notice("Meta deleted");
+		new Notice(loc('DELETED_META'));
 	}
 
 	async #resultDeleteImage()
@@ -489,7 +522,7 @@ export class ImageMenu
 		{
 			if(cancel)
 			{
-				new Notice("Canceled");
+				new Notice(loc('GENERIC_CANCELED'));
 				return;
 			}
 			
@@ -509,7 +542,7 @@ export class ImageMenu
 			}
 		}
 
-		new Notice("Images and meta deleted");
+		new Notice(loc('DELETED_IMAGE'));
 
         // TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 		await new Promise(f => setTimeout(f, 100));

@@ -7,6 +7,7 @@ export default
 	// Standard stuff
 	CONFIRM: "OK",
 	CANCEL: "CANCEL",
+	GENERIC_CANCELED: "Canceled",
 
 	// Gallery View
 	GALLERY_VIEW_TITLE: "Gallery View",
@@ -28,6 +29,30 @@ export default
 	FILTER_RANDOM_COUNT_TOOLTIP: "number of random images to grab",
 	CANCEL_LOAD_NOTICE: "Canceled indexing, Tag search may be limited",
 	BAD_REGEX_WARNING: "Gallery Search - BAD REGEX! regex set to `.*` as default!!",
+
+	// Image Menu
+	IMAGE_MENU_COMMAND_0: "You should never see this",
+	IMAGE_MENU_COMMAND_1: "Open image file",
+	IMAGE_MENU_COMMAND_2: "Open meta file",
+	IMAGE_MENU_COMMAND_3: "Start Selection",
+	IMAGE_MENU_COMMAND_4: "End Selection",
+	IMAGE_MENU_COMMAND_5: "Select all",
+	IMAGE_MENU_COMMAND_6: "Clear selection",
+	IMAGE_MENU_COMMAND_7: "Copy image links",
+	IMAGE_MENU_COMMAND_8: "Copy meta links",
+	IMAGE_MENU_COMMAND_9: "Add tag",
+	IMAGE_MENU_COMMAND_10: "Pull meta from file",
+	IMAGE_MENU_COMMAND_11: "Remove tag",
+	IMAGE_MENU_COMMAND_12: "Move images",
+	IMAGE_MENU_COMMAND_13: "Rename",
+	IMAGE_MENU_COMMAND_14: "Delete image(and meta)",
+	IMAGE_MENU_COMMAND_15: "Delete just meta",
+	MASS_CONTEXT_CONFIRM: "There are {count} files selected for '{commandText}' are you sure?",
+	COPIED_LINKS: "Links copied to clipboard",
+	ADDED_TAG: "Tag added to files",
+	MOVED_IMAGE: "Images moved",
+	DELETED_META: "Meta deleted",
+	DELETED_IMAGE: "Images and meta deleted",
 
 
 	// Info Block
