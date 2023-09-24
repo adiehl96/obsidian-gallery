@@ -78,35 +78,13 @@ export class ImageInfoBlock
         MarkdownRenderer.render(plugin.app,GALLERY_INFO_USAGE, elCanvas, '/', plugin)
         return;
       }
-      
-      if(found.length == 1)
-      {
-        // set file and path for current usage
-        imgTFile = plugin.app.vault.getAbstractFileByPath(found[0])
-        imgURL = plugin.app.vault.adapter.getResourcePath(found[0])
-
-        // replace file path for future usage
-        if (view) 
-        {
-          for(let i = 0; i < view.editor.lineCount(); i++)
-          {
-            let line = view.editor.getLine(i);
-            if(line.contains(args.imgPath))
-            {
-              const from: EditorPosition = {line: i, ch: line.indexOf(args.imgPath)};
-              const to: EditorPosition = {line: i, ch: line.indexOf(args.imgPath)+args.imgPath.length};
-              view.editor.replaceRange(found[0], from, to);
-            }
-          }
-        }
-      }
       else
       {
         // too many options, tell the user about it
         let output = loc('IMAGE_PATH_FAILED_FIND_WARNING');
         for(let i = 0; i < found.length; i++)
         {
-          output += "- "+found[i]+"\n";
+          output += "- imgPath="+found[i]+"\n";
         }
         
         MarkdownRenderer.render(plugin.app, output, elCanvas, '/', plugin)
