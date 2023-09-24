@@ -1,12 +1,13 @@
 import type { ImageGrid } from "../DisplayObjects/ImageGrid";
 import type GalleryTagsPlugin from "../main";
 import { addEmbededTags, createMetaFile, offScreenPartial, preprocessUri } from "../utils";
-import { Notice, Platform, TFile } from "obsidian";
+import { Notice, Platform, SuggestModal, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
-import { FuzzyFolders, FuzzyTags } from "./FuzzySuggestions";
+import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
 import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
 import { loc } from '../Loc/Localizer'
+import { SuggestionPopup } from "./SuggestionPopup";
 
 enum Options
 {
@@ -106,10 +107,10 @@ export class ImageMenu
 			this.#createItem(Options.RemoveTag);
 			this.#createItem(Options.MoveImages);
 			
-			// if(this.#targets.length == 1)
-			// {
-			// 	this.#createItem("Rename");
-			// }
+			if(this.#targets.length == 1)
+			{
+				this.#createItem(Options.Rename);
+			}
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
@@ -222,7 +223,7 @@ export class ImageMenu
 			case Options.PullMetaFromFile: this.#resultPullTags(); break;
 			case Options.RemoveTag: this.#resultRemoveTag(); break;
 			case Options.MoveImages: this.#resultMoveImages(); break;
-			case Options.Rename:  break;
+			case Options.Rename: this.#resultRenameImage(); break;
 			case Options.DeleteImage: this.#resultDeleteImage(); break;
 			case Options.DeleteMeta: this.#resultDeleteMeta(); break;
 			default: 
@@ -540,6 +541,68 @@ export class ImageMenu
 		}
 
 		fuzzyFolders.open()
+	}
+
+	#resultRenameImage()
+	{
+		if(this.#targets.length != 1)
+		{
+			return;
+		}
+
+		const original: string = this.#imageGrid.imgResources[this.#targets[0].src];
+		const suggesion = new SuggestionPopup(this.#plugin.app,
+			loc("PROMPT_FOR_NEW_NAME"),
+			original,
+			() =>
+			{
+				const files = this.#plugin.app.vault.getAllLoadedFiles()
+				const filtered = files.filter((f) => (f instanceof TFile))
+				return filtered.map((f) => f.path)
+			},
+        	async (newName) =>
+			{
+				const file = this.#plugin.app.vault.getAbstractFileByPath(original) as TFile;
+				if(!newName.contains(file.extension))
+				{
+					newName += file.extension;
+				}
+
+				const conflict = this.#plugin.app.vault.getAbstractFileByPath(newName);
+				if(conflict)
+				{
+					new Notice(loc('CONFLICT_NOTICE_PATH').replace("{path}", newName));
+					return;
+				}
+
+				const infoFile = await this.#imageGrid.getImageInfo(original, false);
+
+				if(file)
+				{
+					await this.#plugin.app.vault.rename(file, newName);
+
+					if(infoFile)
+					{
+						// update the links in the meta file
+						this.#plugin.app.vault.process(infoFile, (data) =>{
+							data = data.replaceAll(original, newName);
+
+							const oldUri = preprocessUri(original)
+							const newUri = preprocessUri(newName)
+							data = data.replaceAll(oldUri, newUri);
+
+							return data;
+						});
+					}
+				}
+				new Notice(loc('MOVED_IMAGE'));
+	
+				// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
+				await new Promise(f => setTimeout(f, 100));
+				await this.#imageGrid.updateData();
+				await this.#imageGrid.updateDisplay();
+			});
+		suggesion.open();
 	}
 
 	async #resultDeleteMeta()

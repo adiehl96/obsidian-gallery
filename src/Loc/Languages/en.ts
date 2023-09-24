@@ -54,6 +54,8 @@ export default
 	MOVED_IMAGE: "Images moved",
 	DELETED_META: "Meta deleted",
 	DELETED_IMAGE: "Images and meta deleted",
+	PROMPT_FOR_NEW_NAME: "Select a new name and path",
+	CONFLICT_NOTICE_PATH: "ERROR: File already exists at '{path}'",
 
 
 	// Info Block

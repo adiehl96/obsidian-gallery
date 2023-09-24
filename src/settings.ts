@@ -1,6 +1,6 @@
 import { type App, PluginSettingTab, Setting } from 'obsidian'
 import type GalleryTagsPlugin from './main'
-import { FuzzyFiles, FuzzyFolders } from './Modals/FuzzySuggestions'
+import { FuzzyFiles, FuzzyFolders } from './Modals/FuzzySearches'
 import { DEFAULT_HIDDEN_INFO } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
 

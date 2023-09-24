@@ -5,7 +5,7 @@ export class SuggestionDropdown
 {
 	target: HTMLInputElement
 	showOnClick: boolean = true
-	ignoreList: string[]
+	ignoreList: string[] = []
 	onGetItems: () => string[]
 	onSubmit: (submission: string) => void
 	onEmptyBackspace: () => void
