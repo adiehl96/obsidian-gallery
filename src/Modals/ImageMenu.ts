@@ -1,7 +1,7 @@
 import type { ImageGrid } from "../DisplayObjects/ImageGrid";
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, createMetaFile, offScreenPartial, preprocessUri } from "../utils";
-import { Notice, Platform, SuggestModal, TFile } from "obsidian";
+import { addEmbededTags, createMetaFile, getImageInfo, offScreenPartial, preprocessUri } from "../utils";
+import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
 import { ConfirmModal } from "./ConfirmPopup";
@@ -60,7 +60,7 @@ export class ImageMenu
 
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 
-			if(!Platform.isDesktopApp)
+			if( this.#imageGrid && !Platform.isDesktopApp)
 			{
 				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
@@ -71,7 +71,7 @@ export class ImageMenu
 			if(this.#targets.length == 1)
 			{
 				const info = this.#options.createDiv({cls: "suggestion-item"});
-				info.innerText = '"'+this.#imageGrid.imgResources[this.#targets[0].src]+'" selected';
+				info.innerText = '"'+this.#plugin.imgResources[this.#targets[0].src]+'" selected';
 
 				this.#options.createDiv({cls: "suggestion-item-separator"});
 
@@ -240,7 +240,7 @@ export class ImageMenu
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
+		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
 		if (file instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(file)
@@ -255,8 +255,7 @@ export class ImageMenu
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-			true);
+		const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
 		if (infoFile instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
@@ -275,7 +274,7 @@ export class ImageMenu
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
 			if(file instanceof TFile)
 			{
 				links += `![${file.basename}](${preprocessUri(file.path)})\n`
@@ -311,8 +310,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-				true);
+			const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
 			if(infoFile)
 			{
 				links += `[${infoFile.basename}](${preprocessUri(infoFile.path)})\n`
@@ -349,8 +347,7 @@ export class ImageMenu
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-					true);
+				const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -392,22 +389,21 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-			let infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-				false);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
+			let infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
 
 			if(infoFile)
 			{
-				this.#imageGrid.metaResources[file.path] = infoFile.path
+				this.#plugin.metaResources[file.path] = infoFile.path
 				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
 			}
 			else
 			{
-				infoFile = await createMetaFile(this.#imageGrid.imgResources[source], this.#plugin);
+				infoFile = await createMetaFile(this.#plugin.imgResources[source], this.#plugin);
 				
 				if(infoFile)
 				{
-					this.#imageGrid.metaResources[file.path] = infoFile.path;
+					this.#plugin.metaResources[file.path] = infoFile.path;
 				}
 			}
 		}
@@ -444,8 +440,7 @@ export class ImageMenu
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-					true);
+				const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -506,38 +501,18 @@ export class ImageMenu
 				progress.updateProgress(i);
 
 				const source = this.#getSource(this.#targets[i]);
-				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-				const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-					false);
+				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
 				if(file)
 				{
-					const oldPath = file.path
 					const newPath = s+"/"+file.name
-					// new Notice(newPath);
+					delete this.#plugin.imgResources[source];
 					await this.#plugin.app.vault.rename(file, newPath);
-
-					if(infoFile)
-					{
-						// update the links in the meta file
-						this.#plugin.app.vault.process(infoFile, (data) =>{
-							data = data.replaceAll(oldPath, newPath);
-
-							const oldUri = preprocessUri(oldPath)
-							const newUri = preprocessUri(newPath)
-							data = data.replaceAll(oldUri, newUri);
-
-							return data;
-						});
-					}
 				}
 			}
 	
 			new Notice(loc('MOVED_IMAGE'));
 
-          	// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
-			await new Promise(f => setTimeout(f, 100));
-			await this.#imageGrid.updateData();
-			await this.#imageGrid.updateDisplay();
+			await this.#refreshImageGrid();
 		}
 
 		fuzzyFolders.open()
@@ -550,7 +525,7 @@ export class ImageMenu
 			return;
 		}
 
-		const original: string = this.#imageGrid.imgResources[this.#targets[0].src];
+		const original: string = this.#plugin.imgResources[this.#targets[0].src];
 		const suggesion = new SuggestionPopup(this.#plugin.app,
 			loc("PROMPT_FOR_NEW_NAME"),
 			original,
@@ -575,32 +550,14 @@ export class ImageMenu
 					return;
 				}
 
-				const infoFile = await this.#imageGrid.getImageInfo(original, false);
-
 				if(file)
 				{
+					delete this.#plugin.imgResources[this.#targets[0].src];
 					await this.#plugin.app.vault.rename(file, newName);
-
-					if(infoFile)
-					{
-						// update the links in the meta file
-						this.#plugin.app.vault.process(infoFile, (data) =>{
-							data = data.replaceAll(original, newName);
-
-							const oldUri = preprocessUri(original)
-							const newUri = preprocessUri(newName)
-							data = data.replaceAll(oldUri, newUri);
-
-							return data;
-						});
-					}
 				}
 				new Notice(loc('MOVED_IMAGE'));
 	
-				// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
-				await new Promise(f => setTimeout(f, 100));
-				await this.#imageGrid.updateData();
-				await this.#imageGrid.updateDisplay();
+				await this.#refreshImageGrid();
 			});
 		suggesion.open();
 	}
@@ -627,8 +584,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-				false);
+			const infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
 			if(infoFile)
 			{
 				await this.#plugin.app.vault.delete(infoFile);
@@ -660,9 +616,8 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#imageGrid.imgResources[source])
-			const infoFile = await this.#imageGrid.getImageInfo(this.#imageGrid.imgResources[source],
-				false);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
+			const infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
 			if(file)
 			{
 				await this.#plugin.app.vault.delete(file);
@@ -674,6 +629,15 @@ export class ImageMenu
 		}
 
 		new Notice(loc('DELETED_IMAGE'));
+		await this.#refreshImageGrid();
+	}
+
+	async #refreshImageGrid()
+	{
+		if(!this.#imageGrid)
+		{
+			return;
+		}
 
         // TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 		await new Promise(f => setTimeout(f, 100));

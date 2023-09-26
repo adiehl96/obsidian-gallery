@@ -86,7 +86,6 @@ export class GalleryBlock
       imageGrid.customList = args.customList.split(' ').map(i => parseInt(i));
     }
 
-    await imageGrid.updateResources();
     await imageGrid.updateData();
 
     if (args.type === 'grid')

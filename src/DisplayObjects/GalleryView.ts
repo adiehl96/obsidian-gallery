@@ -331,9 +331,6 @@ export class GalleryView extends ItemView
         });
       }
     }
-
-    
-    this.imageGrid.updateResources();
   }
 
   async updateData()

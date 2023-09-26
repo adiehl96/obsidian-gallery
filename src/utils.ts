@@ -59,12 +59,6 @@ export const preprocessUri = (original: string): string =>
 
   return uri;
 }
-export const unProcessUri = (original: string): string =>
-{
-  const uri = original.replaceAll('%20', ' ');
-
-  return uri;
-}
 
 /**
  * Open the search window to a query. 
@@ -102,19 +96,19 @@ export const offscreenFull = function(el:HTMLElement) : boolean {
 };
 
 /**
- * Return Image Info File, if not present create it
- * @param imgPath - Obsidian Vault Image relative path
- * @param vault - Vault handler
- * @param metadata - Vaulat metadata handler
- * @param plugin - Gallery plugin handler
+ * get the meta file for an image
+ * @param imgPath patht o the image the meat is for
+ * @param create if it does not exist should we create one?
+ * @param plugin reference to the plugin
+ * @returns null if no file exists and we were not told we could create it
  */
-export const getImgInfo = async (imgPath: string, plugin: GalleryTagsPlugin, create: boolean): Promise<TFile|null> =>
+export const getImageInfo = async (imgPath:string, create:boolean, plugin: GalleryTagsPlugin): Promise<TFile|null> =>
 {
   if(plugin.settings.imgDataFolder == null)
   {
     return null;
   }
-
+  
   if(!imgPath || imgPath == "")
   {
     return
@@ -122,50 +116,29 @@ export const getImgInfo = async (imgPath: string, plugin: GalleryTagsPlugin, cre
 
   if(imgPath.contains("app://"))
   {
-    imgPath = unProcessUri(imgPath);
-    
-    const files = plugin.app.vault.getFiles();
-    for (let i = 0; i < files.length; i++) 
-    {
-      if(imgPath.contains(files[i].path))
-      {
-        imgPath = files[i].path;
-        break;
-      }
-    }
+    imgPath = plugin.imgResources[imgPath]
   }
   
   let infoFile = null
-  const imgName = imgPath.split('/').slice(-1)[0]
-  const infoFolder = plugin.app.vault.getAbstractFileByPath(plugin.settings.imgDataFolder)
-  const infoFileList: string[] = []
-  if (infoFolder instanceof TFolder)
+  let infoPath = plugin.metaResources[imgPath];
+  infoFile = plugin.app.vault.getAbstractFileByPath(infoPath);
+
+  if(infoFile)
   {
-    infoFolder.children?.forEach(info =>
-    {
-      if (info instanceof TFile)
-      {
-        infoFileList.push(info.basename)
-        const fileCache = plugin.app.metadataCache.getFileCache(info)
-        const link:string = fileCache?.frontmatter?.targetImage
-        if (link === imgName || imgPath.contains(link))
-        {
-          infoFile = info
-        }
-      }
-    })
-
-    if (!infoFile && create)
-    {
-			infoFile = await createMetaFile(imgPath, plugin);
-    }
-
-    return infoFile 
+    return infoFile as TFile;
   }
-
-  // Specified Resources folder does not exist
+  
+  if (create)
+  {
+    infoFile = await createMetaFile(imgPath, plugin);
+    plugin.metaResources[imgPath] = infoFile.path
+    return infoFile;
+  }
+  
+  // Not found, don't create
   return null
-};
+}
+
 
 export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): Promise<TFile> =>
 {      
@@ -230,7 +203,7 @@ export const getimageLink = async (info: TFile, plugin: GalleryTagsPlugin) : Pro
       if(cache.frontmatter && !(cache.frontmatter.targetImage && cache.frontmatter.targetImage.length > 0))
       {
         const infoContent = await plugin.app.vault.read(info);
-        const match = /imgPath=.+/.exec(infoContent)
+        const match = /img(P,p)ath=.+/.exec(infoContent)
         if(match)
         {
           imgLink = match[0].trim().substring(8);

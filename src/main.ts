@@ -1,13 +1,15 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags } from 'obsidian'
-import { scaleColor, type ImageResources, addEmbededTags } from './utils'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile } from 'obsidian'
+import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
 import { GalleryView } from './DisplayObjects/GalleryView'
 import { GalleryInfoView } from './DisplayObjects/GalleryInfoView'
 import type { GallerySettings } from './TechnicalFiles/GallerySettings'
-import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON } from './TechnicalFiles/Constants'
+import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON, EXTENSIONS } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
+import { ProgressModal } from './Modals/ProgressPopup'
+import { inherits } from 'util'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -20,6 +22,8 @@ export default class GalleryTagsPlugin extends Plugin
   embedQueue: ImageResources = {};
   finalizedQueue: ImageResources = {};
   tagCache:string[] = [];
+	imgResources: ImageResources = {}
+	metaResources: ImageResources = {}
   
 
   async onload()
@@ -47,6 +51,8 @@ export default class GalleryTagsPlugin extends Plugin
     this.addSettingTab(new GallerySettingTab(this.app, this))
     this.saveSettings();
     this.#buildTagCache();
+    this.#buildImageCache();
+    this.#buildMetaCache();
     this.#refreshColors();
     this.#registerEvents();
     this.#refreshViewTrigger();
@@ -84,6 +90,7 @@ export default class GalleryTagsPlugin extends Plugin
 
   #registerEvents()
   {  
+    // Resize event
     this.registerEvent(
       this.app.workspace.on("resize", () => {
         try
@@ -99,6 +106,7 @@ export default class GalleryTagsPlugin extends Plugin
         }
       }));
       
+    // Metadata changed event
     this.registerEvent(
       this.app.metadataCache.on("changed", async (file, data, cache) => 
       {
@@ -110,11 +118,13 @@ export default class GalleryTagsPlugin extends Plugin
           this.finalizedQueue[file.path] = this.embedQueue[file.path];
           delete this.embedQueue[file.path];
           
+          this.metaResources[imgTFile.path] = file.path;
           await addEmbededTags(imgTFile, file, this);
         }
         else if(this.finalizedQueue[file.path])
         {
           GalleryInfoView.OpenLeaf(this, this.finalizedQueue[file.path]);
+          delete this.finalizedQueue[file.path];
         }
         
         // try to catch and cache any new tags
@@ -127,6 +137,52 @@ export default class GalleryTagsPlugin extends Plugin
           }
         }
       }));
+
+    // Image created
+    this.registerEvent(this.app.vault.on("create", this.#imageRegister));
+
+    // Image Renamed
+    this.registerEvent(
+      this.app.vault.on("rename", async (file, oldPath) => 
+      {
+        this.#imageRegister(file);
+
+        // TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
+        await new Promise(f => setTimeout(f, 300));
+
+        const infoFile = await getImageInfo(oldPath, false, this);
+
+        this.metaResources[file.path] = infoFile.path;
+        delete this.metaResources[oldPath];
+
+        // update the links in the meta file
+        if(infoFile)
+        {
+          await this.app.vault.process(infoFile, (data) =>{
+        		data = data.replaceAll(oldPath, file.path);
+
+        		const oldUri = preprocessUri(oldPath)
+        		const newUri = preprocessUri(file.path)
+        		data = data.replaceAll(oldUri, newUri);
+
+        		return data;
+        	});
+        }
+      }));
+  }
+
+  #imageRegister(file:TAbstractFile)
+  {
+    if(!(file instanceof TFile))
+    {
+      return;
+    }
+    if(!EXTENSIONS.contains(file.extension.toLowerCase()))
+    {
+      return;
+    }
+
+    this.imgResources[this.app.vault.adapter.getResourcePath(file.path)] = file.path;
   }
 
   #buildTagCache()
@@ -146,6 +202,55 @@ export default class GalleryTagsPlugin extends Plugin
 			}
 		}
   }
+
+  #buildImageCache()
+  {
+    this.imgResources = {};
+
+		const vaultFiles = this.app.vault.getFiles()
+		
+		for (const file of vaultFiles)
+		{
+			if (EXTENSIONS.contains(file.extension.toLowerCase()))
+			{
+					this.imgResources[this.app.vault.adapter.getResourcePath(file.path)] = file.path
+			}
+		}
+  }
+  
+	async #buildMetaCache(): Promise<void>
+	{
+		this.metaResources = {};
+		const infoFolder = this.app.vault.getAbstractFileByPath(this.settings.imgDataFolder)
+	
+		if (infoFolder instanceof TFolder)
+		{
+			let cancel = false;
+			const progress = new ProgressModal(this, infoFolder.children.length, ()=>{cancel = true;})
+			progress.open();
+
+			for (let i = 0; i < infoFolder.children.length; i++) 
+			{
+				if(cancel)
+				{
+					new Notice(loc('CANCEL_LOAD_NOTICE'));
+					return;
+				}
+				
+				progress.updateProgress(i);
+				
+				const info = infoFolder.children[i];
+				let imgLink = await getimageLink(info as TFile, this);
+		
+				if(info && imgLink)
+				{
+					this.metaResources[imgLink] = info.path
+				}
+			}
+			
+			progress.updateProgress(infoFolder.children.length);
+		}
+	}
 
   #imgSelector: string = `.workspace-leaf-content[data-type='markdown'] img,`
                               +`.workspace-leaf-content[data-type='image'] img,`
@@ -184,15 +289,7 @@ export default class GalleryTagsPlugin extends Plugin
       return;
     }
 
-    // This is kinda messy, but it gets the job done for now
-    //@ts-ignore
-    let source : string = targetEl.parentElement?.attributes?.src?.value;
-    if(!source)
-    {
-      source = targetEl.src;
-    }
-
-    GalleryInfoView.OpenLeaf(this,source);
+    GalleryInfoView.OpenLeaf(this,targetEl.src);
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
@@ -232,6 +329,8 @@ export default class GalleryTagsPlugin extends Plugin
     this.embedQueue = {};
     this.finalizedQueue = {};
     this.tagCache = [];
+    this.imgResources = {};
+    this.metaResources = {};
   }
 
   async loadSettings()

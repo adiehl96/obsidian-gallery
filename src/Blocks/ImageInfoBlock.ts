@@ -1,9 +1,10 @@
-import type { FrontMatterCache, EditorPosition } from 'obsidian'
+import type { FrontMatterCache } from 'obsidian'
 import { MarkdownRenderer, TFile, getAllTags, Platform, MarkdownView, normalizePath } from 'obsidian'
 import { extractColors } from '../../node_modules/extract-colors'
 import
 {
-  getImgInfo, searchForFile
+  getImageInfo,
+  searchForFile
 } from '../utils'
 import
 {
@@ -122,7 +123,7 @@ export class ImageInfoBlock
     }
 
     // Handle disabled img info functionality or missing info block
-    const imgInfo = await getImgInfo(imgTFile.path, plugin, false)
+    const imgInfo = await getImageInfo(imgTFile.path, false, plugin);
     let imgTags = null
 
     let imgInfoCache = null

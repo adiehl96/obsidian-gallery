@@ -1,22 +1,18 @@
-import { Keymap, Notice, TFile, normalizePath, type UserEvent, getAllTags, TFolder } from "obsidian"
+import { Keymap, normalizePath, type UserEvent, getAllTags } from "obsidian"
 import type GalleryTagsPlugin from "../main"
-import type { ImageResources } from '../utils'
 import
  {
-    createMetaFile,
-	getimageLink,
+	getImageInfo,
 	setLazyLoading,
 	updateFocus
 } from '../utils'
 import 
 {
-	EXTENSIONS,
 	GALLERY_LOADING_IMAGE,
 	VIDEO_REGEX
 } from '../TechnicalFiles/Constants'
 import type { GalleryInfoView } from "./GalleryInfoView"
 import { ImageMenu } from "../Modals/ImageMenu"
-import { ProgressModal } from "../Modals/ProgressPopup"
 import { loc } from '../Loc/Localizer'
 
 export class ImageGrid
@@ -35,8 +31,6 @@ export class ImageGrid
 	random : number
 	customList: number[]
 
-	imgResources!: ImageResources
-	metaResources!: ImageResources
 	imgList: string[] = []
 	totalCount: number = 0
 	selectMode: boolean
@@ -78,48 +72,13 @@ export class ImageGrid
 		return result;
 	}
 
-	async updateResources(): Promise<void>
-	{
-		this.metaResources = {}
-		const infoFolder = this.plugin.app.vault.getAbstractFileByPath(this.plugin.settings.imgDataFolder)
-	
-		if (infoFolder instanceof TFolder)
-		{
-			let cancel = false;
-			const progress = new ProgressModal(this.plugin, infoFolder.children.length, ()=>{cancel = true;})
-			progress.open();
-
-			for (let i = 0; i < infoFolder.children.length; i++) 
-			{
-				if(cancel)
-				{
-					new Notice(loc('CANCEL_LOAD_NOTICE'));
-					return;
-				}
-				
-				progress.updateProgress(i);
-				
-				const info = infoFolder.children[i];
-				let imgLink = await getimageLink(info as TFile, this.plugin);
-		
-				if(info && imgLink)
-				{
-					this.metaResources[imgLink] = info.path
-				}
-			}
-			
-			progress.updateProgress(infoFolder.children.length);
-		}
-	}
-
 	async updateData()
 	{
-		[this.imgResources, this.totalCount ] = await this.#getImageResources(this.path,
+		await this.#applyFilter(this.path,
 			this.name,
 			this.tag,
 			this.matchCase,
 			this.exclusive)
-		this.imgList = Object.keys(this.imgResources)
 
 		if(this.random > 0)
 		{
@@ -311,38 +270,6 @@ export class ImageGrid
 		}
 	}
 
-	async getImageInfo(imgPath:string, create:boolean): Promise<TFile|null>
-	{
-		if(this.plugin.settings.imgDataFolder == null)
-		{
-		  return null;
-		}
-	  
-		if(!imgPath || imgPath == "")
-		{
-		  return
-		}
-		
-		let infoFile = null
-		let infoPath = this.metaResources[imgPath];
-		infoFile = this.plugin.app.vault.getAbstractFileByPath(infoPath);
-
-		if(infoFile)
-		{
-			return infoFile as TFile;
-		}
-	  
-		if (create)
-		{
-			infoFile = await createMetaFile(imgPath, this.plugin);
-			this.metaResources[imgPath] = infoFile.path
-			return infoFile;
-		}
-	  
-		// Not found, don't create
-		return null
-	}
-
 	setupClickEvents(imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
 	{
 		this.parent.onclick = async (evt) =>
@@ -370,7 +297,7 @@ export class ImageGrid
 				
 			if(infoView)
 			{
-				await infoView.updateInfoDisplay(this.imgResources[visualEl.src]);
+				await infoView.updateInfoDisplay(this.plugin.imgResources[visualEl.src]);
 			}
 
 			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
@@ -440,7 +367,7 @@ export class ImageGrid
 			
 			if(infoView)
 			{
-				await infoView.updateInfoDisplay(this.imgResources[this.imgList[this.#imgFocusIndex]]);
+				await infoView.updateInfoDisplay(this.plugin.imgResources[this.imgList[this.#imgFocusIndex]]);
 			}
 		}
 
@@ -539,10 +466,9 @@ export class ImageGrid
 	}
 
 	
-	async #getImageResources(path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean): Promise<[ImageResources,number]>
+	async #applyFilter(path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean): Promise<void>
 	{
-		const imgList: ImageResources = {}
-		const vaultFiles = this.plugin.app.vault.getFiles()
+		const keyList = Object.keys(this.plugin.imgResources);
 		
 		path = normalizePath(path);
 
@@ -580,22 +506,21 @@ export class ImageGrid
 			}
 		}
 
-		let count: number = 0;
-		for (const file of vaultFiles)
+		this.imgList= [];
+		for (const key of keyList)
 		{
-			if (EXTENSIONS.contains(file.extension.toLowerCase()) && file.path.match(reg) )
+			const file = this.plugin.imgResources[key];
+			if (file.match(reg))
 			{
-				count++;
 				if( await this.#containsTags(file, filterTags, matchCase, exclusive))
 				{
-					imgList[this.plugin.app.vault.adapter.getResourcePath(file.path)] = file.path
+					this.imgList.push(key);
 				}
 			}
 		}
-		return [imgList, count];
 	}
 	
-	async #containsTags(file: TFile, filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
+	async #containsTags(filePath: string, filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
 	{
 		if(filterTags == null || filterTags.length == 0)
 		{
@@ -603,8 +528,7 @@ export class ImageGrid
 		}
 
 		let imgTags: string[] = [];
-		this.plugin.app.metadataCache.getFileCache(file)
-		let infoFile = await this.getImageInfo(file.path, false);
+		let infoFile = await getImageInfo(filePath, false, this.plugin);
 		if(infoFile)
 		{
 			let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
