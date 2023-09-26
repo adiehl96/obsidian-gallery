@@ -69,36 +69,37 @@ export class GalleryInfoView extends ItemView
   {
     // Open Info panel
     const workspace = plugin.app.workspace
-    workspace.detachLeavesOfType(OB_GALLERY_INFO)
-    const infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
+    let infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
+
     if (infoView)
     {
       workspace.revealLeaf(
         infoView
       );
-      return;
     }
-
-    if (!workspace.layoutReady)
+    else
     {
-      return;
+      if (!workspace.layoutReady)
+      {
+        return;
+      }
+
+      await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
+      workspace.revealLeaf(workspace.getLeavesOfType(OB_GALLERY_INFO)[0]);
+
+      infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0];
+    }
+    
+    if (infoView?.view instanceof GalleryInfoView)
+    {
+      if(imgPath && imgPath.length > 0)
+      {
+        infoView.view.updateInfoDisplay(imgPath);
+      }
+      return infoView.view;
     }
 
-    await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-    workspace.revealLeaf(workspace.getLeavesOfType(OB_GALLERY_INFO)[0]);
-
-	const infoLeaf = workspace.getLeavesOfType(OB_GALLERY_INFO)[0];
-	
-	if (infoLeaf?.view instanceof GalleryInfoView)
-	{
-		if(imgPath && imgPath.length > 0)
-		{
-			infoLeaf.view.updateInfoDisplay(imgPath);
-		}
-		return infoLeaf.view;
-    }
-
-	return null;
+    return null;
   }
 
   static closeInfoLeaf(plugin: GalleryTagsPlugin)
