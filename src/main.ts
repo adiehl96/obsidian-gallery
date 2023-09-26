@@ -50,25 +50,18 @@ export default class GalleryTagsPlugin extends Plugin
 
     this.addSettingTab(new GallerySettingTab(this.app, this))
     this.saveSettings();
+
+    this.app.workspace.onLayoutReady(this.#bootstrap.bind(this));
+  }
+
+  async #bootstrap()
+  {
     this.#buildTagCache();
     this.#buildImageCache();
-    this.#buildMetaCache();
+    await this.#buildMetaCache();
     this.#refreshColors();
     this.#registerEvents();
     this.#refreshViewTrigger();
-            
-    // this.registerEvent(
-    //   this.app.workspace.on("file-menu", async (menu,editor, info) => 
-    //   {
-    //     new Notice("file Menu")
-    //   }));
-
-		// this.registerEvent(
-		// 	this.app.workspace.on(
-		// 		"editor-menu",
-		// 		this.testOption
-		// 	)
-		// );
   }
 
   #registerCodeBlocks()
@@ -169,6 +162,19 @@ export default class GalleryTagsPlugin extends Plugin
         	});
         }
       }));
+            
+    // this.registerEvent(
+    //   this.app.workspace.on("file-menu", async (menu,editor, info) => 
+    //   {
+    //     new Notice("file Menu")
+    //   }));
+
+		// this.registerEvent(
+		// 	this.app.workspace.on(
+		// 		"editor-menu",
+		// 		this.testOption
+		// 	)
+		// );
   }
 
   #imageRegister(file:TAbstractFile)
