@@ -1,9 +1,9 @@
 import type { Vault } from 'obsidian'
 import { MarkdownRenderer } from 'obsidian'
-import { GALLERY_DISPLAY_USAGE } from '../TechnicalFiles/Constants'
 import type GalleryTagsPlugin from '../main'
 import { ImageGrid } from '../DisplayObjects/ImageGrid'
 import Gallery from '../svelte/Gallery.svelte'
+import { loc } from '../Loc/Localizer'
 
 export interface GalleryBlockArgs
 {
@@ -61,7 +61,7 @@ export class GalleryBlock
     // Handle problematic arguments
     if (!args.path || !args.type)
     {
-      MarkdownRenderer.render(plugin.app, GALLERY_DISPLAY_USAGE, elCanvas, '/', plugin)
+      MarkdownRenderer.render(plugin.app, loc('GALLERY_DISPLAY_USAGE'), elCanvas, '/', plugin)
       return;
     }
     

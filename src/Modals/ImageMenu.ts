@@ -196,10 +196,7 @@ export class ImageMenu
 
 		//@ts-ignore
 		const commandText = loc("IMAGE_MENU_COMMAND_"+result);
-		let confirmText: string = loc('MASS_CONTEXT_CONFIRM');
-		confirmText = confirmText
-			.replace('{count}', this.#targets.length.toString())
-			.replace('{commandText}', commandText)
+		const confirmText= loc('MASS_CONTEXT_CONFIRM', this.#targets.length.toString(), commandText);
 
 		const confirm = new ConfirmModal(this.#plugin.app, 
 			confirmText,
@@ -227,8 +224,9 @@ export class ImageMenu
 			case Options.DeleteImage: this.#resultDeleteImage(); break;
 			case Options.DeleteMeta: this.#resultDeleteMeta(); break;
 			default: 
-				new Notice(`context options "${result}" is not accounted for`);
-				console.error(`context options "${result}" is not accounted for`);
+				const error = loc('MENU_OPTION_FAULT', Options[result]);
+				new Notice(error);
+				console.error(error);
 		}
 	}
 
@@ -546,7 +544,7 @@ export class ImageMenu
 				const conflict = this.#plugin.app.vault.getAbstractFileByPath(newName);
 				if(conflict)
 				{
-					new Notice(loc('CONFLICT_NOTICE_PATH').replace("{path}", newName));
+					new Notice(loc('CONFLICT_NOTICE_PATH', newName));
 					return;
 				}
 

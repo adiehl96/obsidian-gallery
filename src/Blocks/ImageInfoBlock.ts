@@ -11,7 +11,6 @@ import
   EXTENSIONS, 
   EXTRACT_COLORS_OPTIONS,
   VIDEO_REGEX,
-  GALLERY_INFO_USAGE
 } from '../TechnicalFiles/Constants'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfo } from '../DisplayObjects/GalleryInfo'
@@ -64,7 +63,7 @@ export class ImageInfoBlock
     // Handle problematic arg
     if(!args.imgPath)
     {
-      MarkdownRenderer.render(plugin.app, GALLERY_INFO_USAGE, elCanvas, '/', plugin)
+      MarkdownRenderer.render(plugin.app, loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
       return;
     }
 
@@ -76,7 +75,7 @@ export class ImageInfoBlock
 
       if(found.length == 0)
       {
-        MarkdownRenderer.render(plugin.app,GALLERY_INFO_USAGE, elCanvas, '/', plugin)
+        MarkdownRenderer.render(plugin.app,loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
         return;
       }
       else

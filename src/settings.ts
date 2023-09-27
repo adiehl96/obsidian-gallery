@@ -27,12 +27,8 @@ export class GallerySettingTab extends PluginSettingTab
 
     // Main gallery path
     const galleryOpenPathSetting = new Setting(containerEl)
-    .setName('Main gallery default path')
-    .setDesc(`The path from which to show images when the main gallery is opened. 
-          Setting it to \`/\` will show all images in the vault. 
-          Can be used to avoid the loading all images and affecting on open performance 
-          (especially if vault has a huge amount of high quality images). 
-          Setting it to an invalid path to have no images shown when gallery is opened.`)
+    .setName(loc('SETTING_MAIN_PATH_TITLE'))
+    .setDesc(loc('SETTING_MAIN_PATH_TITLE'))
     .addButton(text => text
       .setButtonText(this.plugin.settings.galleryLoadPath)
       .onClick(() =>
@@ -48,8 +44,8 @@ export class GallerySettingTab extends PluginSettingTab
     
     // Gallery search bar
     new Setting(containerEl)
-      .setName('Filter starts open in main gallery')
-      .setDesc('Toggle this option to have the filter header start open.')
+      .setName(loc('SETTING_FILTER_OPEN_TITLE'))
+      .setDesc(loc('SETTING_FILTER_OPEN_DESC'))
       .addToggle((toggle) =>
       {
         toggle.setValue(this.plugin.settings.filterStartOpen)
@@ -62,8 +58,8 @@ export class GallerySettingTab extends PluginSettingTab
 
     // Default image width
     new Setting(containerEl)
-      .setName('Default image width')
-      .setDesc('Display default image width in `pixels`. Image collumns will be no wider than this by default')
+      .setName(loc('SETTING_IMAGE_WIDTH_TITLE'))
+      .setDesc(loc('SETTING_IMAGE_WIDTH_DESC'))
       .addText(text => text
         .setPlaceholder(`${this.plugin.settings.width}`)
         .onChange(async (value) =>
@@ -81,8 +77,8 @@ export class GallerySettingTab extends PluginSettingTab
     
     // Use max height?
     new Setting(containerEl)
-      .setName('Use max image height')
-      .setDesc('Toggle this option to set a max image height for images to display in collumns.')
+      .setName(loc('SETTING_MAX_HEIGHT_TOGGLE_TITLE'))
+      .setDesc(loc('SETTING_MAX_HEIGHT_TOGGLE_DESC'))
       .addToggle((toggle) =>
       {
         toggle.setValue(this.plugin.settings.useMaxHeight)
@@ -98,8 +94,8 @@ export class GallerySettingTab extends PluginSettingTab
     if(this.plugin.settings.useMaxHeight)
     {
       new Setting(containerEl)
-      .setName('Max image height')
-      .setDesc('Max image height in `pixels` for images to display in collumns.')
+      .setName(loc('SETTING_MAX_HEIGHT_TITLE'))
+      .setDesc(loc('SETTING_MAX_HEIGHT_DESC'))
       .addText(text => text
         .setPlaceholder(`${this.plugin.settings.maxHeight}`)
         .onChange(async (value) =>
@@ -115,47 +111,12 @@ export class GallerySettingTab extends PluginSettingTab
         }))
     }
     
-    // Hidden meta fields
-    const hiddenInfoSetting = new Setting(containerEl)
-      .setName('Default hidden info')
-      .setTooltip(`When no hidden info items are specified in an image info block these info items will be hidden.`)
-      .setDesc(``)
-      .addText(text => text
-        .setPlaceholder("New Hidden Field")
-        .onChange(async (value) =>
-        {
-          value = value.trim();
-          hiddenInfoInput = value;
-        }))
-      .addButton(text => text
-        .setIcon("plus")
-        .setTooltip("Add this field to hidden info list")
-        .onClick(() =>
-        {
-          this.plugin.settings.hiddenInfoTicker[hiddenInfoInput] = true;
-          hiddenInfoInput = '';
-          this.plugin.saveSettings();
-          this.display();
-        }))
-      .addButton(text => text
-        .setIcon('rotate-ccw')
-        .setTooltip("Reset hidden info list to defaults")
-        .onClick(() =>
-        {
-          this.plugin.settings.hiddenInfoTicker = Object.assign({}, DEFAULT_HIDDEN_INFO);
-          this.plugin.saveSettings();
-          this.display();
-        }));
-      
-      this.drawInfoLists(hiddenInfoSetting.descEl);
-    
-
     // Gallery Meta Section
-    containerEl.createEl('h2', { text: 'Image Metadata' })
+    containerEl.createEl('h2', { text: loc('SETTING_METADATA_HEADER') })
     
     // Gallery meta folder
     const infoPathSetting = new Setting(containerEl)
-      .setName('Gallery info folder')
+      .setName(loc('SETTING_META_FOLDER_TITLE'))
       .setDesc('')
       .addButton(text => text
         .setButtonText(this.plugin.settings.imgDataFolder)
@@ -170,17 +131,16 @@ export class GallerySettingTab extends PluginSettingTab
           fuzzyFolders.open()
         }))
         
-    infoPathSetting.descEl.createDiv({ text: 'Specify an existing vault folder for the gallery plugin to store image information/notes as markdown files.' })
-    infoPathSetting.descEl.createDiv({ text: 'E.g. \`Resources/Gallery\`.', attr: { style: 'color: indianred;' } })
-    infoPathSetting.descEl.createDiv({ text: 'On first activation the default is unspecified. Thus the info functionality of the Main gallery is diabled.' })
-    infoPathSetting.descEl.createDiv({ text: 'Folder must already exist (plugin will not create it).', attr: { style: 'font-weight: 900;' } })
-    infoPathSetting.descEl.createDiv({ text: 'If a folder is not specified no Image Information notes are created (to be used in the main gallery).' })
-    
+    infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC1') })
+    infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC2'), attr: { style: 'color: indianred;' } })
+    infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC3') })
+    infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC4'), attr: { style: 'font-weight: 900;' } })
+    infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC5') })
     
     // Should add keys even if they already exist
     new Setting(containerEl)
-      .setName('Skip Keyword import for existing keys')
-      .setDesc('If this is toggled then when pulling metadata from the image file, it will be skipped if there is already an internal metadate file with keywords. This saves time on imports, but if you change the meta in the original files those changes will not be reflected.')
+      .setName(loc('SETTING_QUICK_IMPORT_TITLE'))
+      .setDesc(loc('SETTING_QUICK_IMPORT_DESC'))
       .addToggle((toggle) =>
       {
         toggle.setValue(this.plugin.settings.skipMetadataOverwrite)
@@ -193,7 +153,7 @@ export class GallerySettingTab extends PluginSettingTab
 
     // Meta template file    
     const metaTemplatSetting = new Setting(containerEl)
-      .setName('Meta file template override')
+      .setName(loc('SETTING_META_TEMPLATE_TITLE'))
       .setDesc('')
       .addButton(text => text
         .setButtonText(this.plugin.settings.imgmetaTemplatePath)
@@ -207,14 +167,48 @@ export class GallerySettingTab extends PluginSettingTab
 
           fuzzyFiles.open()
         }))
-    metaTemplatSetting.descEl.createDiv({ text: 'Location of template file to use for generating image meta files. If blank will use default.' })
-    metaTemplatSetting.descEl.createDiv({ text: 'These keys will be replaced with the apropriate info for the file:' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG LINK %> : Clickable link to the image with its name as the text' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG EMBED %> : Embeded view of the image' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG INFO %> : Info block for the image' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG URI %> : The formatted URI for the image that can be used to generate a link to it' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG PATH %> : Path to the image(including file name)' })
-    metaTemplatSetting.descEl.createDiv({ text: '<% IMG NAME %> : File name for the image' })
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC1') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC2') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC3') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC4') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC5') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC6') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC7') });
+    metaTemplatSetting.descEl.createDiv({ text: loc('SETTING_META_TEMPLATE_DESC8') });
+    
+    // Hidden meta fields
+    const hiddenInfoSetting = new Setting(containerEl)
+      .setName(loc('SETTING_HIDDEN_INFO_TITLE'))
+      .setTooltip(loc('SETTING_HIDDEN_INFO_DESC'))
+      .setDesc(``)
+      .addText(text => text
+        .setPlaceholder(loc('SETTING_HIDDEN_INFO_PLACEHOLDER'))
+        .onChange(async (value) =>
+        {
+          value = value.trim();
+          hiddenInfoInput = value;
+        }))
+      .addButton(text => text
+        .setIcon("plus")
+        .setTooltip(loc('SETTING_HIDDEN_INFO_ADD'))
+        .onClick(() =>
+        {
+          this.plugin.settings.hiddenInfoTicker[hiddenInfoInput] = true;
+          hiddenInfoInput = '';
+          this.plugin.saveSettings();
+          this.display();
+        }))
+      .addButton(text => text
+        .setIcon('rotate-ccw')
+        .setTooltip(loc('SETTING_HIDDEN_INFO_RESET'))
+        .onClick(() =>
+        {
+          this.plugin.settings.hiddenInfoTicker = Object.assign({}, DEFAULT_HIDDEN_INFO);
+          this.plugin.saveSettings();
+          this.display();
+        }));
+      
+    this.drawInfoLists(hiddenInfoSetting.descEl);
   }
 
   drawInfoLists(containerEl:HTMLElement)
@@ -238,7 +232,7 @@ export class GallerySettingTab extends PluginSettingTab
         {
           text
           .setIcon("trash-2")
-          .setTooltip("Remove from list")
+          .setTooltip(loc('SETTING_HIDDEN_INFO_REMOVE'))
           .onClick(async () => 
           {
             delete this.plugin.settings.hiddenInfoTicker[fields[i]];

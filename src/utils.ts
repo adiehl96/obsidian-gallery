@@ -119,7 +119,9 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
     imgPath = plugin.imgResources[imgPath]
     if( imgPath === "" || imgPath === undefined)
     {
-      new Notice("Resource not found '"+imgPath+"'")
+      const warning = loc('MISSING_RESOURCE_WARNING', imgPath)
+      console.warn(warning);
+      new Notice(warning);
       return;
     }
   }
@@ -186,8 +188,10 @@ export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): P
     {
       return infoFile;
     }
-    console.warn(`Unable to get meta file for '${imgPath}', file exists at path '${filepath}' but cannot be read at this time.`);
-    new Notice(`Unable to get meta file for '${imgPath}', file exists at path '${filepath}' but cannot be read at this time.`);
+
+    const warning = loc('META_OVERWRITE_CONFLICT', imgPath, filepath);
+    console.warn(warning);
+    new Notice(warning);
   }
 }
 

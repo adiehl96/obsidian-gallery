@@ -1,7 +1,7 @@
 import { ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { getImageInfo } from "../utils"
-import { GALLERY_RESOURCES_MISSING, OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
+import { OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
 import { loc } from '../Loc/Localizer'
 
 export class GalleryInfoView extends ItemView
@@ -117,7 +117,7 @@ export class GalleryInfoView extends ItemView
     }
 
     // Handle disabled img info functionality or missing info block
-    let infoText = GALLERY_RESOURCES_MISSING
+    let infoText = loc('GALLERY_RESOURCES_MISSING');
     if (this.infoFile)
     {
       infoText = await this.app.vault.cachedRead(this.infoFile)

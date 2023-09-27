@@ -9,7 +9,6 @@ import type { GallerySettings } from './TechnicalFiles/GallerySettings'
 import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON, EXTENSIONS } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
 import { ProgressModal } from './Modals/ProgressPopup'
-import { inherits } from 'util'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -260,12 +259,14 @@ export default class GalleryTagsPlugin extends Plugin
 
   #imgSelector: string = `.workspace-leaf-content[data-type='markdown'] img,`
                               +`.workspace-leaf-content[data-type='image'] img,`
-                              +`.community-modal-details img,#sr-flashcard-view img,`
+                              +`.community-modal-details img,`
+                              +`#sr-flashcard-view img,`
                               +`.workspace-leaf-content[data-type='markdown'] video,`
                               +`.workspace-leaf-content[data-type='video'] video,`
                               +`.community-modal-details video,`
                               +`.video-stream video`
                               +`#sr-flashcard-view video`;
+                              
   /**
    * Refresh image context events for main container
    * This feels gross, but I currently don't know another way to get right click events on all images and videos
