@@ -302,6 +302,11 @@ export class ImageGrid
 
 			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
 			{
+				if(!visualEl.classList.contains("gallery-grid-vid") && !visualEl.classList.contains("gallery-grid-img"))
+				{
+					return;
+				}
+
 				evt.stopImmediatePropagation();
 
 				this.#selectElement(visualEl);

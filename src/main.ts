@@ -51,6 +51,10 @@ export default class GalleryTagsPlugin extends Plugin
     this.saveSettings();
 
     this.app.workspace.onLayoutReady(this.#bootstrap.bind(this));
+
+    // might use this later for integration tasks
+    // this.manifest.dir
+    // this.plugins.plugins.dataview.manifest.dir
   }
 
   async #bootstrap()

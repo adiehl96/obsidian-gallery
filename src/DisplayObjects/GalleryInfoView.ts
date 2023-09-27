@@ -67,6 +67,11 @@ export class GalleryInfoView extends ItemView
 
   static async OpenLeaf(plugin: GalleryTagsPlugin, imgPath:string = null) : Promise<GalleryInfoView>
   {
+    if(imgPath === undefined || (imgPath !== null && imgPath.length <= 4))
+    {
+      return;
+    }
+    
     // Open Info panel
     const workspace = plugin.app.workspace
     let infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
@@ -92,10 +97,8 @@ export class GalleryInfoView extends ItemView
     
     if (infoView?.view instanceof GalleryInfoView)
     {
-      if(imgPath && imgPath.length > 0)
-      {
-        infoView.view.updateInfoDisplay(imgPath);
-      }
+      infoView.view.updateInfoDisplay(imgPath);
+      
       return infoView.view;
     }
 
@@ -109,6 +112,11 @@ export class GalleryInfoView extends ItemView
 
   async updateInfoDisplay(imgPath: string)
   {
+    if(imgPath === undefined || imgPath === null || imgPath.length <= 4)
+    {
+      return;
+    }
+
     this.infoFile = null;
     
     if(!this.infoFile)
