@@ -26,6 +26,10 @@
 # [Tenative Roadmap](docs/README_Roadmap.md)
 
 # Release Notes
+## 1.1.5
+ - Caches were not getting generated if there was any delay in app start, moved most startup into a bootstrap process
+ - Globalization work should be done, now I just need to figure out how to translate into a dozen or so languages so it's actually useful
+
 ## 1.1.4
  - GH#16 Changed how pathing and caching are handled while trying to account for multilingual file paths
  - Some other small cleanup
@@ -43,11 +47,5 @@
  - New right click option for removing a tag from selected images
  - Tag suggestions now use cached tags, so should be faster
  - Some under the hood changes to improve security and maintainability
-
-## 1.1.1
- - GH#14 Hidden info is now a list of checkboxes for better user experience
- - adding a section for backlinks to the meta file
- - Right click image anywhere to open meta file in leaf
- - fixed some other bugs one to do with indexing
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
