@@ -131,7 +131,7 @@ export default class GalleryTagsPlugin extends Plugin
       }));
 
     // Image created
-    this.registerEvent(this.app.vault.on("create", this.#imageRegister));
+    this.registerEvent(this.app.vault.on("create", this.#imageRegister.bind(this)));
 
     // Image Renamed
     this.registerEvent(
@@ -187,7 +187,7 @@ export default class GalleryTagsPlugin extends Plugin
       return;
     }
 
-    this.imgResources[this.app.vault.adapter.getResourcePath(file.path)] = file.path;
+    this.imgResources[this.app.vault.getResourcePath(file)] = file.path;
   }
 
   #buildTagCache()
@@ -218,7 +218,7 @@ export default class GalleryTagsPlugin extends Plugin
 		{
 			if (EXTENSIONS.contains(file.extension.toLowerCase()))
 			{
-					this.imgResources[this.app.vault.adapter.getResourcePath(file.path)] = file.path
+					this.imgResources[this.app.vault.getResourcePath(file)] = file.path
 			}
 		}
   }

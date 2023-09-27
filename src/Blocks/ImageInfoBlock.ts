@@ -57,9 +57,6 @@ export class ImageInfoBlock
       attr: { style: 'width: 100%; height: auto; float: left' }
     })
 
-    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath)
-    let imgURL = plugin.app.vault.adapter.getResourcePath(args.imgPath)
-
     // Handle problematic arg
     if(!args.imgPath)
     {
@@ -67,7 +64,7 @@ export class ImageInfoBlock
       return;
     }
 
-    const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath) as TFile;
 
     if (!imgTFile)
     {
@@ -92,8 +89,7 @@ export class ImageInfoBlock
       }
     }
 
-
-
+    let imgURL = plugin.app.vault.getResourcePath(imgTFile)
     let measureEl, isVideo
     let hexList: string[] = [];
     // Get image dimensions

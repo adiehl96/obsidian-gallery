@@ -259,7 +259,7 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
   if(shouldColor)
   {
     const measureEl = new Image();
-    measureEl.src = plugin.app.vault.adapter.getResourcePath(imgTFile.path);
+    measureEl.src = plugin.app.vault.getResourcePath(imgTFile);
 
     colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
   }
