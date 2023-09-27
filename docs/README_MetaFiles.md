@@ -12,7 +12,7 @@ Meta files are built from a template, and by default that template includes a fr
 Any other text in the template file will be imput as is(I am looking into templater support, but I have no timeline for said feature)
 
 ### Example Meta Template
-![Example Meta Template](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/MetaTemplate.png)
+![Example Meta Template](docs/images/MetaTemplate.png)
 
 ## Display Image Info block
 Image info blocks can exist outside of meta files as well, and can have explicite hidden metadata. if no hidden fields are specified then it goes off of the hidden info toggled in the settings.
@@ -24,4 +24,4 @@ imgPath=Art/1332338028.silverfox5213_commission_for_kikiluvi_fa.jpg
 ignoreInfo=date
 ```
 
-![](https://raw.githubusercontent.com/TomNCatz/obsidian-gallery/main/docs/images/Example_Info_Block.gif)
+![](docs/images/Example_Info_Block.gif)
