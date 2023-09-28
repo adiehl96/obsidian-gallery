@@ -114,7 +114,7 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
     return
   }
 
-  if(imgPath.contains("app://"))
+  if(imgPath.contains("app://") || imgPath.contains("http://localhost"))
   {
     imgPath = plugin.imgResources[imgPath]
     if( imgPath === "" || imgPath === undefined)
