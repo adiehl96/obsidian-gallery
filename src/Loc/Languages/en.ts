@@ -52,6 +52,13 @@ export default
 	SETTING_HIDDEN_INFO_ADD: "Add this field to hidden info list",
 	SETTING_HIDDEN_INFO_RESET: "Reset hidden info list to defaults",
 	SETTING_HIDDEN_INFO_REMOVE: "Remove from List",
+	SETTING_UNIQUE_MOBILE_TITLE: "Distinct settings on mobile",
+	SETTING_UNIQUE_MOBILE_DESC: "Should settings in the Platform settings section be different on mobile than desktop?",
+	SETTING_PLATFORM_HEADER: "Platform settings",
+	SETTING_CONTEXT_INFO_TITLE: "Info panel anywhere",
+	SETTING_CONTEXT_INFO_DESC: "Should right clicking on an image anywhere open the info panel?",
+	SETTING_CONTEXT_MENU_TITLE: "Image menu anywhere",
+	SETTING_CONTEXT_MENU_DESC: "Should right clicking on an image anywhere open the info menu?",
 
 	// Gallery View
 	GALLERY_VIEW_TITLE: "Gallery View",

@@ -1,4 +1,4 @@
-import type { GallerySettings } from "./GallerySettings"
+import type { GallerySettings, PlatformSettings } from "./GallerySettings"
 
 export const DEFAULT_HIDDEN_INFO = 
 {
@@ -17,15 +17,23 @@ export const DEFAULT_HIDDEN_INFO =
   targetImage:true
 }
 
+const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
+  filterStartOpen: true,
+  rightClickInfo: true,
+  rightClickMenu: true,
+  width: 400,
+  useMaxHeight: false,
+  maxHeight: 400
+}
+
 export const DEFAULT_SETTINGS: GallerySettings = {
   imgDataFolder: null,
   galleryLoadPath: '/',
   imgmetaTemplatePath: null,
-  width: 400,
-  useMaxHeight: false,
-  maxHeight: 400,
   hiddenInfoTicker: DEFAULT_HIDDEN_INFO,
-  filterStartOpen: false,
+  uniqueMobileSettings: false,
+  desktop: DEFAULT_PLATFORM_SETTINGS,
+  mobile: DEFAULT_PLATFORM_SETTINGS,
   skipMetadataOverwrite: false
 }
 

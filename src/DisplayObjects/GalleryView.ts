@@ -55,7 +55,7 @@ export class GalleryView extends ItemView
       // Create Search Control Element
       this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
 
-      if(plugin.settings.filterStartOpen)
+      if(plugin.platformSettings().filterStartOpen)
       {
         this.filterEl.style.setProperty('display', 'block');
       }

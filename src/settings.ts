@@ -42,16 +42,61 @@ export class GallerySettingTab extends PluginSettingTab
         fuzzyFolders.open()
       }))
     
+    // Unique Mobile Settings
+    new Setting(containerEl)
+      .setName(loc('SETTING_UNIQUE_MOBILE_TITLE'))
+      .setDesc(loc('SETTING_UNIQUE_MOBILE_DESC'))
+      .addToggle((toggle) =>
+      {
+        toggle.setValue(this.plugin.settings.uniqueMobileSettings)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.settings.uniqueMobileSettings = value
+          await this.plugin.saveSettings()
+        });
+      })
+    
+    // Platform Specific Section
+    containerEl.createEl('h2', { text: loc('SETTING_PLATFORM_HEADER') })
+
+    // Should right click open the side panel anywhere in the app?
+    new Setting(containerEl)
+      .setName(loc('SETTING_CONTEXT_INFO_TITLE'))
+      .setDesc(loc('SETTING_CONTEXT_INFO_DESC'))
+      .addToggle((toggle) =>
+      {
+        toggle.setValue(this.plugin.platformSettings().rightClickInfo)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.platformSettings().rightClickInfo = value
+          await this.plugin.saveSettings()
+        });
+      })
+
+    // Should right click open the image menu anywhere in the app?
+    new Setting(containerEl)
+      .setName(loc('SETTING_CONTEXT_MENU_TITLE'))
+      .setDesc(loc('SETTING_CONTEXT_MENU_DESC'))
+      .addToggle((toggle) =>
+      {
+        toggle.setValue(this.plugin.platformSettings().rightClickMenu)
+        toggle.onChange(async (value) =>
+        {
+          this.plugin.platformSettings().rightClickMenu = value
+          await this.plugin.saveSettings()
+        });
+      })
+
     // Gallery search bar
     new Setting(containerEl)
       .setName(loc('SETTING_FILTER_OPEN_TITLE'))
       .setDesc(loc('SETTING_FILTER_OPEN_DESC'))
       .addToggle((toggle) =>
       {
-        toggle.setValue(this.plugin.settings.filterStartOpen)
+        toggle.setValue(this.plugin.platformSettings().filterStartOpen)
         toggle.onChange(async (value) =>
         {
-          this.plugin.settings.filterStartOpen = value
+          this.plugin.platformSettings().filterStartOpen = value
           await this.plugin.saveSettings()
         });
       })
@@ -61,7 +106,7 @@ export class GallerySettingTab extends PluginSettingTab
       .setName(loc('SETTING_IMAGE_WIDTH_TITLE'))
       .setDesc(loc('SETTING_IMAGE_WIDTH_DESC'))
       .addText(text => text
-        .setPlaceholder(`${this.plugin.settings.width}`)
+        .setPlaceholder(`${this.plugin.platformSettings().width}`)
         .onChange(async (value) =>
         {
           const numValue = parseInt(value)
@@ -70,7 +115,7 @@ export class GallerySettingTab extends PluginSettingTab
             return;
           }
 
-          this.plugin.settings.width = Math.abs(numValue)
+          this.plugin.platformSettings().width = Math.abs(numValue)
           await this.plugin.saveSettings()
         }))
      
@@ -81,23 +126,23 @@ export class GallerySettingTab extends PluginSettingTab
       .setDesc(loc('SETTING_MAX_HEIGHT_TOGGLE_DESC'))
       .addToggle((toggle) =>
       {
-        toggle.setValue(this.plugin.settings.useMaxHeight)
+        toggle.setValue(this.plugin.platformSettings().useMaxHeight)
         toggle.onChange(async (value) =>
         {
-          this.plugin.settings.useMaxHeight = value;
+          this.plugin.platformSettings().useMaxHeight = value;
           await this.plugin.saveSettings();
           this.display();
         });
       })
 
     // Max image height
-    if(this.plugin.settings.useMaxHeight)
+    if(this.plugin.platformSettings().useMaxHeight)
     {
       new Setting(containerEl)
       .setName(loc('SETTING_MAX_HEIGHT_TITLE'))
       .setDesc(loc('SETTING_MAX_HEIGHT_DESC'))
       .addText(text => text
-        .setPlaceholder(`${this.plugin.settings.maxHeight}`)
+        .setPlaceholder(`${this.plugin.platformSettings().maxHeight}`)
         .onChange(async (value) =>
         {
           const numValue = parseInt(value)
@@ -106,7 +151,7 @@ export class GallerySettingTab extends PluginSettingTab
             return;
           }
 
-          this.plugin.settings.maxHeight = Math.abs(numValue)
+          this.plugin.platformSettings().maxHeight = Math.abs(numValue)
           await this.plugin.saveSettings()
         }))
     }

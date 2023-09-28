@@ -51,10 +51,10 @@ export class ImageGrid
 		this.parent = parent;
 		this.columnContainer = columnContainer;
 		this.path = this.plugin.settings.galleryLoadPath;
-		this.maxWidth = this.plugin.settings.width;
-		if(this.plugin.settings.useMaxHeight)
+		this.maxWidth = this.plugin.platformSettings().width;
+		if(this.plugin.platformSettings().useMaxHeight)
 		{
-			this.maxHeight = this.plugin.settings.maxHeight;
+			this.maxHeight = this.plugin.platformSettings().maxHeight;
 		}
 		this.#tempImg = GALLERY_LOADING_IMAGE;
 	}

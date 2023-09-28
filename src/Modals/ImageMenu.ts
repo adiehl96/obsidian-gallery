@@ -93,7 +93,10 @@ export class ImageMenu
 			{
 				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
-			this.#createItem(Options.SelectAll);
+			if(this.#imageGrid)
+			{
+				this.#createItem(Options.SelectAll);
+			}
 			
 			this.#options.createDiv({cls: "suggestion-item-separator"});
 

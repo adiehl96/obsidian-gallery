@@ -1,14 +1,15 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile } from 'obsidian'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile, Platform } from 'obsidian'
 import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
 import { GalleryView } from './DisplayObjects/GalleryView'
 import { GalleryInfoView } from './DisplayObjects/GalleryInfoView'
-import type { GallerySettings } from './TechnicalFiles/GallerySettings'
+import type { GallerySettings, PlatformSettings } from './TechnicalFiles/GallerySettings'
 import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SEARCH_ICON, EXTENSIONS } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
 import { ProgressModal } from './Modals/ProgressPopup'
+import { ImageMenu } from './Modals/ImageMenu'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -55,6 +56,16 @@ export default class GalleryTagsPlugin extends Plugin
     // might use this later for integration tasks
     // this.manifest.dir
     // this.plugins.plugins.dataview.manifest.dir
+  }
+
+  platformSettings(): PlatformSettings
+  {
+    if(this.settings.uniqueMobileSettings && !Platform.isDesktopApp)
+    {
+      return this.settings.mobile;
+    }
+    
+    return this.settings.desktop;
   }
 
   async #bootstrap()
@@ -300,7 +311,15 @@ export default class GalleryTagsPlugin extends Plugin
       return;
     }
 
-    GalleryInfoView.OpenLeaf(this,targetEl.src);
+    if(this.platformSettings().rightClickInfo)
+    {
+      GalleryInfoView.OpenLeaf(this,targetEl.src);
+    }
+    
+    if(this.platformSettings().rightClickMenu)
+    {
+      new ImageMenu(event.pageX, event.pageY, [targetEl], null, this);
+    }
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
