@@ -1,10 +1,11 @@
 import type { App } from 'obsidian'
-import { TFolder, TFile, normalizePath, Notice, Platform } from 'obsidian'
+import { TFile, normalizePath, Notice, Platform } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
 import { extractColors, type FinalColor } from '../node_modules/extract-colors'
 import { EXTENSIONS, EXTRACT_COLORS_OPTIONS, VIDEO_REGEX, DEFAULT_TEMPLATE } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
+import type en from './Loc/Languages/en'
 
 export type ImageResources = Record<string, string>
 
@@ -116,7 +117,7 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
 
   if(imgPath.contains("app://") || imgPath.contains("http://localhost"))
   {
-    imgPath = plugin.imgResources[imgPath]
+    imgPath = plugin.getImgResources()[imgPath];
     if( imgPath === "" || imgPath === undefined)
     {
       const warning = loc('MISSING_RESOURCE_WARNING', imgPath)
@@ -127,7 +128,7 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
   }
   
   let infoFile = null
-  let infoPath = plugin.metaResources[imgPath];
+  let infoPath = plugin.getMetaResources()[imgPath];
   infoFile = plugin.app.vault.getAbstractFileByPath(infoPath);
 
   if(infoFile)
@@ -138,7 +139,7 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
   if (create)
   {
     infoFile = await createMetaFile(imgPath, plugin);
-    plugin.metaResources[imgPath] = infoFile.path
+    plugin.getMetaResources()[imgPath] = infoFile.path
     return infoFile;
   }
   
@@ -463,3 +464,13 @@ export const updateFocus = (imgEl: HTMLImageElement, videoEl: HTMLVideoElement, 
   // Set focus image
   imgEl.src = src
 };
+
+
+
+export const ToastMessage = (msg: string, timeoutInSeconds = 10, contextMenuCallback?:()=>void, contextKey:keyof typeof en = 'CONTEXT_INFO'): void =>
+{
+  const additionalInfo = contextMenuCallback  ?  (Platform.isDesktop ? loc('TOAST_ADDITIONAL_CONTEXT', loc(contextKey)) : loc('TOAST_ADDITIONAL')) : "";
+  const newNotice: Notice = new Notice(`${loc('PLUGIN_NAME')}\n${msg}\n${additionalInfo}`, timeoutInSeconds*1000);
+  //@ts-ignore
+  if(contextMenuCallback) newNotice.noticeEl.oncontextmenu = async () => { contextMenuCallback() };    
+}

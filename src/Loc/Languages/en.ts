@@ -1,8 +1,9 @@
 export default
 {
 	// main.ts
-	LOADED_PLUGIN_MESSAGE: 'Loaded Gallery Tags Plugin',
-	UNLOADING_PLUGIN_MESSAGE: 'Unloading Gallery Tags Plugin',
+	PLUGIN_NAME: "Gallery Tags",
+	LOADED_PLUGIN_MESSAGE: "Loaded {0} Plugin",
+	UNLOADING_PLUGIN_MESSAGE: 'Unloading {0} Plugin',
 
 	// utils.ts
 	MISSING_RESOURCE_WARNING: "Resource not found '{0}'",
@@ -126,6 +127,14 @@ export default
 	IMAGE_INFO_FIELD_PALETTE: "Color Palette",
 
 	// Warning instructions
+	TOAST_ADDITIONAL_CONTEXT: "(click=Dismiss, right-click={0})",
+	TOAST_ADDITIONAL: "(click=Dismiss)",
+	CONTEXT_INFO: "Info",
+	BOOTSTRAP_FAILURE: "Bootstrap process failure in {0}. Plugin may not function without restart.",
+	CONTEXT_RETRY: "Restart",
+	CAUSE_TAG_CACHE: "tag cache",
+	CAUSE_IMAGE_RESOURCES: "image resources",
+	CAUSE_META_RESOURCES: "meta resources",
 	GALLERY_RESOURCES_MISSING: `
 <div class="gallery-resources-alert">
 	<strong>Missing or Unspecified Image Information Resources folder</strong>

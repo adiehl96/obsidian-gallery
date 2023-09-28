@@ -55,7 +55,7 @@ export class FuzzyTags extends FuzzySuggestModal<string>
 
 	getItems(): string[]
 	{
-		return this.plugin.tagCache;
+		return this.plugin.getTags();
 	}
 	getItemText(item: string): string
 	{

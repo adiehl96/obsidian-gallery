@@ -71,7 +71,7 @@ export class ImageMenu
 			if(this.#targets.length == 1)
 			{
 				const info = this.#options.createDiv({cls: "suggestion-item"});
-				info.innerText = '"'+this.#plugin.imgResources[this.#targets[0].src]+'" selected';
+				info.innerText = '"'+this.#plugin.getImgResources()[this.#targets[0].src]+'" selected';
 
 				this.#options.createDiv({cls: "suggestion-item-separator"});
 
@@ -241,7 +241,7 @@ export class ImageMenu
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
+		const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
 		if (file instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(file)
@@ -256,7 +256,7 @@ export class ImageMenu
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
+		const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
 		if (infoFile instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
@@ -275,7 +275,7 @@ export class ImageMenu
 		for (let i = 0; i < this.#targets.length; i++) 
 		{
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
 			if(file instanceof TFile)
 			{
 				links += `![${file.basename}](${preprocessUri(file.path)})\n`
@@ -311,7 +311,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
+			const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
 			if(infoFile)
 			{
 				links += `[${infoFile.basename}](${preprocessUri(infoFile.path)})\n`
@@ -348,7 +348,7 @@ export class ImageMenu
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
+				const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -390,21 +390,21 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
-			let infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
+			let infoFile = await getImageInfo(this.#plugin.getImgResources()[source], false, this.#plugin);
 
 			if(infoFile)
 			{
-				this.#plugin.metaResources[file.path] = infoFile.path
+				this.#plugin.getMetaResources()[file.path] = infoFile.path
 				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
 			}
 			else
 			{
-				infoFile = await createMetaFile(this.#plugin.imgResources[source], this.#plugin);
+				infoFile = await createMetaFile(this.#plugin.getImgResources()[source], this.#plugin);
 				
 				if(infoFile)
 				{
-					this.#plugin.metaResources[file.path] = infoFile.path;
+					this.#plugin.getMetaResources()[file.path] = infoFile.path;
 				}
 			}
 		}
@@ -441,7 +441,7 @@ export class ImageMenu
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await getImageInfo(this.#plugin.imgResources[source], true, this.#plugin);
+				const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -502,11 +502,11 @@ export class ImageMenu
 				progress.updateProgress(i);
 
 				const source = this.#getSource(this.#targets[i]);
-				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
+				const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
 				if(file)
 				{
 					const newPath = s+"/"+file.name
-					delete this.#plugin.imgResources[source];
+					delete this.#plugin.getImgResources()[source];
 					await this.#plugin.app.vault.rename(file, newPath);
 				}
 			}
@@ -526,7 +526,7 @@ export class ImageMenu
 			return;
 		}
 
-		const original: string = this.#plugin.imgResources[this.#targets[0].src];
+		const original: string = this.#plugin.getImgResources()[this.#targets[0].src];
 		const suggesion = new SuggestionPopup(this.#plugin.app,
 			loc("PROMPT_FOR_NEW_NAME"),
 			original,
@@ -553,7 +553,7 @@ export class ImageMenu
 
 				if(file)
 				{
-					delete this.#plugin.imgResources[this.#targets[0].src];
+					delete this.#plugin.getImgResources()[this.#targets[0].src];
 					await this.#plugin.app.vault.rename(file, newName);
 				}
 				new Notice(loc('MOVED_IMAGE'));
@@ -585,7 +585,7 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
+			const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], false, this.#plugin);
 			if(infoFile)
 			{
 				await this.#plugin.app.vault.delete(infoFile);
@@ -617,8 +617,8 @@ export class ImageMenu
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.imgResources[source])
-			const infoFile = await getImageInfo(this.#plugin.imgResources[source], false, this.#plugin);
+			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
+			const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], false, this.#plugin);
 			if(file)
 			{
 				await this.#plugin.app.vault.delete(file);

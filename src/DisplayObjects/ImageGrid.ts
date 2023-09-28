@@ -297,7 +297,7 @@ export class ImageGrid
 				
 			if(infoView)
 			{
-				await infoView.updateInfoDisplay(this.plugin.imgResources[visualEl.src]);
+				await infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
 			}
 
 			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
@@ -372,7 +372,7 @@ export class ImageGrid
 			
 			if(infoView)
 			{
-				await infoView.updateInfoDisplay(this.plugin.imgResources[this.imgList[this.#imgFocusIndex]]);
+				await infoView.updateInfoDisplay(this.plugin.getImgResources()[this.imgList[this.#imgFocusIndex]]);
 			}
 		}
 
@@ -473,7 +473,7 @@ export class ImageGrid
 	
 	async #applyFilter(path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean): Promise<void>
 	{
-		const keyList = Object.keys(this.plugin.imgResources);
+		const keyList = Object.keys(this.plugin.getImgResources());
 		
 		path = normalizePath(path);
 
@@ -514,7 +514,7 @@ export class ImageGrid
 		this.imgList= [];
 		for (const key of keyList)
 		{
-			const file = this.plugin.imgResources[key];
+			const file = this.plugin.getImgResources()[key];
 			if (file.match(reg))
 			{
 				if( await this.#containsTags(file, filterTags, matchCase, exclusive))

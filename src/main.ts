@@ -1,5 +1,5 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile, Platform } from 'obsidian'
-import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri } from './utils'
+import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
@@ -10,6 +10,7 @@ import { DEFAULT_SETTINGS, OB_GALLERY, OB_GALLERY_INFO, GALLERY_ICON, GALLERY_SE
 import { loc } from './Loc/Localizer'
 import { ProgressModal } from './Modals/ProgressPopup'
 import { ImageMenu } from './Modals/ImageMenu'
+import type en from './Loc/Languages/en'
 
 export default class GalleryTagsPlugin extends Plugin
 {
@@ -30,7 +31,7 @@ export default class GalleryTagsPlugin extends Plugin
   {
     // Load message
     await this.loadSettings();
-    console.log(loc("LOADED_PLUGIN_MESSAGE"));
+    console.log(loc("LOADED_PLUGIN_MESSAGE", loc('PLUGIN_NAME')));
 
     this.#registerCodeBlocks();
 
@@ -66,6 +67,41 @@ export default class GalleryTagsPlugin extends Plugin
     }
     
     return this.settings.desktop;
+  }
+
+  getTags() : string[]
+  {
+    if(this.tagCache === undefined)
+    {
+      this.bootstrapFailed('CAUSE_TAG_CACHE');
+      return [];
+    }
+    return this.tagCache;
+  }
+
+  getImgResources() : ImageResources
+  {
+    if(this.imgResources === undefined)
+    {
+      this.bootstrapFailed('CAUSE_IMAGE_RESOURCES');
+      return {};
+    }
+    return this.imgResources;
+  }
+
+  getMetaResources() : ImageResources
+  {
+    if(this.metaResources === undefined)
+    {
+      this.bootstrapFailed('CAUSE_META_RESOURCES');
+      return {};
+    }
+    return this.metaResources;
+  }
+
+  bootstrapFailed(cause:keyof typeof en)
+  {
+    ToastMessage(loc('BOOTSTRAP_FAILURE', loc(cause)), 25, ()=>{this.#bootstrap()}, 'CONTEXT_RETRY');
   }
 
   async #bootstrap()
@@ -202,7 +238,7 @@ export default class GalleryTagsPlugin extends Plugin
       return;
     }
 
-    this.imgResources[this.app.vault.getResourcePath(file)] = file.path;
+    this.getImgResources()[this.app.vault.getResourcePath(file)] = file.path;
   }
 
   #buildTagCache()
@@ -352,7 +388,7 @@ export default class GalleryTagsPlugin extends Plugin
 
   onunload()
   {
-    console.log(loc("UNLOADING_PLUGIN_MESSAGE"))
+    console.log(loc("UNLOADING_PLUGIN_MESSAGE", loc('PLUGIN_NAME')))
     
     document.off('contextmenu', this.#imgSelector, this.clickImage);
     

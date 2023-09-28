@@ -130,7 +130,7 @@ export class GalleryInfo
 			newTagEl.name = "new-tag";
 			newTagEl.placeholder = loc('IMAGE_INFO_FIELD_NEW_TAG');
 			const suggetions = new SuggestionDropdown(newTagEl, 
-				() =>{return this.plugin.tagCache;},
+				() =>{return this.plugin.getTags();},
 				async(s) =>{
 					const tag = s.trim();
 					if(tag === '')
