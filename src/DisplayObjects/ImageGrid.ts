@@ -293,7 +293,11 @@ export class ImageGrid
 				return;
 			}
 
-			const visualEl = evt.target as (HTMLVideoElement | HTMLImageElement)
+			let visualEl: (HTMLVideoElement | HTMLImageElement);
+			if(evt.target instanceof HTMLVideoElement || evt.target instanceof HTMLImageElement)
+			{
+				visualEl = evt.target;
+			}
 				
 			if(infoView)
 			{

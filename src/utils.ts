@@ -1,4 +1,4 @@
-import type { App } from 'obsidian'
+import type { App, TAbstractFile } from 'obsidian'
 import { TFile, normalizePath, Notice, Platform } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
@@ -131,9 +131,9 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
   let infoPath = plugin.getMetaResources()[imgPath];
   infoFile = plugin.app.vault.getAbstractFileByPath(infoPath);
 
-  if(infoFile)
+  if(infoFile instanceof TFile)
   {
-    return infoFile as TFile;
+    return infoFile;
   }
   
   if (create)
@@ -155,11 +155,11 @@ export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): P
   const imgName = imgPath.split('/').slice(-1)[0]
   let fileName = imgName.substring(0, imgName.lastIndexOf('.'))
   let filepath = normalizePath(`${plugin.settings.imgDataFolder}/${fileName}.md`);
-  let infoFile: TFile;
+  let infoFile: TAbstractFile;
 
-  while (infoFile = (plugin.app.vault.getAbstractFileByPath(filepath )as TFile))
+  while ((infoFile = plugin.app.vault.getAbstractFileByPath(filepath)) instanceof TFile)
   {
-    let imgLink = await getimageLink(infoFile as TFile, plugin);
+    let imgLink = await getimageLink(infoFile, plugin);
     if(imgLink == imgPath)
     {
       return infoFile;
@@ -169,9 +169,9 @@ export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): P
   }
 
   
-  const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md")) as TFile;
+  const templateTFile = plugin.app.vault.getAbstractFileByPath(normalizePath(plugin.settings.imgmetaTemplatePath+".md"));
   let template = DEFAULT_TEMPLATE;
-  if(templateTFile)
+  if(templateTFile instanceof TFile)
   {
     template = await plugin.app.vault.read(templateTFile);
   }
@@ -184,8 +184,8 @@ export const createMetaFile = async (imgPath:string,plugin:GalleryTagsPlugin): P
   }
   catch(e)
   {
-    infoFile = plugin.app.vault.getAbstractFileByPath(filepath) as TFile;
-    if(infoFile)
+    infoFile = plugin.app.vault.getAbstractFileByPath(filepath);
+    if(infoFile instanceof TFile)
     {
       return infoFile;
     }
@@ -333,7 +333,7 @@ const getJpgTags = async (imgTFile: TFile, plugin: GalleryTagsPlugin): Promise<s
 
   try
   {
-    const bits = await plugin.app.vault.readBinary(imgTFile as TFile)
+    const bits = await plugin.app.vault.readBinary(imgTFile)
     const parser = ExifParserFactory.create(bits);
     tagInfo = parser.parse();
   }
@@ -421,13 +421,18 @@ export const setLazyLoading = () =>
     // threshold: 1.0,
   };
   if ("IntersectionObserver" in window) {
-    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          let lazyImage = entry.target as HTMLImageElement;
-          lazyImage.src = lazyImage.dataset.src;
-          lazyImage.classList.remove("lazy");
-          observer.unobserve(lazyImage);
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) 
+    {
+      entries.forEach(function(entry) 
+      {
+        if (entry.isIntersecting) 
+        {
+          if(entry.target instanceof HTMLImageElement)
+          {
+            entry.target.src = entry.target.dataset.src;
+            entry.target.classList.remove("lazy");
+            observer.unobserve(entry.target);
+          }
         }
       });
     }, options);

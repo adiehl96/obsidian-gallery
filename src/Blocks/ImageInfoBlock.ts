@@ -64,9 +64,9 @@ export class ImageInfoBlock
       return;
     }
 
-    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath) as TFile;
+    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath);
 
-    if (!imgTFile)
+    if (!(imgTFile instanceof TFile))
     {
       const found = await searchForFile(args.imgPath, plugin);
 
@@ -179,12 +179,16 @@ export class ImageInfoBlock
       hexList = frontmatter["Palette"];
     }
 
-    let width, height
-    const img = measureEl as HTMLImageElement
-    if(img)
+    let width, height;
+    let vid: HTMLVideoElement;
+    if(measureEl instanceof HTMLImageElement)
     {
-      width = img.naturalWidth;
-      height = img.naturalHeight;
+      width = measureEl.naturalWidth;
+      height = measureEl.naturalHeight;
+    }
+    else
+    {
+      vid = measureEl;
     }
 
     if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
@@ -194,7 +198,7 @@ export class ImageInfoBlock
       info.imgInfo = imgInfo;
       info.width = width;
       info.height = height;
-      info.dimensions = measureEl as HTMLVideoElement;
+      info.dimensions = vid;
       info.colorList = hexList;
       info.tagList = imgTags;
       info.isVideo = isVideo;

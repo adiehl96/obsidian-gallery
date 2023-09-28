@@ -393,10 +393,15 @@ export class ImageMenu
 			const file = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[source])
 			let infoFile = await getImageInfo(this.#plugin.getImgResources()[source], false, this.#plugin);
 
+			if(!(file instanceof TFile))
+			{
+				continue;
+			}
+
 			if(infoFile)
 			{
 				this.#plugin.getMetaResources()[file.path] = infoFile.path
-				promises.push(addEmbededTags(file as TFile,infoFile, this.#plugin));
+				promises.push(addEmbededTags(file,infoFile, this.#plugin));
 			}
 			else
 			{

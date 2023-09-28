@@ -156,13 +156,16 @@ export default class GalleryTagsPlugin extends Plugin
         // Used for reacting to meta file creation events in real time
         if(this.embedQueue[file.path])
         {
-          const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]) as TFile
+          const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]);
           
-          this.finalizedQueue[file.path] = this.embedQueue[file.path];
-          delete this.embedQueue[file.path];
-          
-          this.metaResources[imgTFile.path] = file.path;
-          await addEmbededTags(imgTFile, file, this);
+          if(imgTFile instanceof TFile)
+          {
+            this.finalizedQueue[file.path] = this.embedQueue[file.path];
+            delete this.embedQueue[file.path];
+            
+            this.metaResources[imgTFile.path] = file.path;
+            await addEmbededTags(imgTFile, file, this);
+          }
         }
         else if(this.finalizedQueue[file.path])
         {
@@ -296,12 +299,15 @@ export default class GalleryTagsPlugin extends Plugin
 				progress.updateProgress(i);
 				
 				const info = infoFolder.children[i];
-				let imgLink = await getimageLink(info as TFile, this);
-		
-				if(info && imgLink)
+        if(info instanceof TFile)
 				{
-					this.metaResources[imgLink] = info.path
-				}
+          let imgLink = await getimageLink(info, this);
+		
+          if(info && imgLink)
+          {
+            this.metaResources[imgLink] = info.path
+          }
+        }
 			}
 			
 			progress.updateProgress(infoFolder.children.length);
