@@ -145,9 +145,18 @@ export class ImageInfoBlock
 
     const imgLinks: Array<{path : string, name: string}> = []
     const infoLinks: Array<{path : string, name: string}> = []
-    plugin.app.vault.getMarkdownFiles().forEach(mdFile =>
+    const mdFiles = plugin.app.vault.getMarkdownFiles()
+    for (let i = 0; i < mdFiles.length; i++) 
     {
-      plugin.app.metadataCache.getFileCache(mdFile)?.links?.forEach(link =>
+      const mdFile = mdFiles[i];
+      
+      const cache = plugin.app.metadataCache.getFileCache(mdFiles[i])
+      if(!cache)
+      {
+        continue;
+      }
+
+      cache.links?.forEach(link =>
       {
         if (link.link === args.imgPath || link.link === imgName)
         {
@@ -157,8 +166,9 @@ export class ImageInfoBlock
         {
           infoLinks.push({ path: mdFile.path, name: mdFile.basename })
         }
-      })
-      plugin.app.metadataCache.getFileCache(mdFile)?.embeds?.forEach(link =>
+      });
+
+      cache.embeds?.forEach(link =>
         {
           if (link.link === args.imgPath || link.link === imgName)
           {
@@ -168,8 +178,25 @@ export class ImageInfoBlock
           {
             infoLinks.push({ path: mdFile.path, name: mdFile.basename })
           }
-        })
-    });
+        });
+    }
+
+    const relatedFiles: Array<{path : string, name: string}> = []
+    const nearFiles = imgTFile.parent.children;
+    for (let i = 0; i < nearFiles.length; i++) 
+    {
+      const file = nearFiles[i];
+      
+      if(file instanceof TFile)
+      {
+        if(file != imgTFile
+          && (file.basename.contains(imgTFile.basename)
+          || imgTFile.basename.contains(file.basename)))
+        {
+          relatedFiles.push({ path: file.path, name: file.name });
+        }
+      }
+    }
 
     const frontmatter: FrontMatterCache = imgInfoCache?.frontmatter ?? []
     
@@ -204,6 +231,7 @@ export class ImageInfoBlock
       info.isVideo = isVideo;
       info.imgLinks = imgLinks;
       info.infoLinks = infoLinks;
+      info.relatedFiles = relatedFiles;
       info.frontmatter = frontmatter;
       info.infoList = infoList;
       

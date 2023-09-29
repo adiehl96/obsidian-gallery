@@ -20,6 +20,7 @@ export class GalleryInfo
     isVideo: boolean
     imgLinks: Array<{path : string, name: string}>
     infoLinks: Array<{path : string, name: string}>
+    relatedFiles: Array<{path : string, name: string}>
     frontmatter: FrontMatterCache
     infoList: string[]
 
@@ -188,6 +189,22 @@ export class GalleryInfo
 					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
 					link.dataset.href = this.infoLinks[i].path;
 					link.textContent = this.infoLinks[i].name;
+				}
+			}	
+		}
+
+		if(this.relatedFiles.length > 0 && !this.infoList.contains("relatedfiles"))
+		{
+			current = block.createDiv({ cls: 'gallery-info-section' });
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_RELATED');
+			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
+			if(this.relatedFiles != null)
+			{
+				for(let i = 0; i < this.relatedFiles.length; i++)
+				{
+					const link = currentVal.createEl("li",{ cls: 'img-info-link' }).createEl("a", { cls: 'internal-link' });
+					link.dataset.href = this.relatedFiles[i].path;
+					link.textContent = this.relatedFiles[i].name;
 				}
 			}	
 		}

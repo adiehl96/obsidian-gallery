@@ -106,12 +106,17 @@ export default class GalleryTagsPlugin extends Plugin
 
   async #bootstrap()
   {
-    this.#buildTagCache();
-    this.#buildImageCache();
-    await this.#buildMetaCache();
+    await this.buildCaches();
     this.#refreshColors();
     this.#registerEvents();
     this.#refreshViewTrigger();
+  }
+
+  async buildCaches()
+  {
+    this.#buildTagCache();
+    this.#buildImageCache();
+    await this.#buildMetaCache();
   }
 
   #registerCodeBlocks()

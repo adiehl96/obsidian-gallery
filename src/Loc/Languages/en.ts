@@ -15,6 +15,9 @@ export default
 	GENERIC_CANCELED: "Canceled",
 
 	// Settings
+	SETTING_DATA_REFRESH_TITLE: "Rebuild data cache",
+	SETTING_DATA_REFRESH_DESC: "If the plugin is having issues finding certain files, you can try this.",
+	SETTING_DATA_REFRESH_BUTTON: "Rebuild",
 	SETTING_MAIN_PATH_TITLE: "Main gallery default path",
 	SETTING_MAIN_PATH_DESC: `The path from which to show images when the main gallery is opened. 
 	Setting it to '/' will show all images in the vault. 
@@ -124,6 +127,7 @@ export default
 	IMAGE_INFO_FIELD_NEW_TAG: "New Tag",
 	IMAGE_INFO_FIELD_BACKLINKS: "Backlinks",
 	IMAGE_INFO_FIELD_INFOLINKS: "Info Links",
+	IMAGE_INFO_FIELD_RELATED: "Related Files",
 	IMAGE_INFO_FIELD_PALETTE: "Color Palette",
 
 	// Warning instructions

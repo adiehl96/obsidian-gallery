@@ -11,6 +11,7 @@ export const DEFAULT_HIDDEN_INFO =
   imageTags:false,
   backlinks:false,
   infolinks:false,
+  relatedFiles:false,
   colorPalette:false,
   tags:true,
   palette:true,

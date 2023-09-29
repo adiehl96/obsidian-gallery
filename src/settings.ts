@@ -26,9 +26,20 @@ export class GallerySettingTab extends PluginSettingTab
     containerEl.empty()
 
     // Main gallery path
+    new Setting(containerEl)
+    .setName(loc('SETTING_DATA_REFRESH_TITLE'))
+    .setDesc(loc('SETTING_DATA_REFRESH_DESC'))
+    .addButton(text => text
+      .setButtonText(loc('SETTING_DATA_REFRESH_BUTTON'))
+      .onClick(() =>
+      {
+        this.plugin.buildCaches(); 
+      }));
+
+    // Main gallery path
     const galleryOpenPathSetting = new Setting(containerEl)
     .setName(loc('SETTING_MAIN_PATH_TITLE'))
-    .setDesc(loc('SETTING_MAIN_PATH_TITLE'))
+    .setDesc(loc('SETTING_MAIN_PATH_DESC'))
     .addButton(text => text
       .setButtonText(this.plugin.settings.galleryLoadPath)
       .onClick(() =>
