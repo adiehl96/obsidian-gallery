@@ -11,21 +11,29 @@
 ### Main Gallery
 ![](docs/images/Example_main_gallery.gif)
 
-### [Display blocks](blob/main/docs/READEME_DisplayBlocks.md)
+### [Display blocks](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_DisplayBlocks.md)
 ![](docs/images/Example_Display_Block.gif)
 
-### [Meta Files and Templates](blob/main/docs/README_MetaFiles.md)
+### [Meta Files and Templates](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_MetaFiles.md)
 ![](docs/images/MetaFile.png)
 
-### [Context Menu](blob/main/docs/README_ContextMenu.md)
+### [Context Menu](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_ContextMenu.md)
 ![](docs/images/ContextMenu.png)
 
 ### Settings:
 ![](docs/images/Gallery_Settings.png)
 
-## [Tenative Roadmap](blob/main/docs/README_Roadmap.md)
+## [Tenative Roadmap](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_Roadmap.md)
 
 # Release Notes
+## 1.2.0
+ - Fixing a bug in detecting new images added while while open
+ - Fixed an issue where you could select or try to preview nothing
+ - Fixing critical mobile bug that prevented the gallery working with new caching techniques
+ - Got right click menu working anywhere and added setting to turn it off
+ - Moved several settings into a platform specific set of options
+ - I spent an hour trying to write handling for an edge case where in large vaults a combination of the sync plugin and the dataview plugin would cause a loading fault for THIS plugin, and now I can't get it to happen to test it so this code doesn't break anything, but also might not fix anything.
+
 ## 1.1.5
  - Caches were not getting generated if there was any delay in app start, moved most startup into a bootstrap process
  - Globalization work should be done, now I just need to figure out how to translate into a dozen or so languages so it's actually useful
@@ -38,14 +46,5 @@
  - GH#16 sometimes if your info block path was wrong in just the right way it would break all the other links in the file while trying to fix the path. Now it just suggests the path it thinks you should use instead of trying to change it automagically
  - Swapped out some text buttons for icon buttons
  - Adding an option to rename image files and update their path in the meta file(if they have one)
-
-## 1.1.2
- - Fix for bug where spaces in the file path would make the right click images anywhere functionality not function
- - Fixing all(I think) links in the side panel
- - Fixing bug where removing a tag didn't always work
- - Started adding globalization system for eventual localization(I'm not a linguist, so that second part may take a while)
- - New right click option for removing a tag from selected images
- - Tag suggestions now use cached tags, so should be faster
- - Some under the hood changes to improve security and maintainability
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
