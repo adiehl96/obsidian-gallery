@@ -76,13 +76,7 @@ export class GalleryInfoView extends ItemView
     const workspace = plugin.app.workspace
     let infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0]
 
-    if (infoView)
-    {
-      workspace.revealLeaf(
-        infoView
-      );
-    }
-    else
+    if (!infoView)
     {
       if (!workspace.layoutReady)
       {
@@ -90,10 +84,10 @@ export class GalleryInfoView extends ItemView
       }
 
       await workspace.getRightLeaf(false).setViewState({ type: OB_GALLERY_INFO })
-      workspace.revealLeaf(workspace.getLeavesOfType(OB_GALLERY_INFO)[0]);
-
       infoView = workspace.getLeavesOfType(OB_GALLERY_INFO)[0];
     }
+    
+    workspace.revealLeaf(infoView);
     
     if (infoView?.view instanceof GalleryInfoView)
     {

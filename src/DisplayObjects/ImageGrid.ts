@@ -11,7 +11,7 @@ import
 	GALLERY_LOADING_IMAGE,
 	VIDEO_REGEX
 } from '../TechnicalFiles/Constants'
-import type { GalleryInfoView } from "./GalleryInfoView"
+import { GalleryInfoView } from "./GalleryInfoView"
 import { ImageMenu } from "../Modals/ImageMenu"
 import { loc } from '../Loc/Localizer'
 
@@ -303,6 +303,10 @@ export class ImageGrid
 			{
 				await infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
 			}
+			else
+			{
+				infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[visualEl.src]);
+			}
 
 			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
 			{
@@ -377,6 +381,10 @@ export class ImageGrid
 			if(infoView)
 			{
 				await infoView.updateInfoDisplay(this.plugin.getImgResources()[this.imgList[this.#imgFocusIndex]]);
+			}
+			else
+			{
+				infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[this.imgList[this.#imgFocusIndex]]);
 			}
 		}
 
