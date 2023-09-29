@@ -12,18 +12,18 @@
 ![](docs/images/Example_main_gallery.gif)
 
 ### [Display blocks](docs/READEME_DisplayBlocks.md)
-
 ![](docs/images/Example_Display_Block.gif)
 
-### [Meta Files and Templates](docs/READEME_MetaFiles.md)
-
+### [Meta Files and Templates](docs/README_MetaFiles.md)
 ![](docs/images/MetaFile.png)
 
-## Settings:
+### [Context Menu](docs/README_ContextMenu.md)
+![](docs/images/ContextMenu.png)
 
+### Settings:
 ![](docs/images/Gallery_Settings.png)
 
-# [Tenative Roadmap](docs/README_Roadmap.md)
+## [Tenative Roadmap](docs/README_Roadmap.md)
 
 # Release Notes
 ## 1.1.5

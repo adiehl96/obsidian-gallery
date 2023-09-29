@@ -24,4 +24,10 @@ imgPath=Art/1332338028.silverfox5213_commission_for_kikiluvi_fa.jpg
 ignoreInfo=date
 ```
 
+Most fields are probably self expanitory, but there are a few here you might not be used to
+- Backlinks are links in your vault to the image file the block is targetting
+- Infolinks are links in your vault to the meta file for that image file, assuming it has one
+- Related Files are files that live in the same folder as the image file, and have a very similar name to the image file.This feature was added to allow creating previews and links for files obsidian does not typically handle(PSD, CLIP, KRA, BLEND, etc.)
+- Any frontmatter fields in the meta file not marked to be hidden are listed as well, in case you have your own info you want to display
+
 ![](docs/images/Example_Info_Block.gif)
