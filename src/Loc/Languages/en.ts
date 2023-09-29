@@ -69,7 +69,7 @@ export default
 	COPY_FILTER_TOOLTIP: "Copy filter to clipboard",
 	PASTE_FILTER_TOOLTIP: "Paste filter from clipboard",
 	SEARCH_TOOLTIP: "Search",
-	SORT_ORDER_TOOLTIP: "Should the sort order be reversed",
+	SORT_ORDER_TOOLTIP: "Sort Options",
 	COUNT_TOOLTIP: "Number of files displayed by filter out of files the gallery could display",
 	FILTER_PATH_TOOLTIP: "Folder to search",
 	FILTER_PATH_PROMPT: "Path",

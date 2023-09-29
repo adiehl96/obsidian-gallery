@@ -1,4 +1,4 @@
-import { Keymap, normalizePath, type UserEvent, getAllTags } from "obsidian"
+import { Keymap, normalizePath, type UserEvent, getAllTags, TFile } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import
  {
@@ -15,6 +15,16 @@ import { GalleryInfoView } from "./GalleryInfoView"
 import { ImageMenu } from "../Modals/ImageMenu"
 import { loc } from '../Loc/Localizer'
 
+export enum Sorting
+{
+	UNSORTED,
+	NAME,
+	PATH,
+	CDATE,
+	MDATE,
+	SIZE
+}
+
 export class ImageGrid
 {
 	plugin: GalleryTagsPlugin
@@ -25,6 +35,7 @@ export class ImageGrid
 	tag: string = ""
 	matchCase: boolean = true
 	exclusive: boolean = false
+	sorting: Sorting = Sorting.UNSORTED;
 	reverse : boolean = false
 	maxWidth : number
 	maxHeight : number
@@ -72,6 +83,130 @@ export class ImageGrid
 		return result;
 	}
 
+	updateSort(sorting:Sorting, reverse:boolean)
+	{
+		if(sorting == this.sorting && reverse == this.reverse)
+		{
+			return;
+		}
+
+		let changed = false;
+
+		if(sorting != this.sorting)
+		{
+			this.sorting = sorting;
+			switch(this.sorting)
+			{
+				case Sorting.UNSORTED: break;
+				case Sorting.NAME: 
+				{
+					this.imgList = this.imgList.sort((a,b)=>
+					{
+						let as = this.plugin.imgResources[a];
+						let bs = this.plugin.imgResources[b];
+						as = as.substring(as.lastIndexOf('/'));
+						bs = bs.substring(bs.lastIndexOf('/'));
+						return as.localeCompare(bs);
+					}); 
+					break;
+				}
+				case Sorting.PATH: 
+				{
+					this.imgList = this.imgList.sort((a,b)=>
+					{
+						return this.plugin.imgResources[a].localeCompare(this.plugin.imgResources[b]);
+					}); 
+					break;
+				}
+				case Sorting.CDATE: 
+				{
+					this.imgList = this.imgList.sort((a,b)=>
+					{
+						let af = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[a]) as TFile;
+						let bf = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[b]) as TFile;
+
+						if(af.stat.ctime < bf.stat.ctime)
+						{
+							return 1;
+						}
+						if(af.stat.ctime == bf.stat.ctime)
+						{
+							return 0;
+						}
+						return -1;
+					}); 
+					break;
+				}
+				case Sorting.MDATE: 
+				{
+					this.imgList = this.imgList.sort((a,b)=>
+					{
+						let ap = this.plugin.metaResources[this.plugin.imgResources[a]];
+						let bp = this.plugin.metaResources[this.plugin.imgResources[b]];
+
+						let af: TFile = this.plugin.app.vault.getAbstractFileByPath(ap) as TFile;
+						let bf: TFile = this.plugin.app.vault.getAbstractFileByPath(bp) as TFile;
+						if(!af)
+						{
+							af = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[a]) as TFile;
+						}
+						if(!bf)
+						{
+							bf = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[b]) as TFile;
+						}
+
+						if(af.stat.mtime < bf.stat.mtime)
+						{
+							return 1;
+						}
+						if(af.stat.mtime == bf.stat.mtime)
+						{
+							return 0;
+						}
+						return -1;
+					}); 
+					break;
+				}
+				case Sorting.SIZE:
+				{
+					this.imgList = this.imgList.sort((a,b)=>
+					{
+						let af = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[a]) as TFile;
+						let bf = this.plugin.app.vault.getAbstractFileByPath(this.plugin.imgResources[b]) as TFile;
+
+						if(af.stat.size < bf.stat.size)
+						{
+							return 1;
+						}
+						if(af.stat.size == bf.stat.size)
+						{
+							return 0;
+						}
+						return -1;
+					}); 
+					break;
+				}
+			}
+			changed = true;
+		}
+
+		if(changed)
+		{
+			if(this.reverse)
+			{
+				this.imgList = this.imgList.reverse();
+				changed = true;
+			}
+		}
+		else if(reverse != this.reverse)
+		{
+			this.imgList = this.imgList.reverse();
+			changed = true;
+		}
+
+		this.#redraw = changed;
+	}
+
 	async updateData()
 	{
 		await this.#applyFilter(this.path,
@@ -102,11 +237,8 @@ export class ImageGrid
 			this.imgList = this.customList.filter(value => !Number.isNaN(value)).map(i => this.imgList[i])
 		}
 
-		if(this.reverse)
-		{
-			this.imgList = this.imgList.reverse()
-		}
-
+		this.updateSort(this.sorting, this.reverse);
+		
 		this.#redraw = true;
 	}
 

@@ -1,6 +1,7 @@
 import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
 import { OB_GALLERY } from '../TechnicalFiles/Constants'
 import { ImageGrid } from './ImageGrid'
+import { SortingMenu } from '../Modals/SortingMenu'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
 import { loc } from '../Loc/Localizer'
@@ -123,26 +124,16 @@ export class GalleryView extends ItemView
         this.updateDisplay();
       });
 
-      // Should display order be reversed
-      const sortReverseDiv = filterTopDiv.createDiv({
-        cls: 'icon-toggle',
+      // Sort menu
+      const sortReverseDiv = filterTopDiv.createEl('a', {
+        cls: 'view-action',
         attr: { 'aria-label': loc('SORT_ORDER_TOOLTIP')}
       })
       setIcon(sortReverseDiv, "arrow-up-down")
-
-      sortReverseDiv.addEventListener('mousedown', async () =>
+      
+      sortReverseDiv.addEventListener('click', (event) =>
       {
-        this.imageGrid.reverse = !this.imageGrid.reverse;
-        if(this.imageGrid.reverse)
-        {
-          sortReverseDiv.addClass("icon-checked");
-        }
-        else
-        {
-          sortReverseDiv.removeClass("icon-checked");
-        }
-        await this.updateData();
-        this.updateDisplay();
+        new SortingMenu(event.pageX, event.pageY, this.imageGrid);
       });
 
       // file filter counts
