@@ -8,6 +8,7 @@ import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
 import { loc } from '../Loc/Localizer'
 import { SuggestionPopup } from "./SuggestionPopup";
+import { MenuPopup } from "./MenuPopup";
 
 enum Options
 {
@@ -29,36 +30,27 @@ enum Options
 	DeleteMeta = 15
 }
 
-export class ImageMenu
+export class ImageMenu extends MenuPopup
 {
 	#plugin: GalleryTagsPlugin
 	#imageGrid:ImageGrid
 	#infoView:GalleryInfoView
-	#self: HTMLDivElement
-	#options: HTMLDivElement
-	#selected: HTMLDivElement
 	#targets:(HTMLVideoElement|HTMLImageElement)[]
 
 
 	constructor(posX:number, posY:number, targets:(HTMLVideoElement|HTMLImageElement)[], imageGrid:ImageGrid, plugin: GalleryTagsPlugin, infoView:GalleryInfoView = null)
 	{
+		super(posX, posY, (result) => {this.#submit(result)});
+
 		this.#plugin = plugin;
 		this.#imageGrid = imageGrid;
 		this.#infoView = infoView;
 		this.#targets = targets;
-		this.#self = createDiv({cls: "suggestion-container"})
-		this.#options = this.#self.createDiv("#suggestions-scroll");
-		this.#options.style.maxHeight = "500px";
-		this.#options.style.maxWidth = "200px";
-		this.#options.style.overflowY = "auto";
-		this.#self.tabIndex = 0;
 
 		if(this.#targets.length == 0)
 		{
-			const info = this.#options.createDiv({cls: "suggestion-item"});
-			info.innerText = 'Nothing selected';
-
-			this.#options.createDiv({cls: "suggestion-item-separator"});
+			this.AddLabel('Nothing selected');
+			this.addSeparator();
 
 			if( this.#imageGrid && !Platform.isDesktopApp)
 			{
@@ -70,10 +62,8 @@ export class ImageMenu
 		{
 			if(this.#targets.length == 1)
 			{
-				const info = this.#options.createDiv({cls: "suggestion-item"});
-				info.innerText = '"'+this.#plugin.getImgResources()[this.#targets[0].src]+'" selected';
-
-				this.#options.createDiv({cls: "suggestion-item-separator"});
+				this.AddLabel('"'+this.#plugin.getImgResources()[this.#targets[0].src]+'" selected');
+				this.addSeparator();
 
 				this.#createItem(Options.OpenImageFile);
 				this.#createItem(Options.OpenMetaFile);
@@ -81,10 +71,9 @@ export class ImageMenu
 
 			if(this.#targets.length > 1)
 			{
-				const info = this.#options.createDiv({cls: "suggestion-item"});
-				info.innerText = this.#targets.length+" selected";
-
-				this.#options.createDiv({cls: "suggestion-item-separator"});
+				this.AddLabel(this.#targets.length+" selected");
+				this.addSeparator();
+				
 
 				this.#createItem(Options.ClearSelection);
 			}
@@ -98,12 +87,12 @@ export class ImageMenu
 				this.#createItem(Options.SelectAll);
 			}
 			
-			this.#options.createDiv({cls: "suggestion-item-separator"});
+			this.addSeparator();
 
 			this.#createItem(Options.CopyImageLinks);
 			this.#createItem(Options.CopyMetaLinks);
 			
-			this.#options.createDiv({cls: "suggestion-item-separator"});
+			this.addSeparator();
 
 			this.#createItem(Options.AddTag);
 			this.#createItem(Options.PullMetaFromFile);
@@ -115,77 +104,30 @@ export class ImageMenu
 				this.#createItem(Options.Rename);
 			}
 			
-			this.#options.createDiv({cls: "suggestion-item-separator"});
+			this.addSeparator();
 
 			this.#createItem(Options.DeleteImage);
 			this.#createItem(Options.DeleteMeta);
 		}
-
-		this.#self.addEventListener("blur",async () => 
-		{
-			// TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
-			await new Promise(f => setTimeout(f, 100));
-			this.#cleanUp();
-		});
-
-		this.#self.addEventListener("mouseleave", (e) => 
-		{
-			this.#cleanUp();
-		});
-
-		this.#show(posX,posY);
-		
-		this.#self.focus();
 	}
 
 	#createItem(command: Options)
 	{
-		const item = this.#options.createDiv({cls: "suggestion-item"});
 		//@ts-ignore
-		item.textContent = loc("IMAGE_MENU_COMMAND_"+command);
-		item.dataset.href = Options[command];
-		item.addEventListener("mouseover", (e) => {
-			this.#select(item)
-		});
-		item.addEventListener("mousedown", () => {
-			this.#submit();
-		})
+		const label = loc("IMAGE_MENU_COMMAND_"+command);
 
+		let color:string = null;
 		if(Options[command].contains("Delete"))
 		{
-			item.style.color = "#cc2222";
+			color = "#cc2222";
 		}
+
+		this.addItem(label, Options[command], color);
 	}
 
-	#select(item: HTMLDivElement)
+	#submit(responce:string)
 	{
-		if(this.#selected)
-		{
-			this.#selected.removeClass("is-selected");
-		}
-
-		this.#selected = item;
-
-		if(item == null)
-		{
-			return;
-		}
-
-		item.addClass("is-selected");
-	}
-
-	#submit()
-	{
-		let result: Options = Options.Error;
-		if(this.#selected)
-		{
-			//@ts-ignore
-			const input : keyof typeof Options = this.#selected.dataset.href;
-			result = Options[input]
-		}
-
-		this.#cleanUp();
-
+		const result = Options[responce as keyof typeof Options];
 		if(this.#targets.length < 50 ||
 			(result == Options.StartSelection ||
 			result == Options.EndSelection ||
@@ -658,33 +600,5 @@ export class ImageMenu
 			return target.dataset.src;
 		}
 		return target.src;
-	}
-
-	#show(posX:number,posY:number)
-	{
-		activeDocument.body.appendChild(this.#self);
-		
-		this.#self.style.left = (posX)+"px";
-		this.#self.style.top = (posY)+"px";
-
-		const optionsRect = this.#options.getBoundingClientRect();
-		this.#self.style.width = optionsRect.width+"px";
-
-		if(offScreenPartial(this.#self))
-		{
-			const box = this.#self.getBoundingClientRect();
-			this.#self.style.left = (posX-box.width)+"px";
-			this.#self.style.top = (posY-box.height)+"px";
-		}
-	}
-
-	#cleanUp()
-	{
-		this.#select(null);
-
-		if(this.#self)
-		{
-			this.#self.remove();
-		}
 	}
 }
