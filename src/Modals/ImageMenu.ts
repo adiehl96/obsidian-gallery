@@ -49,7 +49,7 @@ export class ImageMenu extends MenuPopup
 
 		if(this.#targets.length == 0)
 		{
-			this.AddLabel('Nothing selected');
+			this.AddLabel(loc('IMAGE_MENU_NOTHING'));
 			this.addSeparator();
 
 			if( this.#imageGrid && !Platform.isDesktopApp)
@@ -62,7 +62,7 @@ export class ImageMenu extends MenuPopup
 		{
 			if(this.#targets.length == 1)
 			{
-				this.AddLabel('"'+this.#plugin.getImgResources()[this.#targets[0].src]+'" selected');
+				this.AddLabel(loc('IMAGE_MENU_SINGLE',this.#plugin.getImgResources()[this.#targets[0].src]));
 				this.addSeparator();
 
 				this.#createItem(Options.OpenImageFile);
@@ -71,7 +71,7 @@ export class ImageMenu extends MenuPopup
 
 			if(this.#targets.length > 1)
 			{
-				this.AddLabel(this.#targets.length+" selected");
+				this.AddLabel(loc('IMAGE_MENU_COUNT',this.#targets.length.toString()));
 				this.addSeparator();
 				
 

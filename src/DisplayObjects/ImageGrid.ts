@@ -83,16 +83,30 @@ export class ImageGrid
 		return result;
 	}
 
+	stringToSort(sort:string)
+	{
+		switch(sort.toLocaleLowerCase())
+		{
+		  case Sorting[Sorting.UNSORTED].toLocaleLowerCase(): this.sorting = Sorting.UNSORTED; break;
+		  case Sorting[Sorting.NAME].toLocaleLowerCase(): this.sorting = Sorting.NAME; break;
+		  case Sorting[Sorting.PATH].toLocaleLowerCase(): this.sorting = Sorting.PATH; break;
+		  case Sorting[Sorting.CDATE].toLocaleLowerCase(): this.sorting = Sorting.CDATE; break;
+		  case Sorting[Sorting.MDATE].toLocaleLowerCase(): this.sorting = Sorting.MDATE; break;
+		  case Sorting[Sorting.SIZE].toLocaleLowerCase(): this.sorting = Sorting.SIZE; break;
+		  default: this.sorting = Sorting.UNSORTED; break;
+		}
+	}
+
 	updateSort(sorting:Sorting, reverse:boolean)
 	{
-		if(sorting == this.sorting && reverse == this.reverse)
+		if(!this.#redraw 
+			&& sorting == this.sorting 
+			&& reverse == this.reverse)
 		{
 			return;
 		}
 
-		let changed = false;
-
-		if(sorting != this.sorting)
+		if(this.#redraw || sorting != this.sorting)
 		{
 			this.sorting = sorting;
 			switch(this.sorting)
@@ -187,24 +201,23 @@ export class ImageGrid
 					break;
 				}
 			}
-			changed = true;
+			this.#redraw = true;
 		}
 
-		if(changed)
+		if(this.#redraw)
 		{
-			if(this.reverse)
+			if(reverse)
 			{
 				this.imgList = this.imgList.reverse();
-				changed = true;
 			}
 		}
 		else if(reverse != this.reverse)
 		{
 			this.imgList = this.imgList.reverse();
-			changed = true;
+			this.#redraw = true;
 		}
 
-		this.#redraw = changed;
+		this.reverse = reverse;
 	}
 
 	async updateData()
@@ -237,9 +250,9 @@ export class ImageGrid
 			this.imgList = this.customList.filter(value => !Number.isNaN(value)).map(i => this.imgList[i])
 		}
 
+		this.#redraw = true;
 		this.updateSort(this.sorting, this.reverse);
 		
-		this.#redraw = true;
 	}
 
 	async updateDisplay()
@@ -347,14 +360,15 @@ export class ImageGrid
 	getFilter(): string
 	{
 		let filterCopy = "```gallery"
-		filterCopy += "\npath=" + this.path
-		filterCopy += "\nname=" + this.name
-		filterCopy += "\ntags=" + this.tag
-		filterCopy += "\nmatchCase=" + this.matchCase
-		filterCopy += "\nexclusive=" + this.exclusive
-		filterCopy += "\nimgWidth=" + this.maxWidth
-		filterCopy += "\nreverseOrder=" + this.reverse
-		filterCopy += "\nrandom=" + this.random
+		filterCopy += "\npath=" + this.path;
+		filterCopy += "\nname=" + this.name;
+		filterCopy += "\ntags=" + this.tag;
+		filterCopy += "\nmatchCase=" + this.matchCase;
+		filterCopy += "\nexclusive=" + this.exclusive;
+		filterCopy += "\nimgWidth=" + this.maxWidth;
+		filterCopy += "\nsort=" + Sorting[this.sorting];
+		filterCopy += "\nreverseOrder=" + this.reverse;
+		filterCopy += "\nrandom=" + this.random;
 		filterCopy += "\n```"
 
 		return filterCopy;
@@ -390,6 +404,9 @@ export class ImageGrid
 			break;
 			case 'imgwidth' : 
 			this.maxWidth = parseInt(parts[1]);
+			break;
+			case 'sort' : 
+			this.stringToSort(parts[1]);
 			break;
 			case 'reverseorder' : 
 			this.reverse = (parts[1] === "true");

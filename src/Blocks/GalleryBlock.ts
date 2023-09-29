@@ -1,7 +1,7 @@
 import type { Vault } from 'obsidian'
 import { MarkdownRenderer } from 'obsidian'
 import type GalleryTagsPlugin from '../main'
-import { ImageGrid } from '../DisplayObjects/ImageGrid'
+import { ImageGrid, Sorting } from '../DisplayObjects/ImageGrid'
 import Gallery from '../svelte/Gallery.svelte'
 import { loc } from '../Loc/Localizer'
 
@@ -18,6 +18,7 @@ export interface GalleryBlockArgs
   divWidth: number
   divAlign: string
   divHeight: number
+  sort: string
   reverseOrder: string
   customList: string
   random: number
@@ -39,6 +40,7 @@ export class GalleryBlock
       divWidth: 100,
       divAlign: 'left',
       divHeight: 0,
+      sort: Sorting[Sorting.UNSORTED],
       reverseOrder: 'false',
       customList: '',
       random: 0
@@ -70,6 +72,7 @@ export class GalleryBlock
     imageGrid.path = args.path;
     imageGrid.name = args.name;
     imageGrid.tag = args.tags;
+    imageGrid.stringToSort(args.sort);
     imageGrid.reverse = args.reverseOrder === 'true';
     imageGrid.maxWidth = args.imgWidth;
     if(args.imgHeight > 10)
@@ -78,7 +81,6 @@ export class GalleryBlock
     }
     imageGrid.exclusive = args.exclusive === 'true';
     imageGrid.matchCase = args.matchCase === 'true';
-    imageGrid.reverse = args.reverseOrder === 'true';
     imageGrid.random = args.random;
     
     if (args.customList)

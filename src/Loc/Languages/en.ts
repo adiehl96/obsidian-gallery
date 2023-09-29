@@ -85,7 +85,19 @@ export default
 	CANCEL_LOAD_NOTICE: "Canceled indexing, Tag search may be limited",
 	BAD_REGEX_WARNING: "Gallery Search - BAD REGEX! regex set to '.*' as default!!",
 
+	// Sort Menu
+	SORT_HEADER: "Change Sorting",
+	SORT_OPTION_1: "File Name",
+	SORT_OPTION_2: "File Path",
+	SORT_OPTION_3: "Date Added",
+	SORT_OPTION_4: "Date Modified",
+	SORT_OPTION_5: "File Size",
+	SORT_OPTION_6: "Reverse",
+
 	// Image Menu
+	IMAGE_MENU_NOTHING: "Nothing selected",
+	IMAGE_MENU_SINGLE: `"{0}" selected`,
+	IMAGE_MENU_COUNT: "{0} selected",
 	IMAGE_MENU_COMMAND_0: "You should never see this",
 	IMAGE_MENU_COMMAND_1: "Open image file",
 	IMAGE_MENU_COMMAND_2: "Open meta file",
