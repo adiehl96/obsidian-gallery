@@ -125,6 +125,10 @@ export default
 	PROMPT_FOR_NEW_NAME: "Select a new name and path",
 	CONFLICT_NOTICE_PATH: "ERROR: File already exists at '{0}'",
 
+	// Side Panel
+	SIDE_PANEL_EDIT_TOOLTIP: "Switch to edit mode",
+	SIDE_PANEL_VIEW_TOOLTIP: "Switch to view mode",
+	SIDE_PANEL_SAVE_NOTICE: "Saved Changes",
 
 	// Info Block
 	IMAGE_INFO_TITLE: "Image Info",

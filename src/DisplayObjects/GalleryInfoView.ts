@@ -1,4 +1,4 @@
-import { ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian"
+import { ItemView, MarkdownRenderer, Notice, TFile, WorkspaceLeaf, setIcon } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { getImageInfo } from "../utils"
 import { OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
@@ -13,6 +13,8 @@ export class GalleryInfoView extends ItemView
   infoFile: TFile | null = null
   plugin: GalleryTagsPlugin
   fileContent: string
+  editing: boolean = false;
+  editToggle: HTMLAnchorElement
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
@@ -24,10 +26,23 @@ export class GalleryInfoView extends ItemView
     // Add Preview Mode Container
     this.previewEl = this.viewEl.createDiv({
       cls: 'markdown-preview-view',
-      attr: { style: 'display: block' }
     })
+    
+    this.editToggle = this.previewEl.createEl('a',{
+      cls: 'view-action',
+      attr: { 'aria-label': loc('SIDE_PANEL_EDIT_TOOLTIP')}
+    })
+    
+    this.editToggle.addEventListener('click', (event) =>
+    {
+      this.editing = !this.editing;
+      
+      this.updateToggleButton();
+      this.render();
+    });
+
     this.contentEl = this.previewEl.createDiv({
-      cls: 'markdown-preview-sizer markdown-preview-section'
+      cls: 'markdown-preview-sizer markdown-preview-section gallery-info-panel'
     })
     // Add Source Mode Container
     this.sourceEl = this.viewEl.createDiv({ cls: 'cm-s-obsidian', attr: { style: 'display: none' } })
@@ -111,12 +126,10 @@ export class GalleryInfoView extends ItemView
       return;
     }
 
-    this.infoFile = null;
-    
-    if(!this.infoFile)
-    {
-      this.infoFile = await getImageInfo(imgPath, true, this.plugin);
-    }
+    this.infoFile = await getImageInfo(imgPath, true, this.plugin);
+
+    this.editing = false;
+    this.updateToggleButton();
 
     // Handle disabled img info functionality or missing info block
     let infoText = loc('GALLERY_RESOURCES_MISSING');
@@ -132,10 +145,40 @@ export class GalleryInfoView extends ItemView
     this.render()
   }
 
+  updateToggleButton()
+  {
+    if(this.infoFile)
+    {
+      setIcon(this.editToggle, this.editing ? "book-open" : "pencil");
+    }
+    else
+    {
+      setIcon(this.editToggle, "");
+    }
+  }
+
   async render(): Promise<void>
   {
     this.contentEl.empty()
-    MarkdownRenderer.render(this.app, this.fileContent, this.contentEl, '/', this)
+    if(this.editing)
+    {
+      const test = this.contentEl.createEl("textarea", {cls: "gallery-info-panel-edit"} );
+      test.value = this.fileContent;
+      test.addEventListener('blur', async () => {
+        if(this.fileContent == test.value)
+        {
+          return;
+        }
+
+        this.fileContent = test.value;
+        await this.plugin.app.vault.modify(this.infoFile, this.fileContent);
+        new Notice(loc('SIDE_PANEL_SAVE_NOTICE'));
+      });
+    }
+    else
+    {
+      MarkdownRenderer.render(this.app, this.fileContent, this.contentEl, this.infoFile.path, this);
+    }
   }
 
   clear(): void
