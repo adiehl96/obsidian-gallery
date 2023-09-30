@@ -26,6 +26,13 @@
 ## [Tenative Roadmap](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_Roadmap.md)
 
 # Release Notes
+## 1.2.1
+ - Added info links for similarly named files in the same folder(this helps for if you want to make a preview image for a file type that isn't  - supported, like PSD files)
+ - Fixing a bug where the side panel would not display properly if obsidian was closed with the gallery open
+ - GH#17 Added a sort menu to the gallery and sorting options should be supported elsewhere too
+ - Added toggle to switch side panel to source editing mode(since I haven't figured out a way to draw a markdown preview and edit it at the  - same time)
+ - Learned an important detail about typescript under the hood that may have caused errors in some places under the wrong circumstances
+
 ## 1.2.0
  - Fixing a bug in detecting new images added while while open
  - Fixed an issue where you could select or try to preview nothing
@@ -41,10 +48,5 @@
 ## 1.1.4
  - GH#16 Changed how pathing and caching are handled while trying to account for multilingual file paths
  - Some other small cleanup
-
-## 1.1.3
- - GH#16 sometimes if your info block path was wrong in just the right way it would break all the other links in the file while trying to fix the path. Now it just suggests the path it thinks you should use instead of trying to change it automagically
- - Swapped out some text buttons for icon buttons
- - Adding an option to rename image files and update their path in the meta file(if they have one)
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery

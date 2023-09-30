@@ -14,6 +14,7 @@ imgHeight=400
 divWidth=70
 divAlign=left
 divHeight=1400
+sort=mdate
 reverseOrder=false
 customList=5 10 2 4
 type=grid
@@ -51,6 +52,13 @@ Alignment of the gallery area
 ## divHeight
 default=0
 Height of the display block in pixels. If less than 10 it switchs to automatically fit the size of the contents. If greater than 10 it limits the view area and creates a scroll area if needed to display all results
+## sort
+default=unsorted
+name: sort in order of file name
+path: sort in order of file name, but grouped by file structure
+cdate: sort by date the image file was added to this vault NOTE: in obsidian, files created on another machine have a cdate based on when they reached THIS machine
+mdate: sort by date that the image's info file was last modified(if no info file falls back to last modified date of image itself)
+size: sort by size of the file
 ## reverseOrder
 default=false
 Should image order be flipped
