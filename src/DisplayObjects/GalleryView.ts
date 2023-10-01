@@ -8,6 +8,7 @@ import type { IFilter } from "../TechnicalFiles/IFilter";
 import { ClassicFilter } from './ClassicFilter'
 import { SimpleFilter } from './SimpleFilter'
 import { FilterType } from '../TechnicalFiles/FilterType'
+import { FilterTypeMenu } from '../Modals/FilterTypeMenu'
 
 export class GalleryView extends ItemView
 {
@@ -22,7 +23,8 @@ export class GalleryView extends ItemView
   focusVideo: HTMLVideoElement
   imagesContainer: HTMLUListElement
   imageGrid: ImageGrid
-
+  
+  filterType: FilterType
   filter: IFilter
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
@@ -66,31 +68,17 @@ export class GalleryView extends ItemView
       await this.filter.updateDisplay();
     });
 
+    // Create Search Control Element
+    this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
+
     // Add action button to hide / show filter panel
     const searchPanel = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('SEARCH_TOOLTIP') } })
-    if(searchPanel)
-    {
-      setIcon(searchPanel, 'fa-search')
+    setIcon(searchPanel, 'fa-search')
 
-      // Create Search Control Element
-      this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
-
-      if(plugin.platformSettings().filterStartOpen)
-      {
-        this.filterEl.style.setProperty('display', 'block');
-      }
-
-      searchPanel.onClickEvent(() =>
-      {
-        const currentMode = this.filterEl.style.getPropertyValue('display')
-        if (currentMode === 'block')
-        {
-          this.filterEl.style.setProperty('display', 'none')
-          return;
-        }
-        this.filterEl.style.setProperty('display', 'block')
-      });
-    }
+		searchPanel.addEventListener('click', (event) =>
+		{
+		  new FilterTypeMenu(event.pageX, event.pageY, this.filterType, this.plugin.accentColor, (filterType) => this.setFilter(filterType));
+		});
     
     // mover the context menu to the end of the action list
     if(viewActionsEl)
@@ -109,7 +97,7 @@ export class GalleryView extends ItemView
     this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
     this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
 
-    this.setFilter(FilterType.CLASSIC);
+    this.setFilter(this.plugin.platformSettings().filterType);
   }
 
   getViewType(): string
@@ -136,12 +124,15 @@ export class GalleryView extends ItemView
   setFilter(filter:FilterType)
   {
 		this.filterEl.empty();
+    this.filterType = filter;
+    this.filterEl.style.setProperty('display', 'block');
 
     switch(filter)
     {
-      case FilterType.NONE : break;
+      case FilterType.NONE : this.filterEl.style.setProperty('display', 'none'); break;
       case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.imageGrid); break;
       case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
+      case FilterType.ADVANCED : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
     }
   }
 

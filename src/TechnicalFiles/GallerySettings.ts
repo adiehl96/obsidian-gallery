@@ -1,3 +1,5 @@
+import type { FilterType } from "./FilterType"
+
 export interface GallerySettings
 {
   imgDataFolder: string | null
@@ -12,7 +14,7 @@ export interface GallerySettings
 
 export interface PlatformSettings
 {
-  filterStartOpen: boolean
+  filterType: FilterType
   rightClickInfo: boolean
   rightClickMenu: boolean
   width: number

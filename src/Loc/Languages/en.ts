@@ -24,8 +24,8 @@ export default
 	Can be used to avoid the loading all images and affecting on open performance 
 	(especially if vault has a huge amount of high quality images). 
 	Setting it to an invalid path to have no images shown when gallery is opened.`,
-	SETTING_FILTER_OPEN_TITLE: "Filter starts open in main gallery",
-	SETTING_FILTER_OPEN_DESC: "Toggle this option to have the filter header start open.",
+	SETTING_FILTER_TITLE: "Default search bar",
+	SETTING_FILTER_DESC: "Which search bar to show when opening the gallery view.",
 	SETTING_IMAGE_WIDTH_TITLE: "Default image width",
 	SETTING_IMAGE_WIDTH_DESC: "Display default image width in 'pixels'. Image collumns will be no wider than this by default",
 	SETTING_MAX_HEIGHT_TOGGLE_TITLE: "Use max image height",
@@ -93,6 +93,13 @@ export default
 	SORT_OPTION_4: "Date Modified",
 	SORT_OPTION_5: "File Size",
 	SORT_OPTION_6: "Reverse",
+
+	// Filter Type Menu
+	FILTER_TYPE_HEADER: "Change Search Bar",
+	FILTER_TYPE_OPTION_0: "Hidden",
+	FILTER_TYPE_OPTION_1: "Simple Filter",
+	FILTER_TYPE_OPTION_2: "Classic Filter",
+	FILTER_TYPE_OPTION_3: "Advanced Filter",
 
 	// Image Menu
 	IMAGE_MENU_NOTHING: "Nothing selected",

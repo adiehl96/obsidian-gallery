@@ -1,3 +1,4 @@
+import { FilterType } from "./FilterType"
 import type { GallerySettings, PlatformSettings } from "./GallerySettings"
 
 export const DEFAULT_HIDDEN_INFO = 
@@ -19,7 +20,7 @@ export const DEFAULT_HIDDEN_INFO =
 }
 
 const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
-  filterStartOpen: true,
+  filterType: FilterType.CLASSIC,
   rightClickInfo: true,
   rightClickMenu: true,
   width: 400,

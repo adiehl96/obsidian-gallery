@@ -3,6 +3,7 @@ import type GalleryTagsPlugin from './main'
 import { FuzzyFiles, FuzzyFolders } from './Modals/FuzzySearches'
 import { DEFAULT_HIDDEN_INFO } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
+import { FilterType } from './TechnicalFiles/FilterType'
 
 
 export class GallerySettingTab extends PluginSettingTab
@@ -25,7 +26,7 @@ export class GallerySettingTab extends PluginSettingTab
 
     containerEl.empty()
 
-    // Main gallery path
+    // Refresh Data button TODO: this is kinda stupid and I should figure out a way to have it sort itself out without the user needing to do anything
     new Setting(containerEl)
     .setName(loc('SETTING_DATA_REFRESH_TITLE'))
     .setDesc(loc('SETTING_DATA_REFRESH_DESC'))
@@ -100,17 +101,38 @@ export class GallerySettingTab extends PluginSettingTab
 
     // Gallery search bar
     new Setting(containerEl)
-      .setName(loc('SETTING_FILTER_OPEN_TITLE'))
-      .setDesc(loc('SETTING_FILTER_OPEN_DESC'))
-      .addToggle((toggle) =>
+      .setName(loc('SETTING_FILTER_TITLE'))
+      .setDesc(loc('SETTING_FILTER_DESC'))
+      .addDropdown(dropdown => 
       {
-        toggle.setValue(this.plugin.platformSettings().filterStartOpen)
-        toggle.onChange(async (value) =>
+        if(this.plugin.platformSettings().filterType == undefined)
         {
-          this.plugin.platformSettings().filterStartOpen = value
-          await this.plugin.saveSettings()
+          this.plugin.platformSettings().filterType = FilterType.NONE;
+        }
+        
+        //@ts-ignore
+        dropdown.addOption(FilterType[FilterType.NONE], loc("FILTER_TYPE_OPTION_"+FilterType.NONE));
+        //@ts-ignore
+        dropdown.addOption(FilterType[FilterType.SIMPLE], loc("FILTER_TYPE_OPTION_"+FilterType.SIMPLE));
+        //@ts-ignore
+        dropdown.addOption(FilterType[FilterType.CLASSIC], loc("FILTER_TYPE_OPTION_"+FilterType.CLASSIC));
+
+        dropdown.setValue(FilterType[this.plugin.platformSettings().filterType]);
+
+        dropdown.onChange( async value =>
+        {
+          switch(value)
+          {
+            case FilterType[FilterType.NONE] : this.plugin.platformSettings().filterType = FilterType.NONE; break;
+            case FilterType[FilterType.SIMPLE] : this.plugin.platformSettings().filterType = FilterType.SIMPLE; break;
+            case FilterType[FilterType.CLASSIC] : this.plugin.platformSettings().filterType = FilterType.CLASSIC; break;
+            case FilterType[FilterType.ADVANCED] : this.plugin.platformSettings().filterType = FilterType.ADVANCED; break;
+            default: return;
+          }
+          
+          await this.plugin.saveSettings();
         });
-      })
+      });
 
     // Default image width
     new Setting(containerEl)
