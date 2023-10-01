@@ -1,7 +1,6 @@
 export interface IFilter
 {
 	containerEl: HTMLElement
-	countEl: HTMLLabelElement
 
 	filterFill(): void
 	onResize(): void

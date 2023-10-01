@@ -159,7 +159,7 @@ export class GalleryInfoView extends ItemView
 
   async render(): Promise<void>
   {
-    this.contentEl.empty()
+    this.contentEl.empty();
     if(this.editing)
     {
       const test = this.contentEl.createEl("textarea", {cls: "gallery-info-panel-edit"} );

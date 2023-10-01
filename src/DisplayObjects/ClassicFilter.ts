@@ -3,12 +3,11 @@ import { loc } from "../Loc/Localizer";
 import type { ImageGrid } from "./ImageGrid";
 import { setIcon } from "obsidian";
 import { MIN_IMAGE_WIDTH } from "../TechnicalFiles/Constants";
-import type { IFilter } from "./IFilter";
+import type { IFilter } from "../TechnicalFiles/IFilter";
 
 export class ClassicFilter implements IFilter
 {
 	containerEl: HTMLElement
-	countEl: HTMLLabelElement
 
 	#imageGrid: ImageGrid
 	#pathFilterEl: HTMLInputElement
@@ -20,8 +19,7 @@ export class ClassicFilter implements IFilter
 	#widthScaleEl: HTMLInputElement
 	#randomDiv: HTMLDivElement
 	#randomEl: HTMLInputElement
-	
-	
+	#countEl: HTMLLabelElement
 
 	constructor(containerEl:HTMLElement, imageGrid: ImageGrid)
 	{
@@ -32,7 +30,7 @@ export class ClassicFilter implements IFilter
 
 		this.containerEl = containerEl;
 		this.#imageGrid = imageGrid;
-	
+		
 		const filterTopDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
 		const filterBottomDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
 	
@@ -78,8 +76,8 @@ export class ClassicFilter implements IFilter
 		});
 	
 		// file filter counts
-		this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
-		this.countEl.textContent = "counts";
+		this.#countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
+		this.#countEl.textContent = "counts";
 	
 		// Filter by Tags
 		this.#tagFilterEl = filterBottomDiv.createEl('input', {
@@ -250,7 +248,7 @@ export class ClassicFilter implements IFilter
 	async updateData(): Promise<void>
 	{
 	  await this.#imageGrid.updateData();
-	  this.countEl.setText(this.#imageGrid.imgList.length+"/"+this.#imageGrid.totalCount);
+	  this.#countEl.setText(this.#imageGrid.imgList.length+"/"+this.#imageGrid.totalCount);
 	  this.#randomEl.max = this.#imageGrid.totalCount+"";
 	}
 

@@ -4,8 +4,10 @@ import { ImageGrid } from './ImageGrid'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
 import { loc } from '../Loc/Localizer'
-import type { IFilter } from "./IFilter";
+import type { IFilter } from "../TechnicalFiles/IFilter";
 import { ClassicFilter } from './ClassicFilter'
+import { SimpleFilter } from './SimpleFilter'
+import { FilterType } from '../TechnicalFiles/FilterType'
 
 export class GalleryView extends ItemView
 {
@@ -107,7 +109,7 @@ export class GalleryView extends ItemView
     this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
     this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
 
-    this.filter = new ClassicFilter(this.filterEl, this.imageGrid);
+    this.setFilter(FilterType.CLASSIC);
   }
 
   getViewType(): string
@@ -131,6 +133,18 @@ export class GalleryView extends ItemView
     this.filter.updateDisplay();
   }
 
+  setFilter(filter:FilterType)
+  {
+		this.filterEl.empty();
+
+    switch(filter)
+    {
+      case FilterType.NONE : break;
+      case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.imageGrid); break;
+      case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
+    }
+  }
+
   async onClose(): Promise<void>
   {
     // Hide focus elements
@@ -140,13 +154,14 @@ export class GalleryView extends ItemView
   }
 
   async onOpen(): Promise<void>
-  {    
-    this.imageGrid.path = this.plugin.settings.galleryLoadPath;
-    this.imageGrid.name = "";
-    this.imageGrid.tag = "";
-    this.imageGrid.matchCase = false;
-    this.imageGrid.exclusive = false;
-    this.imageGrid.reverse = false;
+  {
+		this.imageGrid.path = this.plugin.settings.galleryLoadPath;
+		this.imageGrid.name = "";
+		this.imageGrid.tag = "";
+		this.imageGrid.matchCase = false;
+		this.imageGrid.exclusive = false;
+		this.imageGrid.reverse = false;
+    
     await this.filter.updateData();
     await this.filter.updateDisplay();
 
