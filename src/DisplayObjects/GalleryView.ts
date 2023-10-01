@@ -1,10 +1,11 @@
 import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
 import { OB_GALLERY } from '../TechnicalFiles/Constants'
 import { ImageGrid } from './ImageGrid'
-import { SortingMenu } from '../Modals/SortingMenu'
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
 import { loc } from '../Loc/Localizer'
+import type { IFilter } from "./IFilter";
+import { ClassicFilter } from './ClassicFilter'
 
 export class GalleryView extends ItemView
 {
@@ -14,16 +15,13 @@ export class GalleryView extends ItemView
   controlEl: HTMLElement 
   displayEl: HTMLElement
   filterEl: HTMLElement
-  countEl: HTMLLabelElement
   imageFocusEl: HTMLDivElement
   focusImage: HTMLImageElement
   focusVideo: HTMLVideoElement
   imagesContainer: HTMLUListElement
   imageGrid: ImageGrid
-  widthScaleEl: HTMLInputElement
 
-  #randomEl: HTMLInputElement
-  #filterFill: () => void
+  filter: IFilter
 
   constructor(leaf: WorkspaceLeaf, plugin: GalleryTagsPlugin)
   {
@@ -60,10 +58,10 @@ export class GalleryView extends ItemView
       const filterString = await navigator.clipboard.readText();
       this.imageGrid.setFilter(filterString);
 
-      this.#filterFill();
+      this.filter.filterFill();
 
-      await this.updateData();
-      this.updateDisplay();
+      await this.filter.updateData();
+      await this.filter.updateDisplay();
     });
 
     // Add action button to hide / show filter panel
@@ -109,236 +107,7 @@ export class GalleryView extends ItemView
     this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
     this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
 
-    this.classicSearch();
-  }
-
-  classicSearch()
-  {
-    if(!this.filterEl)
-    {
-      return;
-    }
-
-    const filterTopDiv = this.filterEl.createDiv({cls:"gallery-search-bar"});
-    const filterBottomDiv = this.filterEl.createDiv({cls:"gallery-search-bar"});
-
-    // Filter by path
-    const pathFilterEl = filterTopDiv.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'text',
-      attr: { 'aria-label': loc('FILTER_PATH_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_PATH_PROMPT') }
-    })
-    pathFilterEl.value = this.plugin.settings.galleryLoadPath;
-
-    pathFilterEl.addEventListener('input', async () =>
-    {
-      this.imageGrid.path = pathFilterEl.value.trim();
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-    // Filter by Name
-    const nameFilterEl = filterTopDiv.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'text',
-      attr: { 'aria-label': loc('FILTER_NAME_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_NAME_PROMPT') }
-    })
-
-    nameFilterEl.addEventListener('input', async () =>
-    {
-      this.imageGrid.name = nameFilterEl.value.trim();
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-    // Sort menu
-    const sortReverseDiv = filterTopDiv.createEl('a', {
-      cls: 'view-action',
-      attr: { 'aria-label': loc('SORT_ORDER_TOOLTIP')}
-    })
-    setIcon(sortReverseDiv, "arrow-up-down")
-    
-    sortReverseDiv.addEventListener('click', (event) =>
-    {
-      new SortingMenu(event.pageX, event.pageY, this.imageGrid);
-    });
-
-    // file filter counts
-    this.countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
-    this.countEl.textContent = "counts";
-
-    // Filter by Tags
-    const tagFilterEl = filterBottomDiv.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'text',
-      attr: { 'aria-label': loc('FILTER_TAGS_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_TAGS_PROMPT') }
-    })
-
-    tagFilterEl.addEventListener('input', async () =>
-    {
-      this.imageGrid.tag = tagFilterEl.value.trim();
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-    // Filter Match Case
-    const matchFilterDiv = filterBottomDiv.createDiv({
-      cls: 'icon-toggle',
-      attr: { 'aria-label': loc('FILTER_MATCH_CASE_TOOLTIP')}
-    })
-    setIcon(matchFilterDiv, "case-sensitive")
-
-    matchFilterDiv.addEventListener('mousedown', async () =>
-    {
-      this.imageGrid.matchCase = !this.imageGrid.matchCase;
-      if(this.imageGrid.matchCase)
-      {
-        matchFilterDiv.addClass("icon-checked");
-      }
-      else
-      {
-        matchFilterDiv.removeClass("icon-checked");
-      }
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-    // Filter Exclusive or inclusive
-    const exclusiveFilterDiv = filterBottomDiv.createDiv({
-      cls: 'icon-toggle',
-      attr: { 'aria-label': loc('FILTER_EXCLUSIVE_TOOLTIP')}
-    })
-    setIcon(exclusiveFilterDiv, "check-check")
-
-    exclusiveFilterDiv.addEventListener('mousedown', async () =>
-    {
-      this.imageGrid.exclusive = !this.imageGrid.exclusive;
-      if(this.imageGrid.exclusive)
-      {
-        exclusiveFilterDiv.addClass("icon-checked");
-      }
-      else
-      {
-        exclusiveFilterDiv.removeClass("icon-checked");
-      }
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-    // image width scaler
-    this.widthScaleEl = filterBottomDiv.createEl("input", {
-      cls: 'ob-gallery-filter-slider-input',
-      type: 'range',
-      attr: { 'aria-label': loc('FILTER_WIDTH_TOOLTIP')}
-    });
-    this.widthScaleEl.name = 'maxWidth';
-    this.widthScaleEl.id = 'maxWidth';
-    this.widthScaleEl.min = '100';
-    this.widthScaleEl.max = this.imagesContainer.innerWidth+"";
-    this.widthScaleEl.value = this.imageGrid.maxWidth+"";
-    this.widthScaleEl.addEventListener('input', async () =>
-    {
-      this.imageGrid.maxWidth = parseInt(this.widthScaleEl.value);
-      if(this.imageGrid.haveColumnsChanged())
-      {
-        this.updateDisplay();
-      }
-    });
-
-    // Add action button to show random options and randomize them
-    const randomDiv = filterBottomDiv.createDiv();
-    const randomButton = filterTopDiv.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('FILTER_RANDOM_TOOLTIP') } })
-    setIcon(randomButton, 'dice')
-    randomDiv.style.display = "none";
-    randomDiv.style.marginLeft= "auto";
-    this.#randomEl = randomDiv.createEl('input', {
-      cls: 'ob-gallery-filter-input',
-      type: 'number',
-      attr: { 'aria-label': loc('FILTER_RANDOM_COUNT_TOOLTIP'), min:"1", value: "10" }
-    })
-    this.#randomEl.style.marginLeft= "auto";
-    this.#randomEl.addEventListener("focus", async ()=>{
-      await this.updateData();
-      this.updateDisplay();
-    })
-    this.#randomEl.addEventListener("input", async ()=>{
-      this.imageGrid.random = parseInt(this.#randomEl.value);
-      await this.updateData();
-      this.updateDisplay();
-    })
-
-    randomButton.onClickEvent(async () =>
-    {
-      const currentMode = randomDiv.style.getPropertyValue('display')
-      if (currentMode === 'block')
-      {
-        randomDiv.style.setProperty('display', 'none')
-        this.imageGrid.random = 0;
-        this.imageGrid.customList = [];
-        await this.updateData();
-        this.updateDisplay();
-        return;
-      }
-      randomDiv.style.setProperty('display', 'block')
-      this.imageGrid.random = parseInt(this.#randomEl.value);
-      await this.updateData();
-      this.updateDisplay();
-    });
-
-
-    // paste button functionality
-    this.#filterFill = () =>
-    {
-      pathFilterEl.value = this.imageGrid.path.trim();
-      nameFilterEl.value = this.imageGrid.name.trim();
-      tagFilterEl.value = this.imageGrid.tag.trim();
-      this.widthScaleEl.value = this.imageGrid.maxWidth+"px";
-      if(this.imageGrid.reverse)
-      {
-        sortReverseDiv.addClass("icon-checked");
-      }
-      else
-      {
-        sortReverseDiv.removeClass("icon-checked");
-      }
-      if(this.imageGrid.matchCase)
-      {
-        matchFilterDiv.addClass("icon-checked");
-      }
-      else
-      {
-        matchFilterDiv.removeClass("icon-checked");
-      }
-      if(this.imageGrid.exclusive)
-      {
-        exclusiveFilterDiv.addClass("icon-checked");
-      }
-      else
-      {
-        exclusiveFilterDiv.removeClass("icon-checked");
-      }
-      if(this.imageGrid.random > 0)
-      {
-        this.#randomEl.value = this.imageGrid.random+"";
-        randomDiv.style.setProperty('display', 'block');
-      }
-      else
-      {
-        randomDiv.style.setProperty('display', 'none');
-      }
-    }
-  }
-
-  async updateData()
-  {
-    await this.imageGrid.updateData();
-    this.countEl.setText(this.imageGrid.imgList.length+"/"+this.imageGrid.totalCount);
-    this.#randomEl.max = this.imageGrid.totalCount+"";
-  }
-
-  async updateDisplay()
-  {
-    this.imageGrid.updateDisplay();
+    this.filter = new ClassicFilter(this.filterEl, this.imageGrid);
   }
 
   getViewType(): string
@@ -358,8 +127,8 @@ export class GalleryView extends ItemView
 
   onResize(): void
   {
-    this.widthScaleEl.max = (this.imagesContainer.innerWidth+50)+"";
-    this.updateDisplay();
+    this.filter.onResize();
+    this.filter.updateDisplay();
   }
 
   async onClose(): Promise<void>
@@ -378,8 +147,8 @@ export class GalleryView extends ItemView
     this.imageGrid.matchCase = false;
     this.imageGrid.exclusive = false;
     this.imageGrid.reverse = false;
-    await this.updateData();
-    this.updateDisplay();
+    await this.filter.updateData();
+    await this.filter.updateDisplay();
 
     const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
     

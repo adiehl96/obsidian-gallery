@@ -46,6 +46,8 @@ export const EXTRACT_COLORS_OPTIONS = {
   colorValidator: (red: number, green: number, blue: number, alpha = 255) => alpha > 250
 }
 
+export const MIN_IMAGE_WIDTH = 100;
+
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', "webp", "gif", "webm", 'mp4']
 
 export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)($|\\?)')

@@ -57,6 +57,7 @@ export class ImageGrid
 	#pausedVideo: HTMLVideoElement 
 	#pausedVideoUrl: string = '';
 
+
 	constructor(parent: HTMLElement, columnContainer: HTMLElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
@@ -73,7 +74,7 @@ export class ImageGrid
 
 	haveColumnsChanged(): boolean
 	{
-		const columnCount = Math.ceil(this.columnContainer.offsetWidth/this.maxWidth);
+		const columnCount = Math.ceil(this.areaWidth()/this.maxWidth);
 		const result = columnCount != this.#columnEls.length;
 
 		if(result)
@@ -82,6 +83,11 @@ export class ImageGrid
 		}
 
 		return result;
+	}
+
+	areaWidth(): number
+	{
+		return this.columnContainer.offsetWidth
 	}
 
 	stringToSort(sort:string)
@@ -259,19 +265,19 @@ export class ImageGrid
 
 	async updateDisplay()
 	{
-		if(this.columnContainer.offsetWidth <= 0)
+		if(this.areaWidth() <= 0)
 		{
 			return;
 		}
 
 		if(!this.#redraw 
-		&& this.columnContainer.offsetWidth >= this.#oldWidth 
-		&& this.columnContainer.offsetWidth - this.#oldWidth < 20)
+		&& this.areaWidth() >= this.#oldWidth 
+		&& this.areaWidth() - this.#oldWidth < 20)
 		{
 			return;
 		}
 
-		this.#oldWidth = this.columnContainer.offsetWidth;
+		this.#oldWidth = this.areaWidth();
 
 		if(!this.#redraw && !this.haveColumnsChanged())
 		{
@@ -283,8 +289,8 @@ export class ImageGrid
         this.columnContainer.empty();
 		this.#columnEls = [];
 		
-		const columnCount = Math.ceil(this.columnContainer.offsetWidth/this.maxWidth);
-		const columnWidth = (this.columnContainer.offsetWidth-55)/columnCount;
+		const columnCount = Math.ceil(this.areaWidth()/this.maxWidth);
+		const columnWidth = (this.areaWidth()-55)/columnCount;
 
 		for(let col = 0; col < columnCount; col++)
 		{
@@ -627,7 +633,7 @@ export class ImageGrid
 
 	#resize()
 	{
-		const columnWidth = (this.columnContainer.offsetWidth-55)/this.#columnEls.length;
+		const columnWidth = (this.areaWidth()-55)/this.#columnEls.length;
 
 		for(let col = 0; col < this.#columnEls.length; col++)
 		{
