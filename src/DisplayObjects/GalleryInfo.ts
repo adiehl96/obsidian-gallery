@@ -1,7 +1,7 @@
 import { type FrontMatterCache, TFile, getAllTags, setIcon } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
-import { getSearch } from "../utils"
+import { getSearch, validString } from "../utils"
 import { loc } from '../Loc/Localizer'
 
 
@@ -134,7 +134,7 @@ export class GalleryInfo
 				() =>{return this.plugin.getTags();},
 				async(s) =>{
 					const tag = s.trim();
-					if(tag === '')
+					if(!validString(tag))
 					{
 						return;
 					}
@@ -242,7 +242,7 @@ export class GalleryInfo
 		{
 			const docLink = docLinks[i] as HTMLElement;
 			const href:string = docLink?.dataset?.href;
-			if(href !== "")
+			if(validString(href))
 			{
 				const file = this.plugin.app.vault.getAbstractFileByPath(href);
 				

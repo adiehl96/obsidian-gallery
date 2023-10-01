@@ -4,7 +4,8 @@ import
  {
 	getImageInfo,
 	setLazyLoading,
-	updateFocus
+	updateFocus,
+	validString
 } from '../utils'
 import 
 {
@@ -30,31 +31,31 @@ export class ImageGrid
 	plugin: GalleryTagsPlugin
 	parent: HTMLElement
 	columnContainer: HTMLElement
-	path: string = ""
-	name: string = ""
-	tag: string = ""
-	matchCase: boolean = true
-	exclusive: boolean = false
+	path: string = "";
+	name: string = "";
+	tag: string = "";
+	matchCase: boolean = true;
+	exclusive: boolean = false;
 	sorting: Sorting = Sorting.UNSORTED;
-	reverse : boolean = false
-	maxWidth : number
-	maxHeight : number
-	random : number
+	reverse : boolean = false;
+	maxWidth : number = 0;
+	maxHeight : number = 0;
+	random : number = 0;
 	customList: number[]
 
-	imgList: string[] = []
-	totalCount: number = 0
-	selectMode: boolean
+	imgList: string[] = [];
+	totalCount: number = 0;
+	selectMode: boolean = false;
 	
 	#tempImg: string
-	#redraw: boolean
-	#oldWidth: number = 0
-	#columnEls: HTMLDivElement[] = []
-	#selectedEls: (HTMLVideoElement|HTMLImageElement)[] = []
+	#redraw: boolean = false;
+	#oldWidth: number = 0;
+	#columnEls: HTMLDivElement[] = [];
+	#selectedEls: (HTMLVideoElement|HTMLImageElement)[] = [];
 	
 	#imgFocusIndex: number
 	#pausedVideo: HTMLVideoElement 
-	#pausedVideoUrl: string = ''
+	#pausedVideoUrl: string = '';
 
 	constructor(parent: HTMLElement, columnContainer: HTMLElement, plugin: GalleryTagsPlugin)
 	{
@@ -85,7 +86,8 @@ export class ImageGrid
 
 	stringToSort(sort:string)
 	{
-		switch(sort.toLocaleLowerCase())
+		sort = sort.toLocaleLowerCase();
+		switch(sort)
 		{
 		  case Sorting[Sorting.UNSORTED].toLocaleLowerCase(): this.sorting = Sorting.UNSORTED; break;
 		  case Sorting[Sorting.NAME].toLocaleLowerCase(): this.sorting = Sorting.NAME; break;
@@ -376,7 +378,7 @@ export class ImageGrid
 
 	setFilter(filter:string)
 	{		
-		const lines = filter.split('\n');
+		const lines = filter.split(/[\n\r]/);
 		for(let i = 0; i < lines.length; i++)
 		{
 		  const parts = lines[i].split('=');
@@ -385,7 +387,9 @@ export class ImageGrid
 			continue;
 		  }
 
-		  switch(parts[0].toLocaleLowerCase())
+		  parts[1] = parts[1].trim();
+
+		  switch(parts[0].trim().toLocaleLowerCase())
 		  {
 			case 'path' : 
 			this.path = parts[1];
@@ -397,10 +401,10 @@ export class ImageGrid
 			this.tag = parts[1];
 			break;
 			case 'matchcase' : 
-			this.matchCase = (parts[1] === "true");
+			this.matchCase = (parts[1].toLocaleLowerCase() === "true");
 			break;
 			case 'exclusive' : 
-			this.exclusive = (parts[1] === "true");
+			this.exclusive = (parts[1].toLocaleLowerCase() === "true");
 			break;
 			case 'imgwidth' : 
 			this.maxWidth = parseInt(parts[1]);
@@ -409,7 +413,7 @@ export class ImageGrid
 			this.stringToSort(parts[1]);
 			break;
 			case 'reverseorder' : 
-			this.reverse = (parts[1] === "true");
+			this.reverse = (parts[1].toLocaleLowerCase() === "true");
 			break;
 			case 'random' : 
 			this.random = parseInt(parts[1]);
@@ -655,7 +659,7 @@ export class ImageGrid
 		
 		let filterTags: string[] = null;
 		
-		if(tag != null && tag != "")
+		if(validString(tag))
 		{
 			filterTags = tag.split(' ');
 			for(let k = 0; k < filterTags.length; k++)
@@ -665,7 +669,7 @@ export class ImageGrid
 					filterTags.unshift(filterTags[k]);
 					filterTags.splice(k+1, 1);
 				}
-				if(filterTags[k].trim() == '')
+				if(!validString(filterTags[k]))
 				{
 					filterTags.splice(k+1, 1);
 				}
@@ -720,7 +724,7 @@ export class ImageGrid
 				hasPositive = true;
 			}
 
-			if(tag == "")
+			if(!validString(tag))
 			{
 				continue;
 			}

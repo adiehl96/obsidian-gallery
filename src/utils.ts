@@ -34,7 +34,7 @@ export const scaleColor = (color: string, percent: number) : string =>
  */
 const initializeInfo = (template: string, imgPath: string, imgName: string): string =>
 {
-  if(template == null || template.trim() == "")
+  if(!validString(template))
   {
     template = DEFAULT_TEMPLATE;
   }
@@ -59,6 +59,26 @@ export const preprocessUri = (original: string): string =>
   const uri = original.replaceAll(' ', '%20');
 
   return uri;
+}
+
+export const validString = (original: string, minLength:number = 0): boolean =>
+{
+  if(original === undefined || original === null)
+  {
+    return false;
+  }
+
+  if(typeof original !== 'string')
+  {
+    return false;
+  }
+
+  if(original.trim().length <= minLength)
+  {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -110,15 +130,15 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
     return null;
   }
   
-  if(!imgPath || imgPath == "")
+  if(!validString(imgPath))
   {
-    return
+    return null;
   }
 
   if(imgPath.contains("app://") || imgPath.contains("http://localhost"))
   {
     imgPath = plugin.getImgResources()[imgPath];
-    if( imgPath === "" || imgPath === undefined)
+    if(!validString(imgPath))
     {
       const warning = loc('MISSING_RESOURCE_WARNING', imgPath)
       console.warn(warning);
@@ -285,7 +305,7 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
         for (let i = 0; i < keywords.length; i++) 
         {
           const tag = keywords[i].trim();
-          if(tag === '')
+          if(!validString(tag))
           {
             continue;
           }

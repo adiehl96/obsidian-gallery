@@ -1,6 +1,6 @@
 import { ItemView, MarkdownRenderer, Notice, TFile, WorkspaceLeaf, setIcon } from "obsidian"
 import type GalleryTagsPlugin from "../main"
-import { getImageInfo } from "../utils"
+import { getImageInfo, validString } from "../utils"
 import { OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
 import { loc } from '../Loc/Localizer'
 
@@ -82,7 +82,7 @@ export class GalleryInfoView extends ItemView
 
   static async OpenLeaf(plugin: GalleryTagsPlugin, imgPath:string = null) : Promise<GalleryInfoView>
   {
-    if(imgPath === undefined || (imgPath !== null && imgPath.length <= 4))
+    if(!validString(imgPath, 4))
     {
       return;
     }
@@ -121,7 +121,7 @@ export class GalleryInfoView extends ItemView
 
   async updateInfoDisplay(imgPath: string)
   {
-    if(imgPath === undefined || imgPath === null || imgPath.length <= 4)
+    if(!validString(imgPath, 4))
     {
       return;
     }

@@ -1,6 +1,6 @@
 import type { ImageGrid } from "../DisplayObjects/ImageGrid";
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, createMetaFile, getImageInfo, offScreenPartial, preprocessUri } from "../utils";
+import { addEmbededTags, createMetaFile, getImageInfo, offScreenPartial, preprocessUri, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
@@ -270,7 +270,7 @@ export class ImageMenu extends MenuPopup
 		const fuzzyTags = new FuzzyTags(this.#plugin)
 		fuzzyTags.onSelection = async (s) =>{
 			const tag = s.trim();
-			if(tag === '')
+			if(!validString(tag))
 			{
 				return;
 			}
@@ -368,7 +368,7 @@ export class ImageMenu extends MenuPopup
 		const fuzzyTags = new FuzzyTags(this.#plugin)
 		fuzzyTags.onSelection = async (s) =>{
 			const tag = s.trim();
-			if(tag === '')
+			if(!validString(tag))
 			{
 				return;
 			}

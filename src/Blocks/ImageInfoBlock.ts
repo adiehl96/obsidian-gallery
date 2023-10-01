@@ -4,7 +4,8 @@ import { extractColors } from '../../node_modules/extract-colors'
 import
 {
   getImageInfo,
-  searchForFile
+  searchForFile,
+  validString
 } from '../utils'
 import
 {
@@ -42,11 +43,11 @@ export class ImageInfoBlock
 
     let infoList = args.ignoreInfo.split(';')
       .map(param => param.trim().toLowerCase())
-      .filter(e => e !== '')
+      .filter(e => validString(e))
     if(infoList.length == 0)
     {
       infoList = Object.keys(plugin.settings.hiddenInfoTicker)
-      .filter(e => e !== '' && plugin.settings.hiddenInfoTicker[e])
+      .filter(e => validString(e) && plugin.settings.hiddenInfoTicker[e])
       .map(param => param.trim().toLowerCase())
     }
 
@@ -190,8 +191,8 @@ export class ImageInfoBlock
       if(file instanceof TFile)
       {
         if(file != imgTFile
-          && (file.basename.contains(imgTFile.basename)
-          || imgTFile.basename.contains(file.basename)))
+          && (file.basename.toLocaleLowerCase().contains(imgTFile.basename.toLocaleLowerCase())
+          || imgTFile.basename.toLocaleLowerCase().contains(file.basename.toLocaleLowerCase())))
         {
           relatedFiles.push({ path: file.path, name: file.name });
         }
