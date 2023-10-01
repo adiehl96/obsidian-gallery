@@ -30,6 +30,7 @@
  - Added both a setting and a menu to change search bar types
  - New search bar type Simple Filter, which only has ignore case tag searches as an option(and takes up less screen real estate)
  - Fixing some issues with pasting filters and unifying string validation
+ NOTE: there was an issue with the settings update and will not adhere to the previous show or hide setting. Going to settings and switching to classic will be the equivilent of the old show on open setting.
 
 ## 1.2.1
  - Added info links for similarly named files in the same folder(this helps for if you want to make a preview image for a file type that isn't supported, like PSD files)
