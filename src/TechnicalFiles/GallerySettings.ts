@@ -10,6 +10,7 @@ export interface GallerySettings
   desktop: PlatformSettings
   mobile: PlatformSettings
   skipMetadataOverwrite: boolean
+  savedFilters: Record<string, string>
 }
 
 export interface PlatformSettings

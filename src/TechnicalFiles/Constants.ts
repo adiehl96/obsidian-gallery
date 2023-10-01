@@ -36,7 +36,8 @@ export const DEFAULT_SETTINGS: GallerySettings = {
   uniqueMobileSettings: false,
   desktop: DEFAULT_PLATFORM_SETTINGS,
   mobile: DEFAULT_PLATFORM_SETTINGS,
-  skipMetadataOverwrite: false
+  skipMetadataOverwrite: false,
+  savedFilters: {}
 }
 
 export const EXTRACT_COLORS_OPTIONS = {
