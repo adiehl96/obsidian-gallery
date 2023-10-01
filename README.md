@@ -26,8 +26,13 @@
 ## [Tenative Roadmap](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_Roadmap.md)
 
 # Release Notes
+## 1.3.0
+ - Added both a setting and a menu to change search bar types
+ - New search bar type Simple Filter, which only has ignore case tag searches as an option(and takes up less screen real estate)
+ - Fixing some issues with pasting filters and unifying string validation
+
 ## 1.2.1
- - Added info links for similarly named files in the same folder(this helps for if you want to make a preview image for a file type that isn't  - supported, like PSD files)
+ - Added info links for similarly named files in the same folder(this helps for if you want to make a preview image for a file type that isn't supported, like PSD files)
  - Fixing a bug where the side panel would not display properly if obsidian was closed with the gallery open
  - GH#17 Added a sort menu to the gallery and sorting options should be supported elsewhere too
  - Added toggle to switch side panel to source editing mode(since I haven't figured out a way to draw a markdown preview and edit it at the  - same time)
@@ -44,9 +49,5 @@
 ## 1.1.5
  - Caches were not getting generated if there was any delay in app start, moved most startup into a bootstrap process
  - Globalization work should be done, now I just need to figure out how to translate into a dozen or so languages so it's actually useful
-
-## 1.1.4
- - GH#16 Changed how pathing and caching are handled while trying to account for multilingual file paths
- - Some other small cleanup
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery

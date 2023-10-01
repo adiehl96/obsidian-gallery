@@ -1,26 +1,25 @@
 # Roadmap
 ## ToDo
 ### Tasks I hope to get out in the next few releases(mostly in order)
-- [ ] GH#17 sorting options
-- [ ] Find a way to allow editing in side panel
-
+- [ ] Add named filters to a dropdown
+- [ ] ability to set a default filter
+- [ ] File hierarchy context menu option to  open metadata file(and generate if missing)
 
 ## Backlog
 ### Tasks I hope to get done soon, but maybe not for a few releases(kinda in order)
-- [ ] File hierarchy context menu option to  open metadata file(and generate if missing)
-- [ ] Other search bars
+- [ ] regex searches
+- [ ] option to ignore sub folders
 - [ ] Hidden paging for large galleries
-
 
 ## IceBox
 ### Tasks that may or may not make it into the plugin, but i am researching as time permits(not in any order)
-- [ ] option to ignore sub folders
-- [ ] regex searches
+- [ ] Context click copy image to clipboard
+- [ ] Ability to zoom in and out the focus image
+- [ ] Non-svelte version of the active gallery so I can include the modern features I've added to the rest of the plugin (and remove my svelte dependency entirely)
 - [ ] Remote embeds getting right click and meta file support(maybe show in gallery too, but I don't know how yet)
 - [ ] Templater support in meta templates
 - [ ] Option to display a footer with some info for each image in the gallery
 - [ ] GH#12 Support embeds
 - [ ] Search by color info
-- [ ] Support for different search bar arrangements
 - [ ] Maintain position during reload based on image index instead of scroll position
 - [ ] Dataview integration
