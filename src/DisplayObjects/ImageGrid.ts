@@ -1,4 +1,4 @@
-import { Keymap, normalizePath, type UserEvent, getAllTags, TFile } from "obsidian"
+import { Keymap, normalizePath, type UserEvent, getAllTags, TFile, Notice } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import
  {
@@ -31,17 +31,17 @@ export class ImageGrid
 	plugin: GalleryTagsPlugin
 	parent: HTMLElement
 	columnContainer: HTMLElement
-	path: string = "";
-	name: string = "";
-	tag: string = "";
-	matchCase: boolean = true;
-	exclusive: boolean = false;
-	sorting: Sorting = Sorting.UNSORTED;
-	reverse : boolean = false;
-	maxWidth : number = 0;
-	maxHeight : number = 0;
-	random : number = 0;
-	customList: number[]
+	path: string;
+	name: string;
+	tag: string;
+	matchCase: boolean;
+	exclusive: boolean;
+	sorting: Sorting;
+	reverse : boolean;
+	maxWidth : number;
+	maxHeight : number;
+	random : number;
+	customList: number[];
 
 	imgList: string[] = [];
 	totalCount: number = 0;
@@ -63,13 +63,8 @@ export class ImageGrid
 		this.plugin = plugin;
 		this.parent = parent;
 		this.columnContainer = columnContainer;
-		this.path = this.plugin.settings.galleryLoadPath;
-		this.maxWidth = this.plugin.platformSettings().width;
-		if(this.plugin.platformSettings().useMaxHeight)
-		{
-			this.maxHeight = this.plugin.platformSettings().maxHeight;
-		}
 		this.#tempImg = GALLERY_LOADING_IMAGE;
+		this.clearFilter();
 	}
 
 	haveColumnsChanged(): boolean
@@ -228,6 +223,12 @@ export class ImageGrid
 		this.reverse = reverse;
 	}
 
+	async updateLastFilter()
+	{
+		this.plugin.platformSettings().lastFilter = this.getFilter();
+		await this.plugin.saveSettings();
+	}
+
 	async updateData()
 	{
 		await this.#applyFilter(this.path,
@@ -365,6 +366,35 @@ export class ImageGrid
 		this.parent.scrollTop = scrollPosition;
 	}
 
+	setNamedFilter(filter:string)
+	{
+		this.plugin.settings.namedFilters
+		for (let i = 0; i < this.plugin.settings.namedFilters.length; i++) 
+		{
+			if(this.plugin.settings.namedFilters[i].name.toLowerCase() == filter.toLowerCase())
+			{
+				this.setIndexedFilter(i);
+				return;
+			}
+		}
+		
+		console.log(loc('WARN_NO_FILTER_NAME', filter));
+		new Notice(loc('WARN_NO_FILTER_NAME', filter));
+	}
+
+	setIndexedFilter(index:number)
+	{
+		if(this.plugin.settings.namedFilters.length > index)
+		{
+			this.setFilter(this.plugin.settings.namedFilters[index].filter);
+		}
+		else
+		{
+			console.log(loc('WARN_NO_FILTER_INDEX', index.toString()));
+			new Notice(loc('WARN_NO_FILTER_INDEX', index.toString()));
+		}
+	}
+
 	getFilter(): string
 	{
 		let filterCopy = "```gallery"
@@ -427,6 +457,29 @@ export class ImageGrid
 			default : continue;
 		  }
 		}
+	}
+
+	clearFilter()
+	{
+		this.path = "";
+		this.name = "";
+		this.tag = "";
+		this.matchCase = false;
+		this.exclusive = false;
+		this.sorting = Sorting.UNSORTED;
+		this.reverse = false;
+		this.random = 0;
+		this.maxWidth = this.plugin.platformSettings().width;
+		if(this.plugin.platformSettings().useMaxHeight)
+		{
+			this.maxHeight = this.plugin.platformSettings().maxHeight;
+		}
+		else
+		{
+			this.maxHeight = 0;
+		}
+		this.random = 0;
+		this.customList = null;
 	}
 
 	setupClickEvents(imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)

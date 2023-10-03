@@ -4,6 +4,7 @@
 
 ````markdown
 ```gallery
+filter=LAST_USED
 path=Weekly
 name=.*Calen
 tags=art -cartoons
@@ -21,8 +22,9 @@ type=grid
 random=0
 ```
 ````
-
-## path REQUIRED
+## filter
+The name of a saved filter (or LAST_USED) to apply before applying other arguments
+## path
 The path a folder in your vault that you want to display images from
 ## name 
 Part of the name of the files you want to display

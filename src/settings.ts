@@ -4,6 +4,7 @@ import { FuzzyFiles, FuzzyFolders } from './Modals/FuzzySearches'
 import { DEFAULT_HIDDEN_INFO } from './TechnicalFiles/Constants'
 import { loc } from './Loc/Localizer'
 import { FilterType } from './TechnicalFiles/FilterType'
+import { validString } from './utils'
 
 
 export class GallerySettingTab extends PluginSettingTab
@@ -36,23 +37,6 @@ export class GallerySettingTab extends PluginSettingTab
       {
         this.plugin.buildCaches(); 
       }));
-
-    // Main gallery path
-    const galleryOpenPathSetting = new Setting(containerEl)
-    .setName(loc('SETTING_MAIN_PATH_TITLE'))
-    .setDesc(loc('SETTING_MAIN_PATH_DESC'))
-    .addButton(text => text
-      .setButtonText(this.plugin.settings.galleryLoadPath)
-      .onClick(() =>
-      {
-        fuzzyFolders.onSelection = (s) =>{
-          this.plugin.settings.galleryLoadPath = s
-          galleryOpenPathSetting.settingEl.querySelector('button').textContent = this.plugin.settings.galleryLoadPath
-          this.plugin.saveSettings()
-        }
-
-        fuzzyFolders.open()
-      }))
     
     // Unique Mobile Settings
     new Setting(containerEl)
@@ -129,6 +113,39 @@ export class GallerySettingTab extends PluginSettingTab
             case FilterType[FilterType.ADVANCED] : this.plugin.platformSettings().filterType = FilterType.ADVANCED; break;
             default: return;
           }
+          
+          await this.plugin.saveSettings();
+        });
+      });
+
+    
+    // Default Filter
+    new Setting(containerEl)
+      .setName(loc('SETTING_DEFAULT_FILTER_TITLE'))
+      .setDesc(loc('SETTING_DEFAULT_FILTER_DESC'))
+      .addDropdown(dropdown => 
+      {
+        dropdown.addOption("", loc('SETTING_DEFAULT_FILTER_NONE'));
+        dropdown.addOption("LAST_USED_FILTER", loc('LAST_USED_FILTER'));
+
+        for (let i = 0; i < this.plugin.settings.namedFilters.length; i++) 
+        {
+          const name = this.plugin.settings.namedFilters[i].name;
+          dropdown.addOption(name, name);
+        }
+        
+        if(validString(this.plugin.platformSettings().defaultFilter))
+        {
+          dropdown.setValue(this.plugin.platformSettings().defaultFilter);
+        }
+        else
+        {
+          dropdown.setValue("");
+        }
+
+        dropdown.onChange( async value =>
+        {
+          this.plugin.platformSettings().defaultFilter = value;
           
           await this.plugin.saveSettings();
         });
@@ -287,6 +304,41 @@ export class GallerySettingTab extends PluginSettingTab
         }));
       
     this.drawInfoLists(hiddenInfoSetting.descEl);
+    
+    // Gallery Meta Section
+    containerEl.createEl('h2', { text: loc('SETTING_METADATA_HEADER') })
+    
+    for (let i = 0; i < this.plugin.settings.namedFilters.length; i++) 
+    {
+      const filter = this.plugin.settings.namedFilters[i];
+
+      new Setting(containerEl)
+        .setName(filter.name)
+        .addTextArea(text =>
+          {
+            text
+            .setValue(filter.filter)
+            .onChange(async value =>
+              {
+                filter.filter = value;
+                await this.plugin.saveSettings();
+              });
+
+            text.inputEl.style.width = "100%";
+          })
+        .addButton(button => 
+          {
+            button
+            .setIcon("trash-2")
+            .setTooltip(loc('SETTING_FILTER_REMOVE'))
+            .onClick(async () => 
+            {
+              delete this.plugin.settings.namedFilters[i];
+              await this.plugin.saveSettings();
+              this.display();
+            })
+          })
+    }
   }
 
   drawInfoLists(containerEl:HTMLElement)
@@ -306,9 +358,9 @@ export class GallerySettingTab extends PluginSettingTab
             await this.plugin.saveSettings();
           });
         })
-        .addButton(text => 
+        .addButton(button => 
         {
-          text
+          button
           .setIcon("trash-2")
           .setTooltip(loc('SETTING_HIDDEN_INFO_REMOVE'))
           .onClick(async () => 

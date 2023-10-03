@@ -127,6 +127,7 @@ export class SimpleFilter implements IFilter
 	async updateData(): Promise<void>
 	{
 	  await this.#imageGrid.updateData();
+	  await this.#imageGrid.updateLastFilter();
 	}
 
 	async updateDisplay(): Promise<void>

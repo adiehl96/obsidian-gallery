@@ -9,6 +9,9 @@ import { ClassicFilter } from './ClassicFilter'
 import { SimpleFilter } from './SimpleFilter'
 import { FilterType } from '../TechnicalFiles/FilterType'
 import { FilterTypeMenu } from '../Modals/FilterTypeMenu'
+import { FilterMenu } from '../Modals/FilterMenu'
+import { validString } from '../utils'
+import { NullFilter } from './NullFilter'
 
 export class GalleryView extends ItemView
 {
@@ -44,38 +47,23 @@ export class GalleryView extends ItemView
     
     const viewActionsEl = this.containerEl.querySelector('.view-actions');
 
-    // Add copy filter button
-    const copyFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('COPY_FILTER_TOOLTIP') } })
-    setIcon(copyFilterButton, 'copy');
-    
-    copyFilterButton.onClickEvent(async () =>
-    {
-      await navigator.clipboard.writeText(this.imageGrid.getFilter());
-    });
-
-    // Add paste filter button
-    const pasteFilterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('PASTE_FILTER_TOOLTIP') } })
-    setIcon(pasteFilterButton, 'paste');
-    
-    pasteFilterButton.onClickEvent(async () =>
-    {
-      const filterString = await navigator.clipboard.readText();
-      this.imageGrid.setFilter(filterString);
-
-      this.filter.filterFill();
-
-      await this.filter.updateData();
-      await this.filter.updateDisplay();
-    });
-
     // Create Search Control Element
     this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
 
     // Add action button to hide / show filter panel
-    const searchPanel = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('SEARCH_TOOLTIP') } })
-    setIcon(searchPanel, 'fa-search')
+    const filterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('FILTER_TOOLTIP') } })
+    setIcon(filterButton, 'filter')
 
-		searchPanel.addEventListener('click', (event) =>
+		filterButton.addEventListener('click', (event) =>
+		{
+		  new FilterMenu(event.pageX, event.pageY, this.filter, this.imageGrid, this.plugin );
+		});
+    
+    // Add action button to hide / show filter panel
+    const searchButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('SEARCH_TOOLTIP') } })
+    setIcon(searchButton, 'fa-search')
+
+		searchButton.addEventListener('click', (event) =>
 		{
 		  new FilterTypeMenu(event.pageX, event.pageY, this.filterType, this.plugin.accentColor, (filterType) => this.setFilter(filterType));
 		});
@@ -129,7 +117,7 @@ export class GalleryView extends ItemView
 
     switch(filter)
     {
-      case FilterType.NONE : this.filterEl.style.setProperty('display', 'none'); break;
+      case FilterType.NONE : this.filter = new NullFilter(this.filterEl, this.imageGrid); break;
       case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.imageGrid); break;
       case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
       case FilterType.ADVANCED : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
@@ -146,12 +134,24 @@ export class GalleryView extends ItemView
 
   async onOpen(): Promise<void>
   {
-		this.imageGrid.path = this.plugin.settings.galleryLoadPath;
-		this.imageGrid.name = "";
-		this.imageGrid.tag = "";
-		this.imageGrid.matchCase = false;
-		this.imageGrid.exclusive = false;
-		this.imageGrid.reverse = false;
+    this.imageGrid.clearFilter();
+
+    if(validString(this.plugin.platformSettings().defaultFilter))
+    {
+      if("LAST_USED_FILTER" == this.plugin.platformSettings().defaultFilter)
+      {
+        if(validString(this.plugin.platformSettings().lastFilter))
+        {
+          this.imageGrid.setFilter(this.plugin.platformSettings().lastFilter);
+        }
+      }
+      else
+      {
+        this.imageGrid.setNamedFilter(this.plugin.platformSettings().defaultFilter);
+      }
+    }
+
+    this.filter.filterFill();
     
     await this.filter.updateData();
     await this.filter.updateDisplay();

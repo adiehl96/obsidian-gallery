@@ -4,10 +4,12 @@ import type GalleryTagsPlugin from '../main'
 import { ImageGrid, Sorting } from '../DisplayObjects/ImageGrid'
 import Gallery from '../svelte/Gallery.svelte'
 import { loc } from '../Loc/Localizer'
+import { validString } from '../utils'
 
 export interface GalleryBlockArgs
 {
   type: string
+  filter: string
   path: string
   name: string
   tags: string
@@ -30,20 +32,21 @@ export class GalleryBlock
   {
     const args: GalleryBlockArgs = {
       type: 'grid',
-      path: '',
-      name: '',
-      tags: '',
-      exclusive: 'false',
-      matchCase: 'false',
-      imgWidth: 200,
-      imgHeight: 0,
+      filter: null,
+      path: null,
+      name: null,
+      tags: null,
+      exclusive: null,
+      matchCase: null,
+      imgWidth: -1,
+      imgHeight: -1,
       divWidth: 100,
       divAlign: 'left',
-      divHeight: 0,
-      sort: Sorting[Sorting.UNSORTED],
-      reverseOrder: 'false',
-      customList: '',
-      random: 0
+      divHeight: -1,
+      sort: null,
+      reverseOrder: null,
+      customList: null,
+      random: -1
     };
 
     source.split('\n').map(e =>
@@ -59,31 +62,67 @@ export class GalleryBlock
       cls: 'ob-gallery-display-block',
       attr: { style: `width: ${args.divWidth}%; height: ${(args.divHeight >10 )? args.divHeight+"px" : "auto"}; float: ${args.divAlign}` }
     })
-
-    // Handle problematic arguments
-    if (!args.path || !args.type)
-    {
-      MarkdownRenderer.render(plugin.app, loc('GALLERY_DISPLAY_USAGE'), elCanvas, '/', plugin)
-      return;
-    }
     
     const imagesContainer = elCanvas.createEl('ul')
     const imageGrid = new ImageGrid(elCanvas, imagesContainer, plugin);
-    imageGrid.path = args.path;
-    imageGrid.name = args.name;
-    imageGrid.tag = args.tags;
-    imageGrid.stringToSort(args.sort);
-    imageGrid.reverse = args.reverseOrder === 'true';
-    imageGrid.maxWidth = args.imgWidth;
-    if(args.imgHeight > 10)
+
+    if(validString(args.filter))
+    {
+      if(/([lL][aA][sS][tT][_ ]?[uU][sS][eE][dD])/.exec(args.filter) != null)
+      {
+        if(validString(plugin.platformSettings().lastFilter))
+        {
+          imageGrid.setFilter(plugin.platformSettings().lastFilter);
+        }
+      }
+      else
+      {
+        imageGrid.setNamedFilter(args.filter);
+      }
+    }
+
+    if(validString(args.path))
+    {
+      imageGrid.path = args.path;
+    }
+    if(validString(args.name))
+    {
+      imageGrid.name = args.name;
+    }
+    if(validString(args.tags))
+    {
+      imageGrid.tag = args.tags;
+    }
+    if(validString(args.sort))
+    {
+      imageGrid.stringToSort(args.sort);
+    }
+    if(validString(args.reverseOrder))
+    {
+      imageGrid.reverse = args.reverseOrder === 'true';
+    }
+    if(args.imgWidth >= 0)
+    {
+      imageGrid.maxWidth = args.imgWidth;
+    }
+    if(args.imgHeight >= 0)
     {
       imageGrid.maxHeight = args.imgHeight;
     }
-    imageGrid.exclusive = args.exclusive === 'true';
-    imageGrid.matchCase = args.matchCase === 'true';
-    imageGrid.random = args.random;
+    if(validString(args.exclusive))
+    {
+      imageGrid.exclusive = args.exclusive === 'true';
+    }
+    if(validString(args.matchCase))
+    {
+      imageGrid.matchCase = args.matchCase === 'true';
+    }
+    if(args.random >= 0)
+    {
+      imageGrid.random = args.random;
+    }
     
-    if (args.customList)
+    if (validString(args.customList))
     {
       imageGrid.customList = args.customList.split(' ').map(i => parseInt(i));
     }

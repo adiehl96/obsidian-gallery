@@ -21,6 +21,8 @@ export const DEFAULT_HIDDEN_INFO =
 
 const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   filterType: FilterType.CLASSIC,
+  defaultFilter: "", 
+  lastFilter: "",
   rightClickInfo: true,
   rightClickMenu: true,
   width: 400,
@@ -30,14 +32,13 @@ const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
 
 export const DEFAULT_SETTINGS: GallerySettings = {
   imgDataFolder: null,
-  galleryLoadPath: '/',
   imgmetaTemplatePath: null,
   hiddenInfoTicker: DEFAULT_HIDDEN_INFO,
   uniqueMobileSettings: false,
   desktop: DEFAULT_PLATFORM_SETTINGS,
   mobile: DEFAULT_PLATFORM_SETTINGS,
   skipMetadataOverwrite: false,
-  savedFilters: {}
+  namedFilters: []
 }
 
 export const EXTRACT_COLORS_OPTIONS = {

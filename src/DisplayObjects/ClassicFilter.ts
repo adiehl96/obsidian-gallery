@@ -40,7 +40,6 @@ export class ClassicFilter implements IFilter
 		  type: 'text',
 		  attr: { 'aria-label': loc('FILTER_PATH_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_PATH_PROMPT') }
 		})
-		this.#pathFilterEl.value = this.#imageGrid.plugin.settings.galleryLoadPath;
 	
 		this.#pathFilterEl.addEventListener('input', async () =>
 		{
@@ -248,6 +247,8 @@ export class ClassicFilter implements IFilter
 	async updateData(): Promise<void>
 	{
 	  await this.#imageGrid.updateData();
+	  await this.#imageGrid.updateLastFilter();
+
 	  this.#countEl.setText(this.#imageGrid.imgList.length+"/"+this.#imageGrid.totalCount);
 	  this.#randomEl.max = this.#imageGrid.totalCount+"";
 	}

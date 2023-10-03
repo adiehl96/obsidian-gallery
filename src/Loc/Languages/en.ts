@@ -26,6 +26,10 @@ export default
 	Setting it to an invalid path to have no images shown when gallery is opened.`,
 	SETTING_FILTER_TITLE: "Default search bar",
 	SETTING_FILTER_DESC: "Which search bar to show when opening the gallery view.",
+	SETTING_DEFAULT_FILTER_TITLE: "Default filter",
+	SETTING_DEFAULT_FILTER_DESC: "If set, gallery view will open with the selected filter already active",
+	SETTING_DEFAULT_FILTER_NONE: "None",
+	LAST_USED_FILTER: "Last Used",
 	SETTING_IMAGE_WIDTH_TITLE: "Default image width",
 	SETTING_IMAGE_WIDTH_DESC: "Display default image width in 'pixels'. Image collumns will be no wider than this by default",
 	SETTING_MAX_HEIGHT_TOGGLE_TITLE: "Use max image height",
@@ -63,12 +67,13 @@ export default
 	SETTING_CONTEXT_INFO_DESC: "Should right clicking on an image anywhere open the info panel?",
 	SETTING_CONTEXT_MENU_TITLE: "Image menu anywhere",
 	SETTING_CONTEXT_MENU_DESC: "Should right clicking on an image anywhere open the info menu?",
+	SETTING_FILTER_HEADER: "User filters",
+	SETTING_FILTER_REMOVE: "Remove from List",
 
 	// Gallery View
 	GALLERY_VIEW_TITLE: "Gallery View",
-	COPY_FILTER_TOOLTIP: "Copy filter to clipboard",
-	PASTE_FILTER_TOOLTIP: "Paste filter from clipboard",
-	SEARCH_TOOLTIP: "Search",
+	FILTER_TOOLTIP: "Filter Actions",
+	SEARCH_TOOLTIP: "Change Search Bar",
 	SORT_ORDER_TOOLTIP: "Sort Options",
 	COUNT_TOOLTIP: "Number of files displayed by filter out of files the gallery could display",
 	FILTER_PATH_TOOLTIP: "Folder to search",
@@ -93,6 +98,15 @@ export default
 	SORT_OPTION_4: "Date Modified",
 	SORT_OPTION_5: "File Size",
 	SORT_OPTION_6: "Reverse",
+	
+	// Filter Menu
+	FILTER_HEADER: "Filter Actions",
+	FILTER_OPTION_1: "Copy Current Filter",
+	FILTER_OPTION_2: "Filter From Clipboard",
+	FILTER_OPTION_3: "Clear Filter",
+	FILTER_OPTION_4: "Save Filter From Clipboard",
+	FILTER_OPTION_5: "Save Filter From Current",
+	FILTER_NEW_INFO: "Enter name for new filter",
 
 	// Filter Type Menu
 	FILTER_TYPE_HEADER: "Change Search Bar",
@@ -162,6 +176,8 @@ export default
 	CAUSE_TAG_CACHE: "tag cache",
 	CAUSE_IMAGE_RESOURCES: "image resources",
 	CAUSE_META_RESOURCES: "meta resources",
+	WARN_NO_FILTER_NAME: "No filter found named {0}",
+	WARN_NO_FILTER_INDEX: "There are fewer than {0} filters.",
 	GALLERY_RESOURCES_MISSING: `
 <div class="gallery-resources-alert">
 	<strong>Missing or Unspecified Image Information Resources folder</strong>
