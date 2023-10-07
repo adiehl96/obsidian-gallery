@@ -1,4 +1,4 @@
-import { offScreenPartial } from "../utils";
+import { offScreenPartial, screenOffset } from "../utils";
 
 export class MenuPopup
 {
@@ -28,16 +28,13 @@ export class MenuPopup
 		{
 			this.#cleanUp();
 		});
-
-		this.#show(posX,posY);
-		
-		this.#self.focus();
 	}
 
 	AddLabel(label:string, color:string = null)
 	{
 		const info = this.#optionsArea.createDiv({cls: "suggestion-item"});
 		info.innerText = label;
+		info.style.overflowWrap = "break-word";
 
 		if(color)
 		{
@@ -60,6 +57,7 @@ export class MenuPopup
 		const item = this.#optionsArea.createDiv({cls: "suggestion-item"});
 		item.textContent = label;
 		item.dataset.href = command;
+		item.style.overflowWrap = "break-word";
 	
 		item.addEventListener("mouseover", (e) => {
 			this.#select(item)
@@ -105,7 +103,7 @@ export class MenuPopup
 		this.#onResult(result);
 	}
 
-	#show(posX:number,posY:number)
+	show(posX:number,posY:number)
 	{
 		activeDocument.body.appendChild(this.#self);
 		
@@ -117,17 +115,13 @@ export class MenuPopup
 
 		if(offScreenPartial(this.#self))
 		{
-			const box = this.#self.getBoundingClientRect();
-			this.#self.style.left = (posX-box.width)+"px";
-			this.#self.style.top = (posY)+"px";
-
-			if(offScreenPartial(this.#self))
-			{
-				const box = this.#self.getBoundingClientRect();
-				this.#self.style.left = (posX-box.width)+"px";
-				this.#self.style.top = (posY-box.height)+"px";
-			}
+			let x, y;
+			[x,y] = screenOffset(this.#self);
+			this.#self.style.left = (posX+x)+"px";
+			this.#self.style.top = (posY+y)+"px";
 		}
+		
+		this.#self.focus();
 	}
 
 	#cleanUp()

@@ -49,6 +49,8 @@ export class FilterMenu extends MenuPopup
 		{			
 			this.#createItem(FilterOptions.USER+i);
 		}
+
+		this.show(posX,posY);
 	}
 
 	#createItem(option:number)

@@ -109,6 +109,8 @@ export class ImageMenu extends MenuPopup
 			this.#createItem(Options.DeleteImage);
 			this.#createItem(Options.DeleteMeta);
 		}
+
+		this.show(posX,posY);
 	}
 
 	#createItem(command: Options)

@@ -33,6 +33,8 @@ export class SortingMenu extends MenuPopup
 
 		this.addSeparator();
 		this.#createItem(SortOptions.FLIP);
+
+		this.show(posX,posY);
 	}
 
 	#createItem(option:SortOptions)

@@ -97,13 +97,45 @@ export const getSearch = async (someSearchQuery: string, app: App) : Promise<voi
  * @param el element to check
  * @returns 
  */
-export const offScreenPartial = function(el:HTMLElement) : boolean {
+export const offScreenPartial = function(el:HTMLElement) : boolean 
+{
   var rect = el.getBoundingClientRect();
   const a = (rect.x + rect.width) > window.innerWidth
   const b = (rect.y + rect.height) > window.innerHeight
   const c = rect.x < 0
   const d = rect.y < 0
   return a || b || c || d;
+};
+
+/**
+ * Figures out if the element is partially offscreen
+ * @param el element to check
+ * @returns 
+ */
+export const screenOffset = function(el:HTMLElement) : [number,number] {
+  var rect = el.getBoundingClientRect();
+  let x = 0;
+  let y = 0;
+  const a = (rect.x + rect.width) - window.innerWidth
+  if(a > 0)
+  {
+    x = -a;
+  }
+  const b = (rect.y + rect.height) - window.innerHeight
+  if(b > 0)
+  {
+    y = -b;
+  }
+  if(rect.x < 0)
+  {
+    x = -rect.x;
+  }
+  const d = rect.y < 0
+  if(rect.y < 0)
+  {
+    y = -rect.y;
+  }
+  return [x,y];
 };
 
 export const offscreenFull = function(el:HTMLElement) : boolean {

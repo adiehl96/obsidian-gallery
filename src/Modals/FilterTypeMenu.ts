@@ -23,6 +23,8 @@ export class FilterTypeMenu extends MenuPopup
 		this.#createItem(FilterType.SIMPLE);
 		this.#createItem(FilterType.CLASSIC);
 		//this.#createItem(FilterType.ADVANCED);
+
+		this.show(posX,posY);
 	}
 
 	#createItem(option:FilterType)
