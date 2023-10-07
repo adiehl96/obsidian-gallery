@@ -19,12 +19,8 @@ export class GalleryView extends ItemView
   headerEl: HTMLElement 
   viewEl: HTMLElement 
   controlEl: HTMLElement 
-  displayEl: HTMLElement
+  displayEl: HTMLDivElement
   filterEl: HTMLElement
-  imageFocusEl: HTMLDivElement
-  focusImage: HTMLImageElement
-  focusVideo: HTMLVideoElement
-  imagesContainer: HTMLUListElement
   imageGrid: ImageGrid
   
   filterType: FilterType
@@ -76,14 +72,7 @@ export class GalleryView extends ItemView
     
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
-
-    this.imagesContainer = this.displayEl.createEl('ul')
-    this.imageGrid = new ImageGrid(this.displayEl, this.imagesContainer, plugin);
-
-    this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
-    const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
-    this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
-    this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
+    this.imageGrid = new ImageGrid(this.displayEl, plugin);
 
     this.setFilter(this.plugin.platformSettings().filterType);
   }
@@ -127,7 +116,7 @@ export class GalleryView extends ItemView
   async onClose(): Promise<void>
   {
     // Hide focus elements
-    this.imageFocusEl.style.setProperty('display', 'none');
+    //this.imageFocusEl.style.setProperty('display', 'none');
     GalleryInfoView.closeInfoLeaf(this.plugin);
     await Promise.resolve()
   }
@@ -159,6 +148,6 @@ export class GalleryView extends ItemView
     const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
     
     // Add listener to change active file
-    this.imageGrid.setupClickEvents(this.imageFocusEl, this.focusVideo, this.focusImage, infoView);
+    this.imageGrid.setupClickEvents(infoView);
   }
 }

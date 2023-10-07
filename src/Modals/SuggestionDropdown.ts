@@ -33,7 +33,7 @@ export class SuggestionDropdown
 			this.#show();
 		});
 		
-		this.target.addEventListener("click", async () =>{
+		this.target.addEventListener('click', async () =>{
 			if(this.showOnClick)
 			{
 				await this.#updateSuggestions(this.target.value)

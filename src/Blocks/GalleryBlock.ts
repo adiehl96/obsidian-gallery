@@ -63,8 +63,7 @@ export class GalleryBlock
       attr: { style: `width: ${args.divWidth}%; height: ${(args.divHeight >10 )? args.divHeight+"px" : "auto"}; float: ${args.divAlign}` }
     })
     
-    const imagesContainer = elCanvas.createEl('ul')
-    const imageGrid = new ImageGrid(elCanvas, imagesContainer, plugin);
+    const imageGrid = new ImageGrid(elCanvas, plugin);
 
     if(validString(args.filter))
     {
@@ -137,12 +136,7 @@ export class GalleryBlock
         imageGrid.updateDisplay();
       }
       
-      const imageFocusEl = elCanvas.createDiv({ cls: 'ob-gallery-image-focus' })
-      const focusElContainer = imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } });
-      const focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } });
-      const focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin: auto;' } });
-
-      imageGrid.setupClickEvents(imageFocusEl, focusVideo, focusImage);
+      imageGrid.setupClickEvents();
     }
 
     if (args.type === 'active-thumb')

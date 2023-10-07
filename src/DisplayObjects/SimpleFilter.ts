@@ -121,7 +121,7 @@ export class SimpleFilter implements IFilter
 
 	onResize()
 	{
-		this.#widthScaleEl.max = (this.#imageGrid.areaWidth)+"";
+		this.#widthScaleEl.max = (this.#imageGrid.areaWidth())+"";
 	}
 	
 	async updateData(): Promise<void>

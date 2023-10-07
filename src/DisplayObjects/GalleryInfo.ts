@@ -103,13 +103,13 @@ export class GalleryInfo
 					pill.style.backgroundColor = this.plugin.accentColorDark+"44";
 					const currentTag = pill.createSpan("multi-select-pill-content")
 					currentTag.textContent = this.tagList[i];
-					currentTag.addEventListener("click", 
+					currentTag.addEventListener('click', 
 					async (s) =>{
 						getSearch("tag:"+this.tagList[i].replace("#",""), this.plugin.app)
 					});
 					const removal = pill.createDiv("multi-select-pill-remove-button")
 					setIcon(removal, 'x')
-					removal.addEventListener("click", 
+					removal.addEventListener('click', 
 					async (s) =>{
 						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
 							let tags = frontmatter.tags ?? [];

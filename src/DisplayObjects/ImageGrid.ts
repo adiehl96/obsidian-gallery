@@ -29,8 +29,6 @@ export enum Sorting
 export class ImageGrid
 {
 	plugin: GalleryTagsPlugin
-	parent: HTMLElement
-	columnContainer: HTMLElement
 	path: string;
 	name: string;
 	tag: string;
@@ -53,16 +51,22 @@ export class ImageGrid
 	#columnEls: HTMLDivElement[] = [];
 	#selectedEls: (HTMLVideoElement|HTMLImageElement)[] = [];
 	
+	displayEl: HTMLDivElement
+	columnContainer: HTMLUListElement
+	imageFocusEl : HTMLDivElement
+	focusImage: HTMLImageElement
+	focusVideo: HTMLVideoElement
+	infoView:GalleryInfoView
 	#imgFocusIndex: number
 	#pausedVideo: HTMLVideoElement 
 	#pausedVideoUrl: string = '';
 
 
-	constructor(parent: HTMLElement, columnContainer: HTMLElement, plugin: GalleryTagsPlugin)
+	constructor(parent: HTMLDivElement, plugin: GalleryTagsPlugin)
 	{
 		this.plugin = plugin;
-		this.parent = parent;
-		this.columnContainer = columnContainer;
+		this.displayEl = parent;
+		this.columnContainer = this.displayEl.createEl('ul');
 		this.#tempImg = GALLERY_LOADING_IMAGE;
 		this.clearFilter();
 	}
@@ -286,7 +290,7 @@ export class ImageGrid
 			return;
 		}
 		
-		const scrollPosition = this.parent.scrollTop;
+		const scrollPosition = this.displayEl.scrollTop;
         this.columnContainer.empty();
 		this.#columnEls = [];
 		
@@ -344,6 +348,8 @@ export class ImageGrid
 					visualEl = img;
 				}
 
+				visualEl.addEventListener('click', (e) => {this.itemClick(e)});
+
 				if(this.maxHeight > 10)
 				{
 					visualEl.style.maxHeight = this.maxHeight+"px";
@@ -361,9 +367,9 @@ export class ImageGrid
 		this.#redraw = false;
 		setLazyLoading();
 		
-		this.parent.scrollTop = scrollPosition;
+		this.displayEl.scrollTop = scrollPosition;
 		await new Promise(f => setTimeout(f, 100));
-		this.parent.scrollTop = scrollPosition;
+		this.displayEl.scrollTop = scrollPosition;
 	}
 
 	setNamedFilter(filter:string)
@@ -482,82 +488,38 @@ export class ImageGrid
 		this.customList = null;
 	}
 
-	setupClickEvents(imageFocusEl : HTMLDivElement, focusVideo : HTMLVideoElement, focusImage: HTMLImageElement, infoView:GalleryInfoView = null)
+	setupClickEvents(infoView:GalleryInfoView = null)
 	{
-		this.parent.onclick = async (evt) =>
-		{
-			if (imageFocusEl.style.getPropertyValue('display') === 'block')
+    	// Create gallery display Element		
+		this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
+		const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
+		this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
+		this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
+	
+		this.infoView = infoView;
+
+		this.displayEl.addEventListener('click', (e) => {
+			if (this.imageFocusEl.style.getPropertyValue('display') === 'block')
 			{
-				imageFocusEl.style.setProperty('display', 'none')
+				this.imageFocusEl.style.setProperty('display', 'none')
 				// Clear Focus video
-				focusVideo.src = ''
+				this.focusVideo.src = ''
 				// Clear Focus image
-				focusImage.src = ''
+				this.focusImage.src = ''
 				// Set Video Url back to disabled grid video
 				if (this.#pausedVideo)
 				{
 					this.#pausedVideo.src = this.#pausedVideoUrl
 				}
 				// Hide focus image div
-				focusImage.style.setProperty('display', 'none')
+				this.focusImage.style.setProperty('display', 'none')
 				// Hide focus video div
-				focusVideo.style.setProperty('display', 'none')
+				this.focusVideo.style.setProperty('display', 'none')
 				return;
 			}
+		});
 
-			let visualEl: (HTMLVideoElement | HTMLImageElement);
-			if(evt.target instanceof HTMLVideoElement || evt.target instanceof HTMLImageElement)
-			{
-				visualEl = evt.target;
-			}
-				
-			if(infoView)
-			{
-				await infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
-			}
-			else
-			{
-				infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[visualEl.src]);
-			}
-
-			if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
-			{
-				if(!visualEl.classList.contains("gallery-grid-vid") && !visualEl.classList.contains("gallery-grid-img"))
-				{
-					return;
-				}
-
-				evt.stopImmediatePropagation();
-
-				this.#selectElement(visualEl);
-				return;
-			}
-
-			if (visualEl instanceof HTMLImageElement)
-			{
-				// Read New image info
-				const focusImagePath = visualEl.src
-				this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
-				imageFocusEl.style.setProperty('display', 'block')
-				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], false)
-			}
-
-			if (visualEl instanceof HTMLVideoElement)
-			{
-				// Read video info
-				const focusImagePath = visualEl.src
-				this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
-				imageFocusEl.style.setProperty('display', 'block')
-				// Save clicked video info to set it back later
-				this.#pausedVideo = visualEl
-				this.#pausedVideoUrl = this.#pausedVideo.src
-				// disable clicked video
-				this.#pausedVideo.src = ''
-				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], true)
-			}
-		};
-
-		this.parent.addEventListener('contextmenu', async (e) =>
+		this.displayEl.addEventListener('contextmenu', async (e) =>
 		{
 			if(this.#selectedEls.length == 0 && (e.target instanceof HTMLImageElement || e.target instanceof HTMLVideoElement))
 			{
@@ -583,11 +545,11 @@ export class ImageGrid
 
 			if (this.imgList[this.#imgFocusIndex].match(VIDEO_REGEX))
 			{
-				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], true)
+				updateFocus(this.focusImage, this.focusVideo, this.imgList[this.#imgFocusIndex], true)
 			}
 			else
 			{
-				updateFocus(focusImage, focusVideo, this.imgList[this.#imgFocusIndex], false)
+				updateFocus(this.focusImage, this.focusVideo, this.imgList[this.#imgFocusIndex], false)
 			}
 			
 			if(infoView)
@@ -617,7 +579,7 @@ export class ImageGrid
 				this.selectMode = false;
 			}
 
-			if (imageFocusEl.style.getPropertyValue('display') != 'block')
+			if (this.imageFocusEl.style.getPropertyValue('display') != 'block')
 			{
 			return;
 			}
@@ -640,6 +602,80 @@ export class ImageGrid
 			}
 
 		}, false)
+	}
+
+	async itemClick (evt:Event)
+	{
+		if (this.imageFocusEl.style.getPropertyValue('display') === 'block')
+		{
+			this.imageFocusEl.style.setProperty('display', 'none')
+			// Clear Focus video
+			this.focusVideo.src = ''
+			// Clear Focus image
+			this.focusImage.src = ''
+			// Set Video Url back to disabled grid video
+			if (this.#pausedVideo)
+			{
+				this.#pausedVideo.src = this.#pausedVideoUrl
+			}
+			// Hide focus image div
+			this.focusImage.style.setProperty('display', 'none')
+			// Hide focus video div
+			this.focusVideo.style.setProperty('display', 'none')
+			return;
+		}
+		evt.stopImmediatePropagation();
+
+		let visualEl: (HTMLVideoElement | HTMLImageElement);
+		if(evt.target instanceof HTMLVideoElement || evt.target instanceof HTMLImageElement)
+		{
+			visualEl = evt.target;
+		}
+			
+		if(this.infoView)
+		{
+			await this.infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
+		}
+		else
+		{
+			this.infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[visualEl.src]);
+		}
+
+		if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)
+		{
+			if(!visualEl.classList.contains("gallery-grid-vid") && !visualEl.classList.contains("gallery-grid-img"))
+			{
+				return;
+			}
+
+			evt.stopImmediatePropagation();
+
+			this.#selectElement(visualEl);
+			return;
+		}
+
+		if (visualEl instanceof HTMLImageElement)
+		{
+			// Read New image info
+			const focusImagePath = visualEl.src
+			this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
+			this.imageFocusEl.style.setProperty('display', 'block')
+			updateFocus(this.focusImage, this.focusVideo, this.imgList[this.#imgFocusIndex], false)
+		}
+
+		if (visualEl instanceof HTMLVideoElement)
+		{
+			// Read video info
+			const focusImagePath = visualEl.src
+			this.#imgFocusIndex = this.imgList.indexOf(focusImagePath)
+			this.imageFocusEl.style.setProperty('display', 'block')
+			// Save clicked video info to set it back later
+			this.#pausedVideo = visualEl
+			this.#pausedVideoUrl = this.#pausedVideo.src
+			// disable clicked video
+			this.#pausedVideo.src = ''
+			updateFocus(this.focusImage, this.focusVideo, this.imgList[this.#imgFocusIndex], true)
+		}
 	}
 
 	selectAll()
