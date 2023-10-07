@@ -116,7 +116,6 @@ export class GalleryView extends ItemView
   async onClose(): Promise<void>
   {
     // Hide focus elements
-    //this.imageFocusEl.style.setProperty('display', 'none');
     GalleryInfoView.closeInfoLeaf(this.plugin);
     await Promise.resolve()
   }

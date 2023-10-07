@@ -348,8 +348,6 @@ export class ImageGrid
 					visualEl = img;
 				}
 
-				visualEl.addEventListener('click', (e) => {this.itemClick(e)});
-
 				if(this.maxHeight > 10)
 				{
 					visualEl.style.maxHeight = this.maxHeight+"px";
@@ -476,6 +474,7 @@ export class ImageGrid
 		this.reverse = false;
 		this.random = 0;
 		this.maxWidth = this.plugin.platformSettings().width;
+
 		if(this.plugin.platformSettings().useMaxHeight)
 		{
 			this.maxHeight = this.plugin.platformSettings().maxHeight;
@@ -484,6 +483,7 @@ export class ImageGrid
 		{
 			this.maxHeight = 0;
 		}
+
 		this.random = 0;
 		this.customList = null;
 	}
@@ -497,27 +497,12 @@ export class ImageGrid
 		this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
 	
 		this.infoView = infoView;
-
-		this.displayEl.addEventListener('click', (e) => {
-			if (this.imageFocusEl.style.getPropertyValue('display') === 'block')
-			{
-				this.imageFocusEl.style.setProperty('display', 'none')
-				// Clear Focus video
-				this.focusVideo.src = ''
-				// Clear Focus image
-				this.focusImage.src = ''
-				// Set Video Url back to disabled grid video
-				if (this.#pausedVideo)
-				{
-					this.#pausedVideo.src = this.#pausedVideoUrl
-				}
-				// Hide focus image div
-				this.focusImage.style.setProperty('display', 'none')
-				// Hide focus video div
-				this.focusVideo.style.setProperty('display', 'none')
-				return;
-			}
-		});
+		
+		if ('ontouchstart' in document.documentElement === true)
+		{
+			this.displayEl.addEventListener('touchstart', (e) => {this.vidTouch(e)},true);
+		}
+		this.displayEl.addEventListener('click', (e) => {this.itemClick(e)});
 
 		this.displayEl.addEventListener('contextmenu', async (e) =>
 		{
@@ -675,6 +660,14 @@ export class ImageGrid
 			// disable clicked video
 			this.#pausedVideo.src = ''
 			updateFocus(this.focusImage, this.focusVideo, this.imgList[this.#imgFocusIndex], true)
+		}
+	}
+	async vidTouch (evt:Event)
+	{
+		let visualEl: (HTMLVideoElement);
+		if(evt.target instanceof HTMLVideoElement)
+		{
+			this.itemClick(evt);
 		}
 	}
 
