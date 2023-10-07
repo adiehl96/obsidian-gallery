@@ -1,7 +1,7 @@
 import type { Vault } from 'obsidian'
-import { MarkdownRenderer } from 'obsidian'
 import type GalleryTagsPlugin from '../main'
-import { ImageGrid, Sorting } from '../DisplayObjects/ImageGrid'
+import { MediaSearch, Sorting } from '../TechnicalFiles/MediaSearch'
+import { MediaGrid } from '../DisplayObjects/MediaGrid'
 import Gallery from '../svelte/Gallery.svelte'
 import { loc } from '../Loc/Localizer'
 import { validString } from '../utils'
@@ -63,7 +63,7 @@ export class GalleryBlock
       attr: { style: `width: ${args.divWidth}%; height: ${(args.divHeight >10 )? args.divHeight+"px" : "auto"}; float: ${args.divAlign}` }
     })
     
-    const imageGrid = new ImageGrid(elCanvas, plugin);
+    const mediaSearch = new MediaSearch(plugin);
 
     if(validString(args.filter))
     {
@@ -71,79 +71,80 @@ export class GalleryBlock
       {
         if(validString(plugin.platformSettings().lastFilter))
         {
-          imageGrid.setFilter(plugin.platformSettings().lastFilter);
+          mediaSearch.setFilter(plugin.platformSettings().lastFilter);
         }
       }
       else
       {
-        imageGrid.setNamedFilter(args.filter);
+        mediaSearch.setNamedFilter(args.filter);
       }
     }
 
     if(validString(args.path))
     {
-      imageGrid.path = args.path;
+      mediaSearch.path = args.path;
     }
     if(validString(args.name))
     {
-      imageGrid.name = args.name;
+      mediaSearch.name = args.name;
     }
     if(validString(args.tags))
     {
-      imageGrid.tag = args.tags;
+      mediaSearch.tag = args.tags;
     }
     if(validString(args.sort))
     {
-      imageGrid.stringToSort(args.sort);
+      mediaSearch.stringToSort(args.sort);
     }
     if(validString(args.reverseOrder))
     {
-      imageGrid.reverse = args.reverseOrder === 'true';
+      mediaSearch.reverse = args.reverseOrder === 'true';
     }
     if(args.imgWidth >= 0)
     {
-      imageGrid.maxWidth = args.imgWidth;
+      mediaSearch.maxWidth = args.imgWidth;
     }
     if(args.imgHeight >= 0)
     {
-      imageGrid.maxHeight = args.imgHeight;
+      mediaSearch.maxHeight = args.imgHeight;
     }
     if(validString(args.exclusive))
     {
-      imageGrid.exclusive = args.exclusive === 'true';
+      mediaSearch.exclusive = args.exclusive === 'true';
     }
     if(validString(args.matchCase))
     {
-      imageGrid.matchCase = args.matchCase === 'true';
+      mediaSearch.matchCase = args.matchCase === 'true';
     }
     if(args.random >= 0)
     {
-      imageGrid.random = args.random;
+      mediaSearch.random = args.random;
     }
     
     if (validString(args.customList))
     {
-      imageGrid.customList = args.customList.split(' ').map(i => parseInt(i));
+      mediaSearch.customList = args.customList.split(' ').map(i => parseInt(i));
     }
 
-    await imageGrid.updateData();
+    await mediaSearch.updateData();
 
     if (args.type === 'grid')
     {
-      imageGrid.updateDisplay();
+      const mediaGrid = new MediaGrid(elCanvas, mediaSearch, plugin);
+      mediaGrid.updateDisplay();
       plugin.onResize = () =>
       {
-        imageGrid.updateDisplay();
+        mediaGrid.updateDisplay();
       }
       
-      imageGrid.setupClickEvents();
+      mediaGrid.setupClickEvents();
     }
 
     if (args.type === 'active-thumb')
     {
       new Gallery({
         props: {
-          imgList: imageGrid.imgList,
+          imgList: mediaSearch.imgList,
           width: args.imgWidth / 50,
           fillFree: true
         },

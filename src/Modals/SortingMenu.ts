@@ -1,5 +1,6 @@
 import { loc } from "../Loc/Localizer";
-import { Sorting, type ImageGrid } from "../DisplayObjects/ImageGrid";
+import { type MediaGrid } from "../DisplayObjects/MediaGrid";
+import { Sorting, type MediaSearch } from "../TechnicalFiles/MediaSearch";
 import { MenuPopup } from "./MenuPopup"
 
 enum SortOptions
@@ -14,13 +15,15 @@ enum SortOptions
 
 export class SortingMenu extends MenuPopup
 {
-	#imageGrid: ImageGrid;
+	#mediaSearch: MediaSearch;
+	#mediaGrid: MediaGrid;
 
-	constructor(posX:number, posY:number, imageGrid: ImageGrid)
+	constructor(posX:number, posY:number, mediaSearch: MediaSearch, mediaGrid: MediaGrid)
 	{
 		super(posX, posY, (result) => {this.#submit(result)});
 
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
+		this.#mediaGrid = mediaGrid;
 		
 		this.AddLabel(loc('SORT_HEADER'));
 		this.addSeparator();
@@ -53,13 +56,13 @@ export class SortingMenu extends MenuPopup
 		}
 		
 		let color: string = null;
-		if(sorting == this.#imageGrid.sorting)
+		if(sorting == this.#mediaSearch.sorting)
 		{
-			color = this.#imageGrid.plugin.accentColor;
+			color = this.#mediaSearch.plugin.accentColor;
 		}
 		if(option == SortOptions.FLIP)
 		{
-			color = this.#imageGrid.reverse ? this.#imageGrid.plugin.accentColor : null;
+			color = this.#mediaSearch.reverse ? this.#mediaSearch.plugin.accentColor : null;
 		}
 
 		this.addItem(label, SortOptions[option], color);
@@ -70,15 +73,15 @@ export class SortingMenu extends MenuPopup
 	{
 		switch(result)
 		{
-			case SortOptions[SortOptions.NAME] : this.#imageGrid.updateSort(Sorting.NAME, false); break;
-			case SortOptions[SortOptions.CDATE] : this.#imageGrid.updateSort(Sorting.CDATE, false); break;
-			case SortOptions[SortOptions.MDATE] : this.#imageGrid.updateSort(Sorting.MDATE, false); break;
-			case SortOptions[SortOptions.PATH] : this.#imageGrid.updateSort(Sorting.PATH, false); break;
-			case SortOptions[SortOptions.SIZE] : this.#imageGrid.updateSort(Sorting.SIZE, false); break;
-			case SortOptions[SortOptions.FLIP] : this.#imageGrid.updateSort(this.#imageGrid.sorting, !this.#imageGrid.reverse); break;
+			case SortOptions[SortOptions.NAME] : this.#mediaSearch.updateSort(Sorting.NAME, false); break;
+			case SortOptions[SortOptions.CDATE] : this.#mediaSearch.updateSort(Sorting.CDATE, false); break;
+			case SortOptions[SortOptions.MDATE] : this.#mediaSearch.updateSort(Sorting.MDATE, false); break;
+			case SortOptions[SortOptions.PATH] : this.#mediaSearch.updateSort(Sorting.PATH, false); break;
+			case SortOptions[SortOptions.SIZE] : this.#mediaSearch.updateSort(Sorting.SIZE, false); break;
+			case SortOptions[SortOptions.FLIP] : this.#mediaSearch.updateSort(this.#mediaSearch.sorting, !this.#mediaSearch.reverse); break;
 			default: return;
 		}
 
-		await this.#imageGrid.updateDisplay();
+		await this.#mediaGrid.updateDisplay();
 	}
 }

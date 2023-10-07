@@ -1,6 +1,7 @@
 import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
 import { OB_GALLERY } from '../TechnicalFiles/Constants'
-import { ImageGrid } from './ImageGrid'
+import { MediaGrid } from './MediaGrid'
+import { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from '../main'
 import { GalleryInfoView } from './GalleryInfoView'
 import { loc } from '../Loc/Localizer'
@@ -21,7 +22,8 @@ export class GalleryView extends ItemView
   controlEl: HTMLElement 
   displayEl: HTMLDivElement
   filterEl: HTMLElement
-  imageGrid: ImageGrid
+  mediaSearch: MediaSearch
+  mediaGrid: MediaGrid
   
   filterType: FilterType
   filter: IFilter
@@ -52,7 +54,7 @@ export class GalleryView extends ItemView
 
 		filterButton.addEventListener('click', (event) =>
 		{
-		  new FilterMenu(event.pageX, event.pageY, this.filter, this.imageGrid, this.plugin );
+		  new FilterMenu(event.pageX, event.pageY, this.filter, this.mediaSearch, this.plugin );
 		});
     
     // Add action button to hide / show filter panel
@@ -72,7 +74,8 @@ export class GalleryView extends ItemView
     
     // Create gallery display Element
     this.displayEl = this.viewEl.createDiv({ cls: 'ob-gallery-display' })
-    this.imageGrid = new ImageGrid(this.displayEl, plugin);
+    this.mediaSearch = new MediaSearch(plugin);
+    this.mediaGrid = new MediaGrid(this.displayEl, this.mediaSearch, plugin);
 
     this.setFilter(this.plugin.platformSettings().filterType);
   }
@@ -106,10 +109,10 @@ export class GalleryView extends ItemView
 
     switch(filter)
     {
-      case FilterType.NONE : this.filter = new NullFilter(this.filterEl, this.imageGrid); break;
-      case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.imageGrid); break;
-      case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
-      case FilterType.ADVANCED : this.filter = new ClassicFilter(this.filterEl, this.imageGrid); break;
+      case FilterType.NONE : this.filter = new NullFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
+      case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
+      case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
+      case FilterType.ADVANCED : this.filter = new ClassicFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
     }
   }
 
@@ -122,7 +125,7 @@ export class GalleryView extends ItemView
 
   async onOpen(): Promise<void>
   {
-    this.imageGrid.clearFilter();
+    this.mediaSearch.clearFilter();
 
     if(validString(this.plugin.platformSettings().defaultFilter))
     {
@@ -130,12 +133,12 @@ export class GalleryView extends ItemView
       {
         if(validString(this.plugin.platformSettings().lastFilter))
         {
-          this.imageGrid.setFilter(this.plugin.platformSettings().lastFilter);
+          this.mediaSearch.setFilter(this.plugin.platformSettings().lastFilter);
         }
       }
       else
       {
-        this.imageGrid.setNamedFilter(this.plugin.platformSettings().defaultFilter);
+        this.mediaSearch.setNamedFilter(this.plugin.platformSettings().defaultFilter);
       }
     }
 
@@ -147,6 +150,6 @@ export class GalleryView extends ItemView
     const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
     
     // Add listener to change active file
-    this.imageGrid.setupClickEvents(infoView);
+    this.mediaGrid.setupClickEvents(infoView);
   }
 }

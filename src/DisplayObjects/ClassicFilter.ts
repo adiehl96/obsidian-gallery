@@ -1,6 +1,7 @@
 import { SortingMenu } from "../Modals/SortingMenu";
 import { loc } from "../Loc/Localizer";
-import type { ImageGrid } from "./ImageGrid";
+import type { MediaGrid } from "./MediaGrid";
+import type { MediaSearch } from "../TechnicalFiles/MediaSearch";
 import { setIcon } from "obsidian";
 import { MIN_IMAGE_WIDTH } from "../TechnicalFiles/Constants";
 import type { IFilter } from "../TechnicalFiles/IFilter";
@@ -9,7 +10,9 @@ export class ClassicFilter implements IFilter
 {
 	containerEl: HTMLElement
 
-	#imageGrid: ImageGrid
+
+	#mediaSearch: MediaSearch
+	#mediaGrid: MediaGrid
 	#pathFilterEl: HTMLInputElement
 	#nameFilterEl: HTMLInputElement
 	#tagFilterEl: HTMLInputElement
@@ -21,7 +24,7 @@ export class ClassicFilter implements IFilter
 	#randomEl: HTMLInputElement
 	#countEl: HTMLLabelElement
 
-	constructor(containerEl:HTMLElement, imageGrid: ImageGrid)
+	constructor(containerEl:HTMLElement, mediaGrid: MediaGrid, mediaSearch: MediaSearch)
 	{
 		if(!containerEl)
 		{
@@ -29,7 +32,8 @@ export class ClassicFilter implements IFilter
 		}
 
 		this.containerEl = containerEl;
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
+		this.#mediaGrid = mediaGrid;
 		
 		const filterTopDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
 		const filterBottomDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
@@ -43,7 +47,7 @@ export class ClassicFilter implements IFilter
 	
 		this.#pathFilterEl.addEventListener('input', async () =>
 		{
-		  this.#imageGrid.path = this.#pathFilterEl.value.trim();
+		  this.#mediaSearch.path = this.#pathFilterEl.value.trim();
 		  await this.updateData();
 		  this.updateDisplay();
 		});
@@ -57,7 +61,7 @@ export class ClassicFilter implements IFilter
 	
 		this.#nameFilterEl.addEventListener('input', async () =>
 		{
-		  this.#imageGrid.name = this.#nameFilterEl.value.trim();
+		  this.#mediaSearch.name = this.#nameFilterEl.value.trim();
 		  await this.updateData();
 		  this.updateDisplay();
 		});
@@ -71,7 +75,7 @@ export class ClassicFilter implements IFilter
 		
 		this.#sortReverseDiv.addEventListener('click', (event) =>
 		{
-		  new SortingMenu(event.pageX, event.pageY, this.#imageGrid);
+		  new SortingMenu(event.pageX, event.pageY, this.#mediaSearch, this.#mediaGrid);
 		});
 	
 		// file filter counts
@@ -87,7 +91,7 @@ export class ClassicFilter implements IFilter
 	
 		this.#tagFilterEl.addEventListener('input', async () =>
 		{
-		  this.#imageGrid.tag = this.#tagFilterEl.value.trim();
+		  this.#mediaSearch.tag = this.#tagFilterEl.value.trim();
 		  await this.updateData();
 		  this.updateDisplay();
 		});
@@ -101,8 +105,8 @@ export class ClassicFilter implements IFilter
 	
 		this.#matchFilterDiv.addEventListener('mousedown', async () =>
 		{
-		  this.#imageGrid.matchCase = !this.#imageGrid.matchCase;
-		  if(this.#imageGrid.matchCase)
+		  this.#mediaSearch.matchCase = !this.#mediaSearch.matchCase;
+		  if(this.#mediaSearch.matchCase)
 		  {
 			this.#matchFilterDiv.addClass("icon-checked");
 		  }
@@ -123,8 +127,8 @@ export class ClassicFilter implements IFilter
 	
 		this.#exclusiveFilterDiv.addEventListener('mousedown', async () =>
 		{
-		  this.#imageGrid.exclusive = !this.#imageGrid.exclusive;
-		  if(this.#imageGrid.exclusive)
+		  this.#mediaSearch.exclusive = !this.#mediaSearch.exclusive;
+		  if(this.#mediaSearch.exclusive)
 		  {
 			this.#exclusiveFilterDiv.addClass("icon-checked");
 		  }
@@ -145,12 +149,12 @@ export class ClassicFilter implements IFilter
 		this.#widthScaleEl.name = 'maxWidth';
 		this.#widthScaleEl.id = 'maxWidth';
 		this.#widthScaleEl.min = MIN_IMAGE_WIDTH+"";
-		this.#widthScaleEl.max = (this.#imageGrid.areaWidth())+"";
-		this.#widthScaleEl.value = this.#imageGrid.maxWidth+"";
+		this.#widthScaleEl.max = (this.#mediaGrid.areaWidth())+"";
+		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"";
 		this.#widthScaleEl.addEventListener('input', async () =>
 		{
-		  this.#imageGrid.maxWidth = parseInt(this.#widthScaleEl.value);
-		  if(this.#imageGrid.haveColumnsChanged())
+		  this.#mediaSearch.maxWidth = parseInt(this.#widthScaleEl.value);
+		  if(this.#mediaGrid.haveColumnsChanged())
 		  {
 			this.updateDisplay();
 		  }
@@ -173,7 +177,7 @@ export class ClassicFilter implements IFilter
 		  this.updateDisplay();
 		})
 		this.#randomEl.addEventListener("input", async ()=>{
-		  this.#imageGrid.random = parseInt(this.#randomEl.value);
+		  this.#mediaSearch.random = parseInt(this.#randomEl.value);
 		  await this.updateData();
 		  this.updateDisplay();
 		})
@@ -184,14 +188,14 @@ export class ClassicFilter implements IFilter
 		  if (currentMode === 'block')
 		  {
 			this.#randomDiv.style.setProperty('display', 'none')
-			this.#imageGrid.random = 0;
-			this.#imageGrid.customList = [];
+			this.#mediaSearch.random = 0;
+			this.#mediaSearch.customList = [];
 			await this.updateData();
 			this.updateDisplay();
 			return;
 		  }
 		  this.#randomDiv.style.setProperty('display', 'block')
-		  this.#imageGrid.random = parseInt(this.#randomEl.value);
+		  this.#mediaSearch.random = parseInt(this.#randomEl.value);
 		  await this.updateData();
 		  this.updateDisplay();
 		});
@@ -200,11 +204,11 @@ export class ClassicFilter implements IFilter
 	
 	filterFill()
 	{
-		this.#pathFilterEl.value = this.#imageGrid.path.trim();
-		this.#nameFilterEl.value = this.#imageGrid.name.trim();
-		this.#tagFilterEl.value = this.#imageGrid.tag.trim();
-		this.#widthScaleEl.value = this.#imageGrid.maxWidth+"px";
-		if(this.#imageGrid.reverse)
+		this.#pathFilterEl.value = this.#mediaSearch.path.trim();
+		this.#nameFilterEl.value = this.#mediaSearch.name.trim();
+		this.#tagFilterEl.value = this.#mediaSearch.tag.trim();
+		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
+		if(this.#mediaSearch.reverse)
 		{
 			this.#sortReverseDiv.addClass("icon-checked");
 		}
@@ -212,7 +216,7 @@ export class ClassicFilter implements IFilter
 		{
 			this.#sortReverseDiv.removeClass("icon-checked");
 		}
-		if(this.#imageGrid.matchCase)
+		if(this.#mediaSearch.matchCase)
 		{
 			this.#matchFilterDiv.addClass("icon-checked");
 		}
@@ -220,7 +224,7 @@ export class ClassicFilter implements IFilter
 		{
 			this.#matchFilterDiv.removeClass("icon-checked");
 		}
-		if(this.#imageGrid.exclusive)
+		if(this.#mediaSearch.exclusive)
 		{
 			this.#exclusiveFilterDiv.addClass("icon-checked");
 		}
@@ -228,9 +232,9 @@ export class ClassicFilter implements IFilter
 		{
 			this.#exclusiveFilterDiv.removeClass("icon-checked");
 		}
-		if(this.#imageGrid.random > 0)
+		if(this.#mediaSearch.random > 0)
 		{
-		  this.#randomEl.value = this.#imageGrid.random+"";
+		  this.#randomEl.value = this.#mediaSearch.random+"";
 		  this.#randomDiv.style.setProperty('display', 'block');
 		}
 		else
@@ -241,20 +245,20 @@ export class ClassicFilter implements IFilter
 
 	onResize()
 	{
-		this.#widthScaleEl.max = (this.#imageGrid.areaWidth())+"";
+		this.#widthScaleEl.max = (this.#mediaGrid.areaWidth())+"";
 	}
 	
 	async updateData(): Promise<void>
 	{
-	  await this.#imageGrid.updateData();
-	  await this.#imageGrid.updateLastFilter();
+	  await this.#mediaSearch.updateData();
+	  await this.#mediaSearch.updateLastFilter();
 
-	  this.#countEl.setText(this.#imageGrid.imgList.length+"/"+this.#imageGrid.totalCount);
-	  this.#randomEl.max = this.#imageGrid.totalCount+"";
+	  this.#countEl.setText(this.#mediaSearch.imgList.length+"/"+this.#mediaSearch.totalCount);
+	  this.#randomEl.max = this.#mediaSearch.totalCount+"";
 	}
 
 	async updateDisplay(): Promise<void>
 	{
-	  await this.#imageGrid.updateDisplay();
+	  await this.#mediaGrid.updateDisplay();
 	}
 }

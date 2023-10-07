@@ -2,10 +2,10 @@ import { loc } from "../Loc/Localizer";
 import { MenuPopup } from "./MenuPopup"
 import type { IFilter } from "../TechnicalFiles/IFilter";
 import type GalleryTagsPlugin from "../main";
-import type { ImageGrid } from "../DisplayObjects/ImageGrid";
 import { validString } from "../utils";
 import { SuggestionPopup } from "./SuggestionPopup";
 import type { NamedFilter } from "../TechnicalFiles/GallerySettings"
+import type { MediaSearch } from "../TechnicalFiles/MediaSearch";
 
 enum FilterOptions
 {
@@ -20,16 +20,16 @@ enum FilterOptions
 export class FilterMenu extends MenuPopup
 {
 	#filterView: IFilter;
-	#imageGrid: ImageGrid;
+	#mediaSearch: MediaSearch;
 	#plugin: GalleryTagsPlugin;
 	#userList: string[];
 
-	constructor(posX:number, posY:number, filterView: IFilter, imageGrid: ImageGrid, plugin: GalleryTagsPlugin)
+	constructor(posX:number, posY:number, filterView: IFilter, mediaSearch: MediaSearch, plugin: GalleryTagsPlugin)
 	{
 		super(posX, posY, (result) => {this.#submit(result)});
 
 		this.#filterView = filterView;
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
 		this.#plugin = plugin;
 		
 		this.AddLabel(loc('FILTER_HEADER'));
@@ -75,11 +75,11 @@ export class FilterMenu extends MenuPopup
 		const index = parseInt(result);
 		switch(index)
 		{
-			case FilterOptions.COPY : await navigator.clipboard.writeText(this.#imageGrid.getFilter()); break;
+			case FilterOptions.COPY : await navigator.clipboard.writeText(this.#mediaSearch.getFilter()); break;
 			case FilterOptions.PASTE : await this.#resultPaste(); break;
 			case FilterOptions.CLEAR : await this.#resultClear(); break;
 			case FilterOptions.NEWCLIP : this.#promptFilterName(await navigator.clipboard.readText()); break;
-			case FilterOptions.NEWCURRENT : this.#promptFilterName(this.#imageGrid.getFilter()); break;
+			case FilterOptions.NEWCURRENT : this.#promptFilterName(this.#mediaSearch.getFilter()); break;
 			default:
 			{
 				if(index < FilterOptions.USER)
@@ -95,7 +95,7 @@ export class FilterMenu extends MenuPopup
 	async #resultPaste()
 	{
 		const filterString = await navigator.clipboard.readText();
-		this.#imageGrid.setFilter(filterString);
+		this.#mediaSearch.setFilter(filterString);
   
 		this.#filterView.filterFill();
   
@@ -105,7 +105,7 @@ export class FilterMenu extends MenuPopup
 
 	async #resultClear()
 	{
-		this.#imageGrid.clearFilter();
+		this.#mediaSearch.clearFilter();
   
 		this.#filterView.filterFill();
   
@@ -115,7 +115,7 @@ export class FilterMenu extends MenuPopup
 
 	async #resultUser(index: number)
 	{
-		this.#imageGrid.setIndexedFilter(index);
+		this.#mediaSearch.setIndexedFilter(index);
   
 		this.#filterView.filterFill();
   

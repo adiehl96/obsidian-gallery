@@ -1,14 +1,16 @@
 
-import type { ImageGrid } from "./ImageGrid";
+import type { MediaGrid } from "./MediaGrid";
+import type { MediaSearch } from "../TechnicalFiles/MediaSearch";
 import type { IFilter } from "../TechnicalFiles/IFilter";
 
 export class NullFilter implements IFilter
 {
 	containerEl: HTMLElement
 
-	#imageGrid: ImageGrid
+	#mediaSearch: MediaSearch
+	#mediaGrid: MediaGrid
 
-	constructor(containerEl:HTMLElement, imageGrid: ImageGrid)
+	constructor(containerEl:HTMLElement, mediaGrid: MediaGrid, mediaSearch: MediaSearch)
 	{
 		if(!containerEl)
 		{
@@ -16,7 +18,8 @@ export class NullFilter implements IFilter
 		}
 
 		this.containerEl = containerEl;
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
+		this.#mediaGrid = mediaGrid;
 
 		this.containerEl.style.setProperty('display', 'none');
 	}
@@ -30,11 +33,11 @@ export class NullFilter implements IFilter
 	}
 	async updateData(): Promise<void>
 	{
-		await this.#imageGrid.updateData();
-		await this.#imageGrid.updateLastFilter();
+		await this.#mediaSearch.updateData();
+		await this.#mediaSearch.updateLastFilter();
 	}
 	async updateDisplay(): Promise<void>
 	{
-		await this.#imageGrid.updateDisplay();
+		await this.#mediaGrid.updateDisplay();
 	}
 }

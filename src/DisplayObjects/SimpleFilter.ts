@@ -1,6 +1,7 @@
 import { SortingMenu } from "../Modals/SortingMenu";
 import { loc } from "../Loc/Localizer";
-import type { ImageGrid } from "./ImageGrid";
+import type { MediaGrid } from "./MediaGrid";
+import type { MediaSearch } from "../TechnicalFiles/MediaSearch";
 import { setIcon } from "obsidian";
 import { MIN_IMAGE_WIDTH } from "../TechnicalFiles/Constants";
 import type { IFilter } from "../TechnicalFiles/IFilter";
@@ -9,13 +10,14 @@ export class SimpleFilter implements IFilter
 {
 	containerEl: HTMLElement
 
-	#imageGrid: ImageGrid
+	#mediaSearch: MediaSearch
+	#mediaGrid: MediaGrid
 	#tagFilterEl: HTMLInputElement
 	#sortReverseDiv: HTMLAnchorElement
 	#exclusiveFilterDiv: HTMLDivElement
 	#widthScaleEl: HTMLInputElement
 
-	constructor(containerEl:HTMLElement, imageGrid: ImageGrid)
+	constructor(containerEl:HTMLElement, mediaGrid: MediaGrid, mediaSearch: MediaSearch)
 	{
 		if(!containerEl)
 		{
@@ -23,7 +25,8 @@ export class SimpleFilter implements IFilter
 		}
 
 		this.containerEl = containerEl;
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
+		this.#mediaGrid = mediaGrid;
 	
 		const filterTopDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
 	
@@ -36,7 +39,7 @@ export class SimpleFilter implements IFilter
 	  
 		  this.#tagFilterEl.addEventListener('input', async () =>
 		  {
-			this.#imageGrid.tag = this.#tagFilterEl.value.trim();
+			this.#mediaSearch.tag = this.#tagFilterEl.value.trim();
 			await this.updateData();
 			this.updateDisplay();
 		  });
@@ -50,8 +53,8 @@ export class SimpleFilter implements IFilter
 	  
 		  this.#exclusiveFilterDiv.addEventListener('mousedown', async () =>
 		  {
-			this.#imageGrid.exclusive = !this.#imageGrid.exclusive;
-			if(this.#imageGrid.exclusive)
+			this.#mediaSearch.exclusive = !this.#mediaSearch.exclusive;
+			if(this.#mediaSearch.exclusive)
 			{
 			  this.#exclusiveFilterDiv.addClass("icon-checked");
 			}
@@ -72,7 +75,7 @@ export class SimpleFilter implements IFilter
 		
 		this.#sortReverseDiv.addEventListener('click', (event) =>
 		{
-		  new SortingMenu(event.pageX, event.pageY, this.#imageGrid);
+		  new SortingMenu(event.pageX, event.pageY, this.#mediaSearch, this.#mediaGrid);
 		});
 		
 		// image width scaler
@@ -84,12 +87,12 @@ export class SimpleFilter implements IFilter
 		this.#widthScaleEl.name = 'maxWidth';
 		this.#widthScaleEl.id = 'maxWidth';
 		this.#widthScaleEl.min = MIN_IMAGE_WIDTH+"";
-		this.#widthScaleEl.max = (this.#imageGrid.areaWidth())+"";
-		this.#widthScaleEl.value = this.#imageGrid.maxWidth+"";
+		this.#widthScaleEl.max = (this.#mediaGrid.areaWidth())+"";
+		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"";
 		this.#widthScaleEl.addEventListener('input', async () =>
 		{
-		  this.#imageGrid.maxWidth = parseInt(this.#widthScaleEl.value);
-		  if(this.#imageGrid.haveColumnsChanged())
+		  this.#mediaSearch.maxWidth = parseInt(this.#widthScaleEl.value);
+		  if(this.#mediaGrid.haveColumnsChanged())
 		  {
 			this.updateDisplay();
 		  }
@@ -99,9 +102,9 @@ export class SimpleFilter implements IFilter
 	
 	filterFill()
 	{
-		this.#tagFilterEl.value = this.#imageGrid.tag.trim();
-		this.#widthScaleEl.value = this.#imageGrid.maxWidth+"px";
-		if(this.#imageGrid.reverse)
+		this.#tagFilterEl.value = this.#mediaSearch.tag.trim();
+		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
+		if(this.#mediaSearch.reverse)
 		{
 			this.#sortReverseDiv.addClass("icon-checked");
 		}
@@ -109,7 +112,7 @@ export class SimpleFilter implements IFilter
 		{
 			this.#sortReverseDiv.removeClass("icon-checked");
 		}
-		if(this.#imageGrid.exclusive)
+		if(this.#mediaSearch.exclusive)
 		{
 			this.#exclusiveFilterDiv.addClass("icon-checked");
 		}
@@ -121,17 +124,17 @@ export class SimpleFilter implements IFilter
 
 	onResize()
 	{
-		this.#widthScaleEl.max = (this.#imageGrid.areaWidth())+"";
+		this.#widthScaleEl.max = (this.#mediaGrid.areaWidth())+"";
 	}
 	
 	async updateData(): Promise<void>
 	{
-	  await this.#imageGrid.updateData();
-	  await this.#imageGrid.updateLastFilter();
+	  await this.#mediaSearch.updateData();
+	  await this.#mediaSearch.updateLastFilter();
 	}
 
 	async updateDisplay(): Promise<void>
 	{
-	  await this.#imageGrid.updateDisplay();
+	  await this.#mediaGrid.updateDisplay();
 	}
 }

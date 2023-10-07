@@ -1,4 +1,5 @@
-import type { ImageGrid } from "../DisplayObjects/ImageGrid";
+import type { MediaGrid } from "../DisplayObjects/MediaGrid";
+import type { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from "../main";
 import { addEmbededTags, createMetaFile, getImageInfo, offScreenPartial, preprocessUri, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
@@ -33,17 +34,19 @@ enum Options
 export class ImageMenu extends MenuPopup
 {
 	#plugin: GalleryTagsPlugin
-	#imageGrid:ImageGrid
+	#mediaSearch:MediaSearch
+	#mediaGrid:MediaGrid
 	#infoView:GalleryInfoView
 	#targets:(HTMLVideoElement|HTMLImageElement)[]
 
 
-	constructor(posX:number, posY:number, targets:(HTMLVideoElement|HTMLImageElement)[], imageGrid:ImageGrid, plugin: GalleryTagsPlugin, infoView:GalleryInfoView = null)
+	constructor(posX:number, posY:number, targets:(HTMLVideoElement|HTMLImageElement)[], mediaSearch:MediaSearch, mediaGrid:MediaGrid, plugin: GalleryTagsPlugin, infoView:GalleryInfoView = null)
 	{
 		super(posX, posY, (result) => {this.#submit(result)});
 
 		this.#plugin = plugin;
-		this.#imageGrid = imageGrid;
+		this.#mediaSearch = mediaSearch;
+		this.#mediaGrid = mediaGrid;
 		this.#infoView = infoView;
 		this.#targets = targets;
 
@@ -52,9 +55,9 @@ export class ImageMenu extends MenuPopup
 			this.AddLabel(loc('IMAGE_MENU_NOTHING'));
 			this.addSeparator();
 
-			if( this.#imageGrid && !Platform.isDesktopApp)
+			if( this.#mediaSearch && !Platform.isDesktopApp)
 			{
-				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
+				this.#createItem(this.#mediaSearch.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
 			this.#createItem(Options.SelectAll);
 		}
@@ -78,11 +81,11 @@ export class ImageMenu extends MenuPopup
 				this.#createItem(Options.ClearSelection);
 			}
 
-			if(this.#imageGrid && !Platform.isDesktopApp)
+			if(this.#mediaSearch && !Platform.isDesktopApp)
 			{
-				this.#createItem(this.#imageGrid.selectMode ? Options.EndSelection : Options.StartSelection);
+				this.#createItem(this.#mediaSearch.selectMode ? Options.EndSelection : Options.StartSelection);
 			}
-			if(this.#imageGrid)
+			if(this.#mediaSearch)
 			{
 				this.#createItem(Options.SelectAll);
 			}
@@ -157,10 +160,10 @@ export class ImageMenu extends MenuPopup
 		{
 			case Options.OpenImageFile: this.#resultOpenImage(); break;
 			case Options.OpenMetaFile: this.#resultOpenMeta(); break;
-			case Options.StartSelection: this.#imageGrid.selectMode = true; break;
-			case Options.EndSelection: this.#imageGrid.selectMode = false; break;
-			case Options.SelectAll: this.#imageGrid.selectAll(); break;
-			case Options.ClearSelection: this.#imageGrid.clearSelection(); break;
+			case Options.StartSelection: this.#mediaSearch.selectMode = true; break;
+			case Options.EndSelection: this.#mediaSearch.selectMode = false; break;
+			case Options.SelectAll: this.#mediaGrid.selectAll(); break;
+			case Options.ClearSelection: this.#mediaGrid.clearSelection(); break;
 			case Options.CopyImageLinks: this.#resultCopyImageLink(); break;
 			case Options.CopyMetaLinks: this.#resultCopyMetaLink(); break;
 			case Options.AddTag: this.#resultAddTag(); break;
@@ -584,15 +587,16 @@ export class ImageMenu extends MenuPopup
 
 	async #refreshImageGrid()
 	{
-		if(!this.#imageGrid)
+		if(!this.#mediaSearch)
 		{
 			return;
 		}
 
         // TODO: I hate every single one of these, cause it means I'm waiting on something and I don't know what
 		await new Promise(f => setTimeout(f, 100));
-		await this.#imageGrid.updateData();
-		await this.#imageGrid.updateDisplay();
+
+		await this.#mediaSearch.updateData();
+		await this.#mediaGrid.updateDisplay();
 	}
 
 	#getSource(target: (HTMLVideoElement | HTMLImageElement)) : string

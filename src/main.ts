@@ -365,7 +365,7 @@ export default class GalleryTagsPlugin extends Plugin
     
     if(this.platformSettings().rightClickMenu)
     {
-      new ImageMenu(event.pageX, event.pageY, [targetEl], null, this);
+      new ImageMenu(event.pageX, event.pageY, [targetEl], null, null, this);
     }
   }
   
