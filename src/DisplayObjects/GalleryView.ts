@@ -13,6 +13,7 @@ import { FilterTypeMenu } from '../Modals/FilterTypeMenu'
 import { FilterMenu } from '../Modals/FilterMenu'
 import { validString } from '../utils'
 import { NullFilter } from './NullFilter'
+import { GrammarFilter } from './GrammarFilter'
 
 export class GalleryView extends ItemView
 {
@@ -140,7 +141,7 @@ export class GalleryView extends ItemView
       case FilterType.NONE : this.filter = new NullFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
       case FilterType.SIMPLE : this.filter = new SimpleFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
       case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
-      case FilterType.ADVANCED : this.filter = new ClassicFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
+      case FilterType.ADVANCED : this.filter = new GrammarFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
     }
   }
 

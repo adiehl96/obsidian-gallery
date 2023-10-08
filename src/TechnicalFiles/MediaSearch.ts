@@ -23,6 +23,7 @@ export class MediaSearch
 	path: string;
 	name: string;
 	tag: string;
+	regex: string;
 	matchCase: boolean;
 	exclusive: boolean;
 	sorting: Sorting;
@@ -194,6 +195,7 @@ export class MediaSearch
 		await this.#applyFilter(this.path,
 			this.name,
 			this.tag,
+			this.regex,
 			this.matchCase,
 			this.exclusive)
 
@@ -259,6 +261,7 @@ export class MediaSearch
 		filterCopy += "\npath=" + this.path;
 		filterCopy += "\nname=" + this.name;
 		filterCopy += "\ntags=" + this.tag;
+		filterCopy += "\nregex=" + this.regex;
 		filterCopy += "\nmatchCase=" + this.matchCase;
 		filterCopy += "\nexclusive=" + this.exclusive;
 		filterCopy += "\nimgWidth=" + this.maxWidth;
@@ -294,6 +297,9 @@ export class MediaSearch
 			case 'tags' : 
 			this.tag = parts[1];
 			break;
+			case 'regex' : 
+			this.regex = parts[1];
+			break;
 			case 'matchcase' : 
 			this.matchCase = (parts[1].toLocaleLowerCase() === "true");
 			break;
@@ -322,6 +328,7 @@ export class MediaSearch
 		this.path = "";
 		this.name = "";
 		this.tag = "";
+		this.regex = "";
 		this.matchCase = false;
 		this.exclusive = false;
 		this.sorting = Sorting.UNSORTED;
@@ -356,7 +363,7 @@ export class MediaSearch
 		}
 	}
 	
-	async #applyFilter(path: string, name: string, tag: string, matchCase: boolean, exclusive: boolean): Promise<void>
+	async #applyFilter(path: string, name: string, tag: string, regex:string, matchCase: boolean, exclusive: boolean): Promise<void>
 	{
 		const keyList = Object.keys(this.plugin.getImgResources());
 		
@@ -364,7 +371,7 @@ export class MediaSearch
 		//path = normalizePath(path);
 
 		let reg:RegExp[] = [];
-		const names = name.split(',');
+		const names = name.split(/[;, \n\r]/);
 		for (let i = 0; i < names.length; i++) 
 		{
 			names[i] = names[i].trim();
@@ -375,6 +382,10 @@ export class MediaSearch
 
 			try 
 			{
+				if(regex.trim() != "")
+				{
+					reg.push(new RegExp(regex.replaceAll("{PATH}", path).replaceAll("{NAME}",name[i])));
+				}
 				if (path === '/')
 				{
 					reg.push(new RegExp(`^.*${names[i]}.*$`));
@@ -389,7 +400,7 @@ export class MediaSearch
 				console.log(loc('BAD_REGEX_WARNING'))
 			}
 		}
-		
+
 		if(reg.length == 0)
 		{
 			reg.push(new RegExp(`^${path}.*$`));
@@ -400,10 +411,10 @@ export class MediaSearch
 		
 		if(validString(tag))
 		{
-			filterTags = tag.split(' ');
+			filterTags = tag.split(/[ ,;\n\r]/);
 			for(let k = 0; k < filterTags.length; k++)
 			{
-				if(filterTags[k][0] == '-')
+				if(filterTags[k][0] == '-' || filterTags[k][0] == '!')
 				{
 					filterTags.unshift(filterTags[k]);
 					filterTags.splice(k+1, 1);
@@ -452,10 +463,12 @@ export class MediaSearch
 		}
 
 		let hasPositive: boolean = false;
+		let exclusiveMatched: boolean = false;
 
 		for(let k = 0; k < filterTags.length; k++)
 		{
 			let negate: boolean = false;
+			let exclusiveInternal: boolean = false;
 			let tag = filterTags[k];
 			if(tag[0] == '-')
 			{
@@ -465,6 +478,11 @@ export class MediaSearch
 			else
 			{
 				hasPositive = true;
+				if(tag[0] == '!')
+				{
+					tag = tag.substring(1);
+					exclusiveInternal = true;
+				}
 			}
 
 			if(!validString(tag))
@@ -479,12 +497,16 @@ export class MediaSearch
 					return false;
 				}
 				
-				if(!exclusive)
+				if(!exclusive && !exclusiveInternal)
 				{
 					return true;
 				}
+				else
+				{
+					exclusiveMatched = true;
+				}
 			}
-			else if(exclusive && !negate)
+			else if((exclusive || exclusiveInternal) && !negate)
 			{
 				return false;
 			}
@@ -495,7 +517,7 @@ export class MediaSearch
 			return true;
 		}
 		
-		return exclusive;
+		return exclusive || exclusiveMatched;
 	};
 
 	#containsTag(tagFilter:string, tags: string[], matchCase: boolean): boolean

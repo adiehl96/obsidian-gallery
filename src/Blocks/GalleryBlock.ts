@@ -1,9 +1,8 @@
 import type { Vault } from 'obsidian'
 import type GalleryTagsPlugin from '../main'
-import { MediaSearch, Sorting } from '../TechnicalFiles/MediaSearch'
+import { MediaSearch } from '../TechnicalFiles/MediaSearch'
 import { MediaGrid } from '../DisplayObjects/MediaGrid'
 import Gallery from '../svelte/Gallery.svelte'
-import { loc } from '../Loc/Localizer'
 import { validString } from '../utils'
 
 export interface GalleryBlockArgs
@@ -13,6 +12,7 @@ export interface GalleryBlockArgs
   path: string
   name: string
   tags: string
+  regex: string
   exclusive: string
   matchCase: string
   imgWidth: number
@@ -36,6 +36,7 @@ export class GalleryBlock
       path: null,
       name: null,
       tags: null,
+      regex: null,
       exclusive: null,
       matchCase: null,
       imgWidth: -1,
@@ -49,6 +50,7 @@ export class GalleryBlock
       random: -1
     };
 
+    // TODO: handle new line in field info
     source.split('\n').map(e =>
     {
       if (e)
@@ -91,6 +93,10 @@ export class GalleryBlock
     if(validString(args.tags))
     {
       mediaSearch.tag = args.tags;
+    }
+    if(validString(args.regex))
+    {
+      mediaSearch.regex = args.regex;
     }
     if(validString(args.sort))
     {
