@@ -66,7 +66,7 @@ export class GalleryInfoView extends ItemView
 
   getIcon(): string
   {
-    return 'fa-Images'
+    return 'image'
   }
 
 	getState() 

@@ -1,4 +1,4 @@
-import { ItemView, type WorkspaceLeaf, setIcon } from 'obsidian'
+import { ItemView, type WorkspaceLeaf, setIcon, type ViewStateResult } from 'obsidian'
 import { OB_GALLERY } from '../TechnicalFiles/Constants'
 import { MediaGrid } from './MediaGrid'
 import { MediaSearch } from "../TechnicalFiles/MediaSearch"
@@ -94,6 +94,34 @@ export class GalleryView extends ItemView
   {
     return 'fa-Images'
   }
+
+	getState() 
+  {
+		return {
+			filter: this.mediaSearch.getFilter()
+		};
+	}
+
+	async setState(
+		state: { filter: string },
+		result: ViewStateResult
+	): Promise<void> 
+  {
+		if (state && typeof state === "object") 
+    {
+			if ( "filter" in state &&
+				state.filter &&
+				typeof state.filter === "string")
+      {
+        this.mediaSearch.setFilter(state.filter);
+        this.filter.filterFill();
+        await this.filter.updateData();
+        await this.filter.updateDisplay();
+			}
+		}
+    
+		super.setState(state, result);
+	}
 
   onResize(): void
   {
