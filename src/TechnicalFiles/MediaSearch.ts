@@ -366,9 +366,6 @@ export class MediaSearch
 	async #applyFilter(path: string, name: string, tag: string, regex:string, matchCase: boolean, exclusive: boolean): Promise<void>
 	{
 		const keyList = Object.keys(this.plugin.getImgResources());
-		
-		// TODO: normalizing the path break regex support, gonna have to separate that out somehow later
-		//path = normalizePath(path);
 
 		let reg:RegExp[] = [];
 		const names = name.split(/[;, \n\r]/);
@@ -434,7 +431,18 @@ export class MediaSearch
 			{
 				if (file.match(reg[i]))
 				{
-					if( await this.#containsTags(file, filterTags, matchCase, exclusive))
+					let imgTags: string[] = [];
+					let infoFile = await getImageInfo(file, false, this.plugin);
+					if(infoFile)
+					{
+						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
+						if (imgInfoCache)
+						{
+							imgTags = getAllTags(imgInfoCache)
+						}
+					}
+
+					if( await this.#matchfilter(imgTags, filterTags, matchCase, exclusive))
 					{
 						this.imgList.push(key);
 					}
@@ -444,22 +452,11 @@ export class MediaSearch
 		}
 	}
 	
-	async #containsTags(filePath: string, filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
+	async #matchfilter(imgTags: string[], filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
 	{
 		if(filterTags == null || filterTags.length == 0)
 		{
 			return true;
-		}
-
-		let imgTags: string[] = [];
-		let infoFile = await getImageInfo(filePath, false, this.plugin);
-		if(infoFile)
-		{
-			let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
-			if (imgInfoCache)
-			{
-				imgTags = getAllTags(imgInfoCache)
-			}
 		}
 
 		let hasPositive: boolean = false;

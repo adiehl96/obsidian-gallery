@@ -143,6 +143,7 @@ export class GalleryView extends ItemView
       case FilterType.CLASSIC : this.filter = new ClassicFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
       case FilterType.ADVANCED : this.filter = new GrammarFilter(this.filterEl, this.mediaGrid, this.mediaSearch); break;
     }
+    this.filter.filterFill();
   }
 
   async onClose(): Promise<void>

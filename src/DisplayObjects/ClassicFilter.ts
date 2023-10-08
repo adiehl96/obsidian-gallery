@@ -208,14 +208,6 @@ export class ClassicFilter implements IFilter
 		this.#nameFilterEl.value = this.#mediaSearch.name.trim();
 		this.#tagFilterEl.value = this.#mediaSearch.tag.trim();
 		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
-		if(this.#mediaSearch.reverse)
-		{
-			this.#sortReverseDiv.addClass("icon-checked");
-		}
-		else
-		{
-			this.#sortReverseDiv.removeClass("icon-checked");
-		}
 		if(this.#mediaSearch.matchCase)
 		{
 			this.#matchFilterDiv.addClass("icon-checked");

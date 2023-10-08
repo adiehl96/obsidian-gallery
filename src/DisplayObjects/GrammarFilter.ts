@@ -79,16 +79,25 @@ export class GrammarFilter implements IFilter
 	
 	filterFill()
 	{
-		this.#grammarFilterEl.value = "tag:"+this.#mediaSearch.tag.trim();
+		let value = ""
+		if(this.#mediaSearch.path != "")
+		{
+			value +=  "path:"+this.#mediaSearch.path.trim() +" ";
+		}
+		if(this.#mediaSearch.name != "")
+		{
+			value +=  "name:"+this.#mediaSearch.name.trim() +" ";
+		}
+		if(this.#mediaSearch.regex != "")
+		{
+			value +=  "regex:"+this.#mediaSearch.regex.trim() +" ";
+		}
+		if(this.#mediaSearch.tag != "")
+		{
+			value +=  "tag:"+this.#mediaSearch.tag.trim() +" ";
+		}
+		this.#grammarFilterEl.value = value;
 		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
-		if(this.#mediaSearch.reverse)
-		{
-			this.#sortReverseDiv.addClass("icon-checked");
-		}
-		else
-		{
-			this.#sortReverseDiv.removeClass("icon-checked");
-		}
 	}
 
 	onResize()

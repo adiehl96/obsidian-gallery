@@ -104,14 +104,6 @@ export class SimpleFilter implements IFilter
 	{
 		this.#tagFilterEl.value = this.#mediaSearch.tag.trim();
 		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
-		if(this.#mediaSearch.reverse)
-		{
-			this.#sortReverseDiv.addClass("icon-checked");
-		}
-		else
-		{
-			this.#sortReverseDiv.removeClass("icon-checked");
-		}
 		if(this.#mediaSearch.exclusive)
 		{
 			this.#exclusiveFilterDiv.addClass("icon-checked");
