@@ -1,4 +1,4 @@
-import { ItemView, MarkdownRenderer, Notice, TFile, WorkspaceLeaf, setIcon } from "obsidian"
+import { ItemView, MarkdownRenderer, Notice, TFile, WorkspaceLeaf, setIcon, type ViewStateResult } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { getImageInfo, validString } from "../utils"
 import { OB_GALLERY_INFO } from "../TechnicalFiles/Constants"
@@ -69,6 +69,38 @@ export class GalleryInfoView extends ItemView
     return 'fa-Images'
   }
 
+	getState() 
+  {
+		return {
+			filePath: this.infoFile.path,
+		};
+	}
+
+	async setState(
+		state: { filePath: string },
+		result: ViewStateResult
+	): Promise<void> 
+  {
+    if(this.infoFile != null)
+    {
+		  super.setState(state, result);
+      return;
+    }
+
+		if (state && typeof state === "object") 
+    {
+			if ( "filePath" in state &&
+				state.filePath &&
+				typeof state.filePath === "string")
+      {
+        this.updateInfoDisplay(state.filePath);
+			}
+		}
+    
+		super.setState(state, result);
+	}
+
+
   async onClose(): Promise<void>
   {
     // Clear the preview and editor history
@@ -125,11 +157,16 @@ export class GalleryInfoView extends ItemView
     {
       return;
     }
+    this.setState
+
+    this.plugin.app.workspace.requestSaveLayout();
 
     this.infoFile = await getImageInfo(imgPath, true, this.plugin);
 
     this.editing = false;
     this.updateToggleButton();
+
+    this.plugin.app.workspace.requestSaveLayout();
 
     // Handle disabled img info functionality or missing info block
     let infoText = loc('GALLERY_RESOURCES_MISSING');
