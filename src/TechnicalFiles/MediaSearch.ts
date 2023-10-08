@@ -360,22 +360,41 @@ export class MediaSearch
 	{
 		const keyList = Object.keys(this.plugin.getImgResources());
 		
-		path = normalizePath(path);
+		// TODO: normalizing the path break regex support, gonna have to separate that out somehow later
+		//path = normalizePath(path);
 
-		let reg
-		try 
+		let reg:RegExp[] = [];
+		const names = name.split(',');
+		for (let i = 0; i < names.length; i++) 
 		{
-			reg = new RegExp(`^${path}.*${name}.*$`)
-			if (path === '/')
+			names[i] = names[i].trim();
+			if(names[i] == "")
 			{
-				reg = new RegExp(`^.*${name}.*$`)
+				continue;
 			}
-		} 
-		catch (error)
-		{
-			console.log(loc('BAD_REGEX_WARNING'))
-			reg = '.*'
+
+			try 
+			{
+				if (path === '/')
+				{
+					reg.push(new RegExp(`^.*${names[i]}.*$`));
+				}
+				else
+				{
+					reg.push(new RegExp(`^${path}.*${names[i]}.*$`));
+				}
+			} 
+			catch (error)
+			{
+				console.log(loc('BAD_REGEX_WARNING'))
+			}
 		}
+		
+		if(reg.length == 0)
+		{
+			reg.push(new RegExp(`^${path}.*$`));
+		}
+
 		
 		let filterTags: string[] = null;
 		
@@ -400,11 +419,15 @@ export class MediaSearch
 		for (const key of keyList)
 		{
 			const file = this.plugin.getImgResources()[key];
-			if (file.match(reg))
+			for (let i = 0; i < reg.length; i++)
 			{
-				if( await this.#containsTags(file, filterTags, matchCase, exclusive))
+				if (file.match(reg[i]))
 				{
-					this.imgList.push(key);
+					if( await this.#containsTags(file, filterTags, matchCase, exclusive))
+					{
+						this.imgList.push(key);
+					}
+					break;
 				}
 			}
 		}
