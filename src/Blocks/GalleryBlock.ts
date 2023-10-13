@@ -4,15 +4,12 @@ import { MediaSearch } from '../TechnicalFiles/MediaSearch'
 import { MediaGrid } from '../DisplayObjects/MediaGrid'
 import Gallery from '../svelte/Gallery.svelte'
 import { validString } from '../utils'
+import { parseAdvanceSearch } from '../TechnicalFiles/GammarParse'
 
 export interface GalleryBlockArgs
 {
   type: string
   filter: string
-  path: string
-  name: string
-  tags: string
-  regex: string
   exclusive: string
   matchCase: string
   imgWidth: number
@@ -33,10 +30,6 @@ export class GalleryBlock
     const args: GalleryBlockArgs = {
       type: 'grid',
       filter: null,
-      path: null,
-      name: null,
-      tags: null,
-      regex: null,
       exclusive: null,
       matchCase: null,
       imgWidth: -1,
@@ -50,13 +43,21 @@ export class GalleryBlock
       random: -1
     };
 
+    let other:string = "";
     // TODO: handle new line in field info
     source.split('\n').map(e =>
     {
       if (e)
       {
-        const param = e.trim().split('=');
-        (args as any)[param[0]] = param[1]?.trim()
+        const param = e.trim().split(':');
+        if(args.hasOwnProperty(param[0]))
+        {
+          (args as any)[param[0]] = param[1]?.trim()
+        }
+        else
+        {
+          other += e + "\n";
+        }
       }
     })
 
@@ -81,23 +82,9 @@ export class GalleryBlock
         mediaSearch.setNamedFilter(args.filter);
       }
     }
+    
+    parseAdvanceSearch(other,mediaSearch);
 
-    if(validString(args.path))
-    {
-      mediaSearch.path = args.path;
-    }
-    if(validString(args.name))
-    {
-      mediaSearch.name = args.name;
-    }
-    if(validString(args.tags))
-    {
-      mediaSearch.tag = args.tags;
-    }
-    if(validString(args.regex))
-    {
-      mediaSearch.regex = args.regex;
-    }
     if(validString(args.sort))
     {
       mediaSearch.stringToSort(args.sort);

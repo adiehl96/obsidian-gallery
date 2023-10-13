@@ -87,6 +87,19 @@ export default
 	FILTER_WIDTH_TOOLTIP: "Change the display width of columns",
 	FILTER_RANDOM_TOOLTIP: "Randomise images",
 	FILTER_RANDOM_COUNT_TOOLTIP: "number of random images to grab",
+	FILTER_ADVANCED_TOOLTIP: `Build a complex filter
+	---
+	path: path to search in (strict)
+	name: file name criteria (strict)
+	regex: custom search regex (strict)
+	tags: search for tags
+	<front matter field>: search a custom frontmatter field
+	
+	Tag and frontmatter fields can also use these modifiers in front of a tag
+	---
+	!tag Strictly require this tag to be on the image
+	-tag Strictly exclude images that have this tag
+	^tag match case on this tag`,
 	CANCEL_LOAD_NOTICE: "Canceled indexing, Tag search may be limited",
 	BAD_REGEX_WARNING: "Gallery Search - BAD REGEX! regex set to '.*' as default!!",
 
@@ -190,8 +203,8 @@ Please make sure that a Valid Folder is specified in the settings for the plugin
 e.g. Input:
 
 \`\`\`
-imgPath=Resources/Images/Image_example_1.png
-ignoreInfo=Name;tags;size;backlinks
+imgPath:Resources/Images/Image_example_1.png
+ignoreInfo:Name;tags;size;backlinks
 \`\`\`
 
 ----
@@ -212,20 +225,20 @@ https://github.com/TomNCatz/obsidian-gallery#release-notes
 e.g. Input:
 
 \`\`\`gallery
-type=active-thumb
-path=Weekly
-name=.*Calen
-tags=photo -car fam
-exclusive=true
-matchCase=false
-imgWidth=400
-imgHeight=400
-divWidth=70
-divAlign=left
-divHeight=1400
-reverseOrder=false
-customList=5 10 2 4
-random=0
+type:active-thumb
+path:Weekly
+name:.*Calen
+tags:photo -car fam
+exclusive:true
+matchCase:false
+imgWidth:400
+imgHeight:400
+divWidth:70
+divAlign:left
+divHeight:1400
+reverseOrder:false
+customList:5 10 2 4
+random:0
 \`\`\`
 
 ----

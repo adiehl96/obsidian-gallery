@@ -80,7 +80,7 @@ export class ClassicFilter implements IFilter
 	
 		// file filter counts
 		this.#countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
-		this.#countEl.textContent = "counts";
+		this.#countEl.setText(this.#mediaSearch.imgList.length+"/"+this.#mediaSearch.totalCount);
 	
 		// Filter by Tags
 		this.#tagFilterEl = filterBottomDiv.createEl('input', {

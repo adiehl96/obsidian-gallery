@@ -100,6 +100,8 @@ export class GallerySettingTab extends PluginSettingTab
         dropdown.addOption(FilterType[FilterType.SIMPLE], loc("FILTER_TYPE_OPTION_"+FilterType.SIMPLE));
         //@ts-ignore
         dropdown.addOption(FilterType[FilterType.CLASSIC], loc("FILTER_TYPE_OPTION_"+FilterType.CLASSIC));
+        //@ts-ignore
+        dropdown.addOption(FilterType[FilterType.ADVANCED], loc("FILTER_TYPE_OPTION_"+FilterType.ADVANCED));
 
         dropdown.setValue(FilterType[this.plugin.platformSettings().filterType]);
 

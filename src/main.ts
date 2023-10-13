@@ -413,6 +413,20 @@ export default class GalleryTagsPlugin extends Plugin
   async loadSettings()
   {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
+    let changed = false;
+    for (let i = 0; i < this.settings.namedFilters.length; i++) 
+    {
+      if(this.settings.namedFilters[i].filter.contains("="))
+      {
+        this.settings.namedFilters[i].filter = this.settings.namedFilters[i].filter.replaceAll("=",":");
+        changed = true;
+      }
+    }
+
+    if(changed)
+    {
+      this.saveSettings();
+    }
   }
 
   async saveSettings()

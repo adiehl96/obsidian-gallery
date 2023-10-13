@@ -1,7 +1,7 @@
 export enum FilterType
 {
-	NONE,
-	SIMPLE,
-	CLASSIC,
-	ADVANCED
+	NONE = 0,
+	SIMPLE = 1,
+	CLASSIC = 2,
+	ADVANCED = 3
 }

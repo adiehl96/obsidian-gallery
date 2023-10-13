@@ -29,7 +29,7 @@ export type Criteria =
 	key: string
 }
 
-export const parseAdvanceSearch = (input: string, mediaSearch:MediaSearch) =>
+export const parseAdvanceSearch = (input: string, mediaSearch:MediaSearch, clear: boolean = false) =>
 {
 	const parts = input.split(/[ ,;\n\r]/);
 	const rules:Filter[] = [];
@@ -74,12 +74,15 @@ export const parseAdvanceSearch = (input: string, mediaSearch:MediaSearch) =>
 		rules.push(rule);
 	}
 
-	mediaSearch.exclusive = false;
-	mediaSearch.path = "";
-	mediaSearch.name = "";
-	mediaSearch.tag = "";
-	mediaSearch.regex = "";
-	mediaSearch.front = {};
+	if(clear)
+	{
+		mediaSearch.exclusive = false;
+		mediaSearch.path = "";
+		mediaSearch.name = "";
+		mediaSearch.tag = "";
+		mediaSearch.regex = "";
+		mediaSearch.front = {};
+	}
 
 	for (let i = 0; i < rules.length; i++)
 	{

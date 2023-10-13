@@ -16,6 +16,7 @@ export class GrammarFilter implements IFilter
 	#grammarFilterEl: HTMLTextAreaElement
 	#sortReverseDiv: HTMLAnchorElement
 	#widthScaleEl: HTMLInputElement
+	#countEl: HTMLLabelElement
 
 	constructor(containerEl:HTMLElement, mediaGrid: MediaGrid, mediaSearch: MediaSearch)
 	{
@@ -28,21 +29,27 @@ export class GrammarFilter implements IFilter
 		this.#mediaSearch = mediaSearch;
 		this.#mediaGrid = mediaGrid;
 	
-		const filterTopDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
+		
+		this.containerEl.style.display = "flex";
+		const filterLeftDiv = this.containerEl.createDiv({cls:"gallery-search-bar"});
+		const filterRightDiv = this.containerEl.createDiv();
+		const filterTopDiv = filterRightDiv.createDiv({cls:"gallery-search-bar"});
+		const filterBottomDiv = filterRightDiv.createDiv({cls:"gallery-search-bar"});
 	
-		// Filter by Tags
-		this.#grammarFilterEl = filterTopDiv.createEl('textarea', {
+		// Filter
+		this.#grammarFilterEl = filterLeftDiv.createEl('textarea', {
 			cls: 'ob-gallery-filter-input',
-			//attr: { 'aria-label': loc('FILTER_TAGS_TOOLTIP'), spellcheck: false, placeholder: loc('FILTER_TAGS_PROMPT') }
+			attr: { 'aria-label': loc('FILTER_ADVANCED_TOOLTIP'), spellcheck: false }
 		  })
 	  
 		  this.#grammarFilterEl.addEventListener('input', async () =>
 		  {
-			parseAdvanceSearch(this.#grammarFilterEl.value, this.#mediaSearch);
+			parseAdvanceSearch(this.#grammarFilterEl.value, this.#mediaSearch, true);
 			await this.updateData();
 			await this.updateDisplay();
 		  });
 		
+
 		// Sort menu
 		this.#sortReverseDiv = filterTopDiv.createEl('a', {
 		  cls: 'view-action',
@@ -55,8 +62,12 @@ export class GrammarFilter implements IFilter
 		  new SortingMenu(event.pageX, event.pageY, this.#mediaSearch, this.#mediaGrid);
 		});
 		
+		// file filter counts
+		this.#countEl = filterTopDiv.createEl('label', {attr: { 'aria-label': loc('COUNT_TOOLTIP')}});
+		this.#countEl.setText(this.#mediaSearch.imgList.length+"/"+this.#mediaSearch.totalCount);
+
 		// image width scaler
-		this.#widthScaleEl = filterTopDiv.createEl("input", {
+		this.#widthScaleEl = filterBottomDiv.createEl("input", {
 		  cls: 'ob-gallery-filter-slider-input',
 		  type: 'range',
 		  attr: { 'aria-label': loc('FILTER_WIDTH_TOOLTIP')}
@@ -96,6 +107,16 @@ export class GrammarFilter implements IFilter
 		{
 			value +=  "tag:"+this.#mediaSearch.tag.trim() +" ";
 		}
+
+		const frontList = Object.keys(this.#mediaSearch.front);
+		if(frontList.length > 0)
+		{
+			for (let i = 0; i < frontList.length; i++) 
+			{
+				value += frontList[i] + ":" + this.#mediaSearch.front[frontList[i]];
+			}
+		}
+
 		this.#grammarFilterEl.value = value;
 		this.#widthScaleEl.value = this.#mediaSearch.maxWidth+"px";
 	}
@@ -109,6 +130,8 @@ export class GrammarFilter implements IFilter
 	{
 	  await this.#mediaSearch.updateData();
 	  await this.#mediaSearch.updateLastFilter();
+	  
+	  this.#countEl.setText(this.#mediaSearch.imgList.length+"/"+this.#mediaSearch.totalCount);
 	}
 
 	async updateDisplay(): Promise<void>

@@ -255,16 +255,26 @@ export class MediaSearch
 	getFilter(): string
 	{
 		let filterCopy = "```gallery"
-		filterCopy += "\npath=" + this.path;
-		filterCopy += "\nname=" + this.name;
-		filterCopy += "\ntags=" + this.tag;
-		filterCopy += "\nregex=" + this.regex;
-		filterCopy += "\nmatchCase=" + this.matchCase;
-		filterCopy += "\nexclusive=" + this.exclusive;
-		filterCopy += "\nimgWidth=" + this.maxWidth;
-		filterCopy += "\nsort=" + Sorting[this.sorting];
-		filterCopy += "\nreverseOrder=" + this.reverse;
-		filterCopy += "\nrandom=" + this.random;
+		filterCopy += "\npath:" + this.path;
+		filterCopy += "\nname:" + this.name;
+		filterCopy += "\ntags:" + this.tag;
+		filterCopy += "\nregex:" + this.regex;
+		filterCopy += "\nmatchCase:" + this.matchCase;
+		filterCopy += "\nexclusive:" + this.exclusive;
+		filterCopy += "\nimgWidth:" + this.maxWidth;
+		filterCopy += "\nsort:" + Sorting[this.sorting];
+		filterCopy += "\nreverseOrder:" + this.reverse;
+		filterCopy += "\nrandom:" + this.random;
+		
+		const frontList = Object.keys(this.front);
+		if(frontList.length > 0)
+		{
+			for (let i = 0; i < frontList.length; i++) 
+			{
+				filterCopy += "\n" + frontList[i] + ":" + this.front[frontList[i]];
+			}
+		}
+
 		filterCopy += "\n```"
 
 		return filterCopy;
@@ -275,7 +285,7 @@ export class MediaSearch
 		const lines = filter.split(/[\n\r]/);
 		for(let i = 0; i < lines.length; i++)
 		{
-		  const parts = lines[i].split('=');
+		  const parts = lines[i].split(':');
 		  if(parts.length <2)
 		  {
 			continue;
@@ -315,7 +325,9 @@ export class MediaSearch
 			case 'random' : 
 			this.random = parseInt(parts[1]);
 			break;
-			default : continue;
+			default :
+			this.front[parts[0]] = parts[1];
+			break;
 		  }
 		}
 	}
@@ -363,8 +375,75 @@ export class MediaSearch
 	
 	async #applyFilter(): Promise<void>
 	{
-		const keyList = Object.keys(this.plugin.getImgResources());
+		this.totalCount = 0;
+		let reg:RegExp[] = this.#buildRegex();
 
+		let validFilter = false;
+		const tagFilter = parseFilterInfo(this.tag);
+		if(tagFilter.length > 0)
+		{
+			validFilter = true;
+		}
+		const frontList = Object.keys(this.front);
+		const frontFilters:Criteria[][] = [];
+
+		for (let f = 0; f < frontList.length; f++) 
+		{
+			frontFilters[f] = parseFilterInfo(this.front[frontList[f]])
+			if(frontFilters[f].length > 0)
+			{
+				validFilter = true;
+			}
+		}
+
+		const keyList = Object.keys(this.plugin.getImgResources());
+		this.imgList= [];
+		for (const key of keyList)
+		{
+			const file = this.plugin.getImgResources()[key];
+			for (let i = 0; i < reg.length; i++)
+			{
+				if (file.match(reg[i]))
+				{
+					this.totalCount++;
+					let imgTags: string[] = [];
+					let frontMatter: Record<string,string[]> = {};
+					let infoFile = await getImageInfo(file, false, this.plugin);
+					if(infoFile)
+					{
+						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
+						if (imgInfoCache)
+						{
+							imgTags = getAllTags(imgInfoCache);
+							frontMatter = this.#getFrontmatter(imgInfoCache);
+						}
+					}
+
+					let score = this.#matchScore(imgTags, tagFilter, this.matchCase, this.exclusive);
+
+					for (let f = 0; f < frontList.length; f++) 
+					{
+						let field:string[] = [];
+						if(frontMatter.hasOwnProperty(frontList[f]))
+						{
+							field = frontMatter[frontList[f]];
+						}
+						score += this.#matchScore(field, frontFilters[f], this.matchCase, this.exclusive);
+					}
+
+					if(( validFilter && score > 0 ) 
+					|| ( !validFilter && score >= 0 ))
+					{
+						this.imgList.push(key);
+					}
+					break;
+				}
+			}
+		}
+	}	
+
+	#buildRegex():RegExp[]
+	{
 		let reg:RegExp[] = [];
 		const names = this.name.split(/[;, \n\r]/);
 		for (let i = 0; i < names.length; i++) 
@@ -381,7 +460,7 @@ export class MediaSearch
 				{
 					reg.push(new RegExp(this.regex.replaceAll("{PATH}", this.path).replaceAll("{NAME}",this.name[i])));
 				}
-				if (this.path === '/')
+				else if (this.path === '/')
 				{
 					reg.push(new RegExp(`^.*${names[i]}.*$`));
 				}
@@ -400,59 +479,8 @@ export class MediaSearch
 		{
 			reg.push(new RegExp(`^${this.path}.*$`));
 		}
-
-		let validFilter = false;
-		const tagFilter = parseFilterInfo(this.tag);
-		if(tagFilter.length > 0)
-		{
-			validFilter = true;
-		}
-		const frontList = Object.keys(this.front);
-		const frontFilters:Criteria[][] = [];
-
-		for (let f = 0; f < frontList.length; f++) 
-		{
-			frontFilters[f] = parseFilterInfo(this.front[frontList[f]])
-		}
-
-		this.imgList= [];
-		for (const key of keyList)
-		{
-			const file = this.plugin.getImgResources()[key];
-			for (let i = 0; i < reg.length; i++)
-			{
-				if (file.match(reg[i]))
-				{
-					let imgTags: string[] = [];
-					let frontMatter: Record<string,string[]>;
-					let infoFile = await getImageInfo(file, false, this.plugin);
-					if(infoFile)
-					{
-						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
-						if (imgInfoCache)
-						{
-							imgTags = getAllTags(imgInfoCache);
-							frontMatter = this.#getFrontmatter(imgInfoCache);
-						}
-					}
-
-					let score = this.#matchScore(imgTags, tagFilter, this.matchCase, this.exclusive);
-
-					for (let f = 0; f < frontList.length; f++) 
-					{
-						score += this.#matchScore(frontMatter[frontList[f]], frontFilters[f], this.matchCase, this.exclusive);
-					}
-
-					if(( validFilter && score > 0 ) 
-					|| ( !validFilter && score >= 0 ))
-					{
-						this.imgList.push(key);
-					}
-					break;
-				}
-			}
-		}
-	}	
+		return reg;
+	}
 
 	#matchScore(imgTags: string[], filter: Criteria[], matchCase: boolean, exclusive: boolean): number
 	{
