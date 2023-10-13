@@ -1,4 +1,4 @@
-import { normalizePath, getAllTags, TFile, Notice } from "obsidian"
+import { normalizePath, getAllTags, TFile, Notice, type CachedMetadata } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import
  {
@@ -24,6 +24,7 @@ export class MediaSearch
 	name: string;
 	tag: string;
 	regex: string;
+	front: Record<string,string>
 	matchCase: boolean;
 	exclusive: boolean;
 	sorting: Sorting;
@@ -39,6 +40,7 @@ export class MediaSearch
 	
 	redraw: boolean = false;
 	selectedEls: (HTMLVideoElement|HTMLImageElement)[] = [];
+	validFilter: boolean = false;
 	
 	constructor(plugin: GalleryTagsPlugin)
 	{
@@ -192,12 +194,7 @@ export class MediaSearch
 
 	async updateData()
 	{
-		await this.#applyFilter(this.path,
-			this.name,
-			this.tag,
-			this.regex,
-			this.matchCase,
-			this.exclusive)
+		await this.#applyFilter();
 
 		if(this.random > 0)
 		{
@@ -329,6 +326,7 @@ export class MediaSearch
 		this.name = "";
 		this.tag = "";
 		this.regex = "";
+		this.front = {};
 		this.matchCase = false;
 		this.exclusive = false;
 		this.sorting = Sorting.UNSORTED;
@@ -363,12 +361,12 @@ export class MediaSearch
 		}
 	}
 	
-	async #applyFilter(path: string, name: string, tag: string, regex:string, matchCase: boolean, exclusive: boolean): Promise<void>
+	async #applyFilter(): Promise<void>
 	{
 		const keyList = Object.keys(this.plugin.getImgResources());
 
 		let reg:RegExp[] = [];
-		const names = name.split(/[;, \n\r]/);
+		const names = this.name.split(/[;, \n\r]/);
 		for (let i = 0; i < names.length; i++) 
 		{
 			names[i] = names[i].trim();
@@ -379,17 +377,17 @@ export class MediaSearch
 
 			try 
 			{
-				if(regex.trim() != "")
+				if(this.regex.trim() != "")
 				{
-					reg.push(new RegExp(regex.replaceAll("{PATH}", path).replaceAll("{NAME}",name[i])));
+					reg.push(new RegExp(this.regex.replaceAll("{PATH}", this.path).replaceAll("{NAME}",this.name[i])));
 				}
-				if (path === '/')
+				if (this.path === '/')
 				{
 					reg.push(new RegExp(`^.*${names[i]}.*$`));
 				}
 				else
 				{
-					reg.push(new RegExp(`^${path}.*${names[i]}.*$`));
+					reg.push(new RegExp(`^${this.path}.*${names[i]}.*$`));
 				}
 			} 
 			catch (error)
@@ -400,27 +398,17 @@ export class MediaSearch
 
 		if(reg.length == 0)
 		{
-			reg.push(new RegExp(`^${path}.*$`));
+			reg.push(new RegExp(`^${this.path}.*$`));
 		}
 
-		
-		let filterTags: string[] = null;
-		
-		if(validString(tag))
+		this.validFilter = false;
+		const tagFilter = this.#splitFilter(this.tag);
+		const frontList = Object.keys(this.front);
+		const frontFilters:string[][] = [];
+
+		for (let f = 0; f < frontList.length; f++) 
 		{
-			filterTags = tag.split(/[ ,;\n\r]/);
-			for(let k = 0; k < filterTags.length; k++)
-			{
-				if(filterTags[k][0] == '-' || filterTags[k][0] == '!')
-				{
-					filterTags.unshift(filterTags[k]);
-					filterTags.splice(k+1, 1);
-				}
-				if(!validString(filterTags[k]))
-				{
-					filterTags.splice(k+1, 1);
-				}
-			}
+			frontFilters[f] = this.#splitFilter(this.front[frontList[f]])
 		}
 
 		this.imgList= [];
@@ -432,17 +420,27 @@ export class MediaSearch
 				if (file.match(reg[i]))
 				{
 					let imgTags: string[] = [];
+					let frontMatter: Record<string,string[]>;
 					let infoFile = await getImageInfo(file, false, this.plugin);
 					if(infoFile)
 					{
 						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
 						if (imgInfoCache)
 						{
-							imgTags = getAllTags(imgInfoCache)
+							imgTags = getAllTags(imgInfoCache);
+							frontMatter = this.#getFrontmatter(imgInfoCache);
 						}
 					}
 
-					if( await this.#matchfilter(imgTags, filterTags, matchCase, exclusive))
+					let score = this.#matchScore(imgTags, tagFilter, this.matchCase, this.exclusive);
+
+					for (let f = 0; f < frontList.length; f++) 
+					{
+						score += this.#matchScore(frontMatter[frontList[f]], frontFilters[f], this.matchCase, this.exclusive);
+					}
+
+					if(( this.validFilter && score > 0 ) 
+					|| ( !this.validFilter && score >= 0 ))
 					{
 						this.imgList.push(key);
 					}
@@ -451,12 +449,52 @@ export class MediaSearch
 			}
 		}
 	}
-	
-	async #matchfilter(imgTags: string[], filterTags: string[], matchCase: boolean, exclusive: boolean): Promise<boolean>
+
+	#splitFilter(filter: string): string[]
 	{
+		let filterItems: string[] = [];
+		
+		if(validString(filter))
+		{
+			filterItems = filter.split(/[ ,;\n\r]/);
+			for(let k = 0; k < filterItems.length; k++)
+			{
+				if(filterItems[k][0] == '-' || filterItems[k][0] == '!')
+				{
+					if(filterItems[k].length>1)
+					{
+						filterItems.unshift(filterItems[k]);
+					}
+					filterItems.splice(k+1, 1);
+				}
+
+				if(!validString(filterItems[k]))
+				{
+					filterItems.splice(k+1, 1);
+				}
+			}
+		}
+
+		if(filterItems.length > 0)
+		{
+			this.validFilter = true;
+		}
+
+		return filterItems;
+	}
+	
+
+	#matchScore(imgTags: string[], filterTags: string[], matchCase: boolean, exclusive: boolean): number
+	{
+		const fail = -999;
 		if(filterTags == null || filterTags.length == 0)
 		{
-			return true;
+			return 0;
+		}
+
+		if(imgTags == null)
+		{
+			return fail;
 		}
 
 		let hasPositive: boolean = false;
@@ -491,12 +529,12 @@ export class MediaSearch
 			{
 				if(negate)
 				{
-					return false;
+					return fail;
 				}
 				
 				if(!exclusive && !exclusiveInternal)
 				{
-					return true;
+					return 1;
 				}
 				else
 				{
@@ -505,16 +543,19 @@ export class MediaSearch
 			}
 			else if((exclusive || exclusiveInternal) && !negate)
 			{
-				return false;
+				return fail;
 			}
 		}
 
 		if(!hasPositive)
 		{
-			return true;
+			return 1;
 		}
-		
-		return exclusive || exclusiveMatched;
+		if(exclusive || exclusiveMatched)
+		{
+			return 1;
+		}
+		return fail;
 	};
 
 	#containsTag(tagFilter:string, tags: string[], matchCase: boolean): boolean
@@ -545,4 +586,23 @@ export class MediaSearch
 		return false;
 	}
 
+	#getFrontmatter(imgInfoCache: CachedMetadata): Record<string,string[]>
+	{
+		const result:Record<string,string[]>= {};
+		if(imgInfoCache.frontmatter)
+		{
+			const frontList = Object.keys(imgInfoCache.frontmatter);
+			for (let i = 0; i < frontList.length; i++) 
+			{
+				let element = imgInfoCache.frontmatter[frontList[i]] ?? []
+				if (!Array.isArray(element)) 
+				{ 
+					element = [element]; 
+				}
+				
+				result[frontList[i]] = element;
+			}
+		}
+		return result;
+	}
 }
