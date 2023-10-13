@@ -5,6 +5,7 @@ import
 	getImageInfo,
 	validString
 } from '../utils'
+import { parseFilterInfo, type Criteria, Mods } from '../TechnicalFiles/GammarParse'
 import { loc } from '../Loc/Localizer'
 
 export enum Sorting
@@ -40,7 +41,6 @@ export class MediaSearch
 	
 	redraw: boolean = false;
 	selectedEls: (HTMLVideoElement|HTMLImageElement)[] = [];
-	validFilter: boolean = false;
 	
 	constructor(plugin: GalleryTagsPlugin)
 	{
@@ -401,14 +401,18 @@ export class MediaSearch
 			reg.push(new RegExp(`^${this.path}.*$`));
 		}
 
-		this.validFilter = false;
-		const tagFilter = this.#splitFilter(this.tag);
+		let validFilter = false;
+		const tagFilter = parseFilterInfo(this.tag);
+		if(tagFilter.length > 0)
+		{
+			validFilter = true;
+		}
 		const frontList = Object.keys(this.front);
-		const frontFilters:string[][] = [];
+		const frontFilters:Criteria[][] = [];
 
 		for (let f = 0; f < frontList.length; f++) 
 		{
-			frontFilters[f] = this.#splitFilter(this.front[frontList[f]])
+			frontFilters[f] = parseFilterInfo(this.front[frontList[f]])
 		}
 
 		this.imgList= [];
@@ -439,8 +443,8 @@ export class MediaSearch
 						score += this.#matchScore(frontMatter[frontList[f]], frontFilters[f], this.matchCase, this.exclusive);
 					}
 
-					if(( this.validFilter && score > 0 ) 
-					|| ( !this.validFilter && score >= 0 ))
+					if(( validFilter && score > 0 ) 
+					|| ( !validFilter && score >= 0 ))
 					{
 						this.imgList.push(key);
 					}
@@ -448,46 +452,12 @@ export class MediaSearch
 				}
 			}
 		}
-	}
+	}	
 
-	#splitFilter(filter: string): string[]
-	{
-		let filterItems: string[] = [];
-		
-		if(validString(filter))
-		{
-			filterItems = filter.split(/[ ,;\n\r]/);
-			for(let k = 0; k < filterItems.length; k++)
-			{
-				if(filterItems[k][0] == '-' || filterItems[k][0] == '!')
-				{
-					if(filterItems[k].length>1)
-					{
-						filterItems.unshift(filterItems[k]);
-					}
-					filterItems.splice(k+1, 1);
-				}
-
-				if(!validString(filterItems[k]))
-				{
-					filterItems.splice(k+1, 1);
-				}
-			}
-		}
-
-		if(filterItems.length > 0)
-		{
-			this.validFilter = true;
-		}
-
-		return filterItems;
-	}
-	
-
-	#matchScore(imgTags: string[], filterTags: string[], matchCase: boolean, exclusive: boolean): number
+	#matchScore(imgTags: string[], filter: Criteria[], matchCase: boolean, exclusive: boolean): number
 	{
 		const fail = -999;
-		if(filterTags == null || filterTags.length == 0)
+		if(filter == null || filter.length == 0)
 		{
 			return 0;
 		}
@@ -500,32 +470,22 @@ export class MediaSearch
 		let hasPositive: boolean = false;
 		let exclusiveMatched: boolean = false;
 
-		for(let k = 0; k < filterTags.length; k++)
+		for(let k = 0; k < filter.length; k++)
 		{
-			let negate: boolean = false;
-			let exclusiveInternal: boolean = false;
-			let tag = filterTags[k];
-			if(tag[0] == '-')
-			{
-				tag = tag.substring(1);
-				negate = true;
-			}
-			else
+			let criteria = filter[k];
+			let negate: boolean = criteria.mods.contains(Mods.NEGATE);
+			let exclusiveInternal: boolean = criteria.mods.contains(Mods.EXPLICIT);
+			if(!negate)
 			{
 				hasPositive = true;
-				if(tag[0] == '!')
-				{
-					tag = tag.substring(1);
-					exclusiveInternal = true;
-				}
 			}
 
-			if(!validString(tag))
+			if(!validString(criteria.key))
 			{
 				continue;
 			}
 
-			if(this.#containsTag(tag, imgTags, matchCase))
+			if(this.#containsTag(criteria.key, imgTags, matchCase || criteria.mods.contains(Mods.CASE)))
 			{
 				if(negate)
 				{
@@ -556,7 +516,7 @@ export class MediaSearch
 			return 1;
 		}
 		return fail;
-	};
+	}
 
 	#containsTag(tagFilter:string, tags: string[], matchCase: boolean): boolean
 	{
