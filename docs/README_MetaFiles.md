@@ -27,7 +27,7 @@ ignoreInfo=date
 Most fields are probably self expanitory, but there are a few here you might not be used to
 - Backlinks are links in your vault to the image file the block is targetting
 - Infolinks are links in your vault to the meta file for that image file, assuming it has one
-- Related Files are files that live in the same folder as the image file, and have a very similar name to the image file.This feature was added to allow creating previews and links for files obsidian does not typically handle(PSD, CLIP, KRA, BLEND, etc.)
+- Related Files are files that live in the same folder as the image file, and have a very similar name to the image file.This feature was added to allow creating previews and links for files obsidian does not typically handle(PSD, CLIP, KRA, BLEND, etc.) as well as tie numbered files together(image1.png, image2.png, image3.png)
 - Any frontmatter fields in the meta file not marked to be hidden are listed as well, in case you have your own info you want to display
 
 ![](images/Example_Info_Block.gif)
