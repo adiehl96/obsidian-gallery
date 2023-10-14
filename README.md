@@ -27,7 +27,7 @@
 
 # Release Notes
 ## 1.5.0
-NOTE: As of version 1.5.0 Gallery Blocks have switched from using '=' to using ':' this is for better parody witht he advanced filter. Any gallery blocks in your vault will be broken until you update these signs. (info blocks are unaffected)
+NOTE: As of version 1.5.0 Gallery Blocks have switched from using '=' to using ':' this is for better parody with the advanced filter. Any gallery blocks in your vault will be broken until you update these signs. (info blocks are unaffected)
  - Fixed bug where somethings width scale would break and you couldn't resize it
  - Fixing a mobile specific bug for video files
  - Fixing some edge detection issues with menus

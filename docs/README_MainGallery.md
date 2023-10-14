@@ -1,10 +1,10 @@
 # Main Gallery
 The top bar of the main gallery holds two useful menu buttons for gallery usage
-![](docs/images/Gallery_Options.png)
+![](images/Gallery_Options.png)
 
 ## Search Bar
 The first is the Search bar menu. This controls the visibility and structure of the search bar and has four options
-![](docs/images/Gallery_Search_Options.png)
+![](images/Gallery_Search_Options.png)
 - Hidden : No visiable search bar. Searches that have been entered are still in effect.
 - Simple Filter : This filter has only one field, which is used for tags.
 - Classic Filter : This filter has seperate fields for different search criteria and several options.
@@ -12,7 +12,7 @@ The first is the Search bar menu. This controls the visibility and structure of 
 
 ## Filter Menu
 The filter menu has several options for managing your current search, and even saving and loading searches
-![](docs/images/Gallery_Filter_Options.png)
+![](images/Gallery_Filter_Options.png)
 - Copy current Filter copies the current filter to the clipboard as if to paste it into a note as a gallery block.
 - Filter From Clipboard tries to use the current clipboard data to fill out the search bar(even if hidden)
 - Clear Filter empies all filter fields
