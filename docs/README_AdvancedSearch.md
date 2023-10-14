@@ -1,5 +1,6 @@
 # Advanced Filter
 ![](images/Advanced_Search.png)
+
 The advanced filter allows you to build complex searches by following certain syntax.
 
 Field selection is done with a field name and then a colon, with any criteria so search after the colon (eg. "tag:photo" to search for images tagged as photos)
