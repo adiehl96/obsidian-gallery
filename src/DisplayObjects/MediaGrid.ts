@@ -293,6 +293,10 @@ export class MediaGrid
 		{
 			visualEl = evt.target;
 		}
+		else
+		{
+			return;
+		}
 			
 		if(this.infoView)
 		{

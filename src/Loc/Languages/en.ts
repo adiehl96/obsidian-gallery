@@ -148,8 +148,11 @@ export default
 	IMAGE_MENU_COMMAND_13: "Rename",
 	IMAGE_MENU_COMMAND_14: "Delete image(and meta)",
 	IMAGE_MENU_COMMAND_15: "Delete just meta",
+	IMAGE_MENU_COMMAND_16: "Copy image",
+	IMAGE_MENU_COMMAND_17: "Share media",
 	MENU_OPTION_FAULT: "context options {0} is not accounted for",
 	MASS_CONTEXT_CONFIRM: "There are {0} files selected for '{1}' are you sure?",
+	COPIED_MEDIA: "Media copied to clipboard",
 	COPIED_LINKS: "Links copied to clipboard",
 	ADDED_TAG: "Tag added to files",
 	REMOVED_TAG: "Tag removed from files",
@@ -158,6 +161,9 @@ export default
 	DELETED_IMAGE: "Images and meta deleted",
 	PROMPT_FOR_NEW_NAME: "Select a new name and path",
 	CONFLICT_NOTICE_PATH: "ERROR: File already exists at '{0}'",
+	PLATFORM_COPY_NOT_SUPPORTED: "This platform does not currently support copying videos to the clipboard",
+	PLATFORM_EXEC_FAILURE: "Copy to clipboard failed, full error sent to console.",
+	CAN_NOT_SHARE: "Unable to share",
 
 	// Side Panel
 	SIDE_PANEL_EDIT_TOOLTIP: "Switch to edit mode",

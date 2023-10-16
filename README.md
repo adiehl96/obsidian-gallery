@@ -3,6 +3,7 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/TomNCatz/obsidian-gallery/total)
 
 - Main Gallery to tag / filter / add notes to images.
+- Filter by frontmatter criteria and change the meta right in the side panel
 - Display blocks to embed images inside notes
 - Display block to an image information
 

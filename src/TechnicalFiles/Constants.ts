@@ -53,6 +53,8 @@ export const MIN_IMAGE_WIDTH = 100;
 
 export const EXTENSIONS = ['png', 'jpg', 'jpeg', "webp", "gif", "webm", 'mp4']
 
+export const CONVERSION_SUPPORT = new RegExp('\\.([pP][nN][gG]|[wW][eE][bB][pP]|[jJ][pP][eE]?[gG])\\?')
+
 export const VIDEO_REGEX = new RegExp('.*\\.(mp4|webm)($|\\?)')
 
 export const DEFAULT_TEMPLATE = '---\ntags:\n---\n<%IMGEMBED%>\n<%IMGINFO%>\n%% Description %%\n'

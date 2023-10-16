@@ -1,7 +1,7 @@
 import type { MediaGrid } from "../DisplayObjects/MediaGrid";
 import type { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, createMetaFile, getImageInfo, offScreenPartial, preprocessUri, validString } from "../utils";
+import { addEmbededTags, createMetaFile, getImageInfo, preprocessUri, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
@@ -10,6 +10,9 @@ import { ProgressModal } from "./ProgressPopup";
 import { loc } from '../Loc/Localizer'
 import { SuggestionPopup } from "./SuggestionPopup";
 import { MenuPopup } from "./MenuPopup";
+import { exec } from "child_process";
+import { CONVERSION_SUPPORT } from "../TechnicalFiles/Constants";
+import { now } from "moment";
 
 enum Options
 {
@@ -28,7 +31,9 @@ enum Options
 	MoveImages = 12,
 	Rename = 13,
 	DeleteImage = 14,
-	DeleteMeta = 15
+	DeleteMeta = 15,
+	CopyImage = 16,
+	ShareMedia = 17
 }
 
 export class ImageMenu extends MenuPopup
@@ -77,7 +82,6 @@ export class ImageMenu extends MenuPopup
 				this.AddLabel(loc('IMAGE_MENU_COUNT',this.#targets.length.toString()));
 				this.addSeparator();
 				
-
 				this.#createItem(Options.ClearSelection);
 			}
 
@@ -91,6 +95,17 @@ export class ImageMenu extends MenuPopup
 			}
 			
 			this.addSeparator();
+			if(this.#targets.length == 1)
+			{
+				if(Platform.isMobile)
+				{
+					//this.#createItem(Options.ShareMedia);
+				}
+				if(this.#canConvertToPng(this.#targets[0]) || this.#isVideoSupported())
+				{
+					this.#createItem(Options.CopyImage);
+				}
+			}
 
 			this.#createItem(Options.CopyImageLinks);
 			this.#createItem(Options.CopyMetaLinks);
@@ -134,11 +149,11 @@ export class ImageMenu extends MenuPopup
 	{
 		const result = Options[responce as keyof typeof Options];
 		if(this.#targets.length < 50 ||
-			(result == Options.StartSelection ||
-			result == Options.EndSelection ||
-			result == Options.SelectAll ||
-			result == Options.ClearSelection ||
-			result == Options.CopyImageLinks))
+			(result == Options.StartSelection 
+			|| result == Options.EndSelection 
+			|| result == Options.SelectAll 
+			|| result == Options.ClearSelection 
+			|| result == Options.CopyImageLinks))
 		{
 			this.#results(result);
 			return;
@@ -173,6 +188,8 @@ export class ImageMenu extends MenuPopup
 			case Options.Rename: this.#resultRenameImage(); break;
 			case Options.DeleteImage: this.#resultDeleteImage(); break;
 			case Options.DeleteMeta: this.#resultDeleteMeta(); break;
+			case Options.CopyImage: this.#resultCopyImage(); break;
+			case Options.ShareMedia: this.#resultShareMedia(); break;
 			default: 
 				const error = loc('MENU_OPTION_FAULT', Options[result]);
 				new Notice(error);
@@ -208,6 +225,151 @@ export class ImageMenu extends MenuPopup
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
 		}
+	}
+
+	async #resultShareMedia()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+		
+		const imgFile = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[this.#getSource(this.#targets[0])]) as TFile;
+		const result = await fetch(this.#getSource(this.#targets[0]));
+		const blob = await result.blob();
+		const shareData: ShareData = {}
+		shareData.title = blob.name;
+		const file:File = ({
+			lastModified:imgFile.stat.mtime,
+			webkitRelativePath:'/', 
+			size:blob.size, 
+			type:blob.type, 
+			name:blob.name,
+			arrayBuffer:blob.arrayBuffer,
+			slice:blob.slice,
+			stream:blob.stream,
+			text:blob.text,
+			prototype:blob.prototype
+		} as File)
+		shareData.files = [file];
+		
+		//if(navigator.canShare(shareData))
+		if (window.isSecureContext) 
+		{
+			try
+			{
+				await navigator.share(shareData);
+			}
+			catch(e)
+			{
+				new Notice(typeof(e));
+				console.error(e)
+			}
+		}
+		else
+		{
+			new Notice(loc('CAN_NOT_SHARE'));
+		}
+	}
+
+	async #resultCopyImage()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+
+		if(this.#canConvertToPng(this.#targets[0]))
+		{
+			const blob = await this.#convertToPng(this.#targets[0] as HTMLImageElement);
+			await navigator.clipboard.write([new ClipboardItem({[blob.type]:blob})]);
+
+			new Notice(loc('COPIED_MEDIA'));
+		}
+		else
+		{
+			let path = this.#plugin.getImgResources()[this.#getSource(this.#targets[0])];
+			//@ts-ignore
+			path = this.#plugin.app.vault.adapter.getFullRealPath(path)
+			let command = null;
+			if(Platform.isWin)
+			{
+				path = path.replaceAll(' ', '\ ')
+				command = `powershell Set-Clipboard -Path '${path}'`;
+			}
+			if(Platform.isMacOS)
+			{
+				command = `pbcopy < "${path}"`;
+			}
+			if(Platform.isLinux)
+			{
+				const result = await fetch(this.#getSource(this.#targets[0]));
+				const blob = await result.blob();
+				command = `xclip -selection clipboard -t ${blob.type} -o > "${path}""`;
+			}
+			// TODO: try to find an android solution? maybe on android we should have a share option instead? oh shit, that actually makes more sense...
+
+			if(command == null)
+			{
+				new Notice(loc('PLATFORM_COPY_NOT_SUPPORTED'));
+			}
+
+			exec(command,
+				(error, stdout, stderr) =>
+				{
+					if(error)
+					{
+						console.error(stderr);
+						new Notice(loc("PLATFORM_EXEC_FAILURE"));
+					}
+					else
+					{
+						new Notice(loc('COPIED_MEDIA'));
+					}
+				});
+		}
+	}
+
+	#canConvertToPng(image:HTMLImageElement|HTMLVideoElement): boolean
+	{
+		if(image instanceof HTMLVideoElement)
+		{
+			return false;
+		}
+
+		const src = this.#getSource(this.#targets[0]);
+		if(src.match(CONVERSION_SUPPORT))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	#isVideoSupported():boolean
+	{
+		if(Platform.isWin 
+		|| Platform.isMacOS
+		|| Platform.isLinux)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+	#convertToPng(image:HTMLImageElement): Promise<Blob>
+	{
+		return new Promise((result) =>
+		{
+			const canvas = createEl('canvas');
+			const ctx = canvas.getContext('2d');
+			canvas.width = image.naturalWidth;
+			canvas.height = image.naturalHeight;
+			ctx.drawImage(image,0,0);
+			canvas.toBlob((blob) => {result(blob);}, 'image/png');
+		});
 	}
 
 	async #resultCopyImageLink()
