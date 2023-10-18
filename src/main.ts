@@ -371,7 +371,7 @@ export default class GalleryTagsPlugin extends Plugin
     }
   }
 
-  auxClick = async(event: MouseEvent) =>
+  async auxClick(event: MouseEvent)
   {
     if(event.button != 1)
     {
