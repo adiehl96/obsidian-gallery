@@ -138,15 +138,15 @@ export class ImageInfoBlock
         {
           if(imgInfoCache.frontmatter.start)
           {
-            start = imgInfoCache.frontmatter.start;
+            start = imgInfoCache.frontmatter.start.trim();
           }
           if(imgInfoCache.frontmatter.prev)
           {
-            prev = imgInfoCache.frontmatter.prev;
+            prev = imgInfoCache.frontmatter.prev.trim();
           }
           if(imgInfoCache.frontmatter.next)
           {
-            next = imgInfoCache.frontmatter.next;
+            next = imgInfoCache.frontmatter.next.trim();
           }
         }
 
