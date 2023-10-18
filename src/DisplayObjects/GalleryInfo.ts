@@ -247,9 +247,13 @@ export class GalleryInfo
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			currentVal = current.createDiv({ cls: 'gallery-info-section-value' })
-			
+			const hasExtension = new RegExp(/\.\w{2,4}/)
 			if(this.prev)
 			{
+				if(!this.prev.match(hasExtension))
+				{
+					this.prev +=".md";
+				}
 				const link = currentVal.createEl("a", { cls: 'internal-link' });
 				link.style.paddingLeft = "5px";
 				link.style.paddingRight = "5px";
@@ -259,6 +263,10 @@ export class GalleryInfo
 
 			if(this.start)
 			{
+				if(!this.start.match(hasExtension))
+				{
+					this.start +=".md";
+				}
 				const link = currentVal.createEl("a", { cls: 'internal-link' });
 				link.style.paddingLeft = "5px";
 				link.style.paddingRight = "5px";
@@ -268,6 +276,10 @@ export class GalleryInfo
 			
 			if(this.next)
 			{
+				if(!this.next.match(hasExtension))
+				{
+					this.next +=".md";
+				}
 				const link = currentVal.createEl("a", { cls: 'internal-link' });
 				link.style.paddingLeft = "5px";
 				link.style.paddingRight = "5px";
