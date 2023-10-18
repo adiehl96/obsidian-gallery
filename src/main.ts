@@ -341,8 +341,10 @@ export default class GalleryTagsPlugin extends Plugin
     }
 
     doc.off('contextmenu', this.#imgSelector, this.clickImage);
-
     doc.on('contextmenu', this.#imgSelector, this.clickImage);
+
+    doc.off('mousedown', this.#imgSelector, this.auxClick);
+    doc.on('mousedown', this.#imgSelector, this.auxClick);
   }
   
   private clickImage = (event: MouseEvent) => 
@@ -367,6 +369,24 @@ export default class GalleryTagsPlugin extends Plugin
     {
       new ImageMenu(event.pageX, event.pageY, [targetEl], null, null, this);
     }
+  }
+
+  auxClick = async(event: MouseEvent) =>
+  {
+    if(event.button != 1)
+    {
+      return;
+    }
+
+    const targetEl = <HTMLImageElement|HTMLVideoElement>event.target;
+    if (!targetEl) 
+    {
+      return;
+    }
+
+    const infoFile = await getImageInfo(targetEl.src, true, this);
+
+    this.app.workspace.getLeaf(true).openFile(infoFile as TFile);
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
@@ -402,6 +422,7 @@ export default class GalleryTagsPlugin extends Plugin
     console.log(loc("UNLOADING_PLUGIN_MESSAGE", loc('PLUGIN_NAME')))
     
     document.off('contextmenu', this.#imgSelector, this.clickImage);
+    document.off('mousedown', this.#imgSelector, this.auxClick);
     
     this.embedQueue = {};
     this.finalizedQueue = {};

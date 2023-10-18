@@ -328,6 +328,11 @@ export class GalleryInfo
 						this.plugin.app.workspace.getLeaf(false).openFile(file as TFile);
 					});
 					
+					docLink.addEventListener('auxclick', async (e) =>
+					{
+						this.plugin.app.workspace.getLeaf(true).openFile(file as TFile);
+					});
+					
 					docLink.addEventListener('contextmenu', async (e) =>
 					{
 						this.plugin.app.workspace.getLeaf(true).openFile(file as TFile);
