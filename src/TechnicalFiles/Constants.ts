@@ -14,9 +14,13 @@ export const DEFAULT_HIDDEN_INFO =
   infolinks:false,
   relatedFiles:false,
   colorPalette:false,
+  paging:false,
   tags:true,
   palette:true,
-  targetImage:true
+  targetImage:true,
+  start:true,
+  next:true,
+  prev:true
 }
 
 const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {

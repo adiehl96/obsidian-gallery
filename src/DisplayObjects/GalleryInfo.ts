@@ -3,6 +3,7 @@ import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
 import { getSearch, validString } from "../utils"
 import { loc } from '../Loc/Localizer'
+import { basename } from "path"
 
 
 export class GalleryInfo
@@ -21,6 +22,9 @@ export class GalleryInfo
     imgLinks: Array<{path : string, name: string}>
     infoLinks: Array<{path : string, name: string}>
     relatedFiles: Array<{path : string, name: string}>
+	start: string;
+	prev: string;
+	next: string;
     frontmatter: FrontMatterCache
     infoList: string[]
 
@@ -236,7 +240,49 @@ export class GalleryInfo
 			}
 		}
 
-		// Side panel links don't work normally, so this on click helps with that
+		if(!this.infoList.contains("paging") 
+			&& (validString(this.start)
+			|| validString(this.prev)
+			|| validString(this.next)))
+		{
+			current = block.createDiv({ cls: 'gallery-info-section' });
+			currentVal = current.createDiv({ cls: 'gallery-info-section-value' })
+			
+			if(this.prev)
+			{
+				const link = currentVal.createEl("a", { cls: 'internal-link' });
+				link.style.paddingLeft = "5px";
+				link.style.paddingRight = "5px";
+				link.dataset.href = this.prev;
+				link.textContent = loc('IMAGE_INFO_PAGING_PREV');
+			}
+
+			if(this.start)
+			{
+				const link = currentVal.createEl("a", { cls: 'internal-link' });
+				link.style.paddingLeft = "5px";
+				link.style.paddingRight = "5px";
+				link.dataset.href = this.start;
+				link.textContent = loc('IMAGE_INFO_PAGING_START');
+			}
+			
+			if(this.next)
+			{
+				const link = currentVal.createEl("a", { cls: 'internal-link' });
+				link.style.paddingLeft = "5px";
+				link.style.paddingRight = "5px";
+				link.dataset.href = this.next;
+				link.textContent = loc('IMAGE_INFO_PAGING_NEXT');
+			}
+		}
+
+		this.#updateLinks();
+	}
+
+	// Side panel links don't work normally, so this on click helps with that
+	async #updateLinks()
+	{
+		const files = this.plugin.app.vault.getFiles();
 		const docLinks = this.doc.querySelectorAll('a.internal-link');
 		for (let i = 0; i < docLinks.length; i++) 
 		{
@@ -244,15 +290,37 @@ export class GalleryInfo
 			const href:string = docLink?.dataset?.href;
 			if(validString(href))
 			{
-				const file = this.plugin.app.vault.getAbstractFileByPath(href);
-				
-				docLink.addEventListener('click', async (e) =>
+				let file = this.plugin.app.vault.getAbstractFileByPath(href);
+				if(file == null && !href.contains('/'))
 				{
-					if (file instanceof TFile)
+					for (let i = 0; i < files.length; i++)
 					{
-						this.plugin.app.workspace.getLeaf(false).openFile(file);
+						if(files[i].basename == href
+							|| files[i].name == href)
+						{
+							file = files[i];
+							break;
+						}
 					}
-				});
+				}
+
+				if(file == null)
+				{
+					continue;
+				}
+				
+				if (file instanceof TFile)
+				{
+					docLink.addEventListener('click', async (e) =>
+					{
+						this.plugin.app.workspace.getLeaf(false).openFile(file as TFile);
+					});
+					
+					docLink.addEventListener('contextmenu', async (e) =>
+					{
+						this.plugin.app.workspace.getLeaf(true).openFile(file as TFile);
+					});
+				}
 			}
 		}
 	}

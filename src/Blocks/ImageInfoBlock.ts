@@ -121,26 +121,50 @@ export class ImageInfoBlock
     // Handle disabled img info functionality or missing info block
     const imgInfo = await getImageInfo(imgTFile.path, false, plugin);
     let imgTags = null
+    let start:string = null;
+    let prev:string = null;
+    let next:string = null;
 
     let imgInfoCache = null
     if (imgInfo)
     {
-      // add colors if we got them
-      if(hexList.length > 0)
-      {
-          await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => {
-          if (frontmatter.Palette && frontmatter.Palette.length > 0) 
-          { 
-            return;
-          }
-          frontmatter.Palette = hexList
-        });
-      }
-
       imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
       if (imgInfoCache)
       {
         imgTags = getAllTags(imgInfoCache)
+
+        // get paging info if there is any
+        if(imgInfoCache.frontmatter)
+        {
+          if(imgInfoCache.frontmatter.start)
+          {
+            start = imgInfoCache.frontmatter.start;
+          }
+          if(imgInfoCache.frontmatter.prev)
+          {
+            prev = imgInfoCache.frontmatter.prev;
+          }
+          if(imgInfoCache.frontmatter.next)
+          {
+            next = imgInfoCache.frontmatter.next;
+          }
+        }
+
+        // add colors if we got them
+        if(hexList.length > 0)
+        {
+          if(!(imgInfoCache.frontmatter?.Palette))
+          {
+            await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => 
+            {
+              if (frontmatter.Palette && frontmatter.Palette.length > 0) 
+              { 
+                return;
+              }
+              frontmatter.Palette = hexList
+            });
+          }
+        }
       }
     }
 
@@ -233,6 +257,9 @@ export class ImageInfoBlock
       info.imgLinks = imgLinks;
       info.infoLinks = infoLinks;
       info.relatedFiles = relatedFiles;
+      info.start = start;
+      info.prev = prev;
+      info.next = next;
       info.frontmatter = frontmatter;
       info.infoList = infoList;
       

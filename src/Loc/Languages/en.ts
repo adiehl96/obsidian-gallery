@@ -185,6 +185,9 @@ export default
 	IMAGE_INFO_FIELD_INFOLINKS: "Info Links",
 	IMAGE_INFO_FIELD_RELATED: "Related Files",
 	IMAGE_INFO_FIELD_PALETTE: "Color Palette",
+	IMAGE_INFO_PAGING_START: "|Start|",
+	IMAGE_INFO_PAGING_PREV: "<<Prev",
+	IMAGE_INFO_PAGING_NEXT: "Next>>",
 
 	// Warning instructions
 	TOAST_ADDITIONAL_CONTEXT: "(click=Dismiss, right-click={0})",
