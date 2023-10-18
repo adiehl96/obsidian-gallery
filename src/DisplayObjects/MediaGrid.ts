@@ -1,7 +1,8 @@
-import { Keymap, type UserEvent } from "obsidian"
+import { Keymap, TFile, type UserEvent } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import
  {
+	 getImageInfo,
 	setLazyLoading,
 	updateFocus,
 } from '../utils'
@@ -180,6 +181,22 @@ export class MediaGrid
 			this.displayEl.addEventListener('touchstart', (e) => {this.vidTouch(e)},true);
 		}
 		this.displayEl.addEventListener('click', (e) => {this.itemClick(e)});
+
+		this.displayEl.addEventListener('auxclick', async (evt) => 
+		{		
+			let visualEl: (HTMLVideoElement | HTMLImageElement);
+			if(evt.target instanceof HTMLVideoElement || evt.target instanceof HTMLImageElement)
+			{
+				visualEl = evt.target;
+			}
+			else
+			{
+				return;
+			}
+			const infoFile = await getImageInfo(this.plugin.getImgResources()[visualEl.src], true, this.plugin);
+
+			this.plugin.app.workspace.getLeaf(true).openFile(infoFile as TFile);
+		});
 
 		this.displayEl.addEventListener('contextmenu', async (e) =>
 		{
