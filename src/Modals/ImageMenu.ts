@@ -99,7 +99,10 @@ export class ImageMenu extends MenuPopup
 			{
 				if(Platform.isMobile)
 				{
-					//this.#createItem(Options.ShareMedia);
+					if(navigator.canShare)
+					{
+						this.#createItem(Options.ShareMedia);
+					}
 				}
 				if(this.#canConvertToPng(this.#targets[0]) || this.#isVideoSupported())
 				{
@@ -237,38 +240,59 @@ export class ImageMenu extends MenuPopup
 		const imgFile = this.#plugin.app.vault.getAbstractFileByPath(this.#plugin.getImgResources()[this.#getSource(this.#targets[0])]) as TFile;
 		const result = await fetch(this.#getSource(this.#targets[0]));
 		const blob = await result.blob();
-		const shareData: ShareData = {}
-		shareData.title = blob.name;
-		const file:File = ({
-			lastModified:imgFile.stat.mtime,
-			webkitRelativePath:'/', 
-			size:blob.size, 
-			type:blob.type, 
-			name:blob.name,
-			arrayBuffer:blob.arrayBuffer,
-			slice:blob.slice,
-			stream:blob.stream,
-			text:blob.text,
-			prototype:blob.prototype
-		} as File)
-		shareData.files = [file];
-		
-		//if(navigator.canShare(shareData))
-		if (window.isSecureContext) 
+
+		if(navigator.canShare)
 		{
-			try
+			const shareData: ShareData = {}
+			shareData.title = blob.name;
+			const file:File = ({
+				lastModified:imgFile.stat.mtime,
+				webkitRelativePath:'/', 
+				size:blob.size, 
+				type:blob.type, 
+				name:blob.name,
+				arrayBuffer:blob.arrayBuffer,
+				slice:blob.slice,
+				stream:blob.stream,
+				text:blob.text,
+				prototype:blob.prototype
+			} as File)
+			shareData.files = [file];
+			
+			if(navigator.canShare(shareData))
 			{
-				await navigator.share(shareData);
+				try
+				{
+					await navigator.share(shareData);
+				}
+				catch(e)
+				{
+					new Notice(typeof(e));
+					console.error(e)
+				}
 			}
-			catch(e)
+			else
 			{
-				new Notice(typeof(e));
-				console.error(e)
+				new Notice(loc('CAN_NOT_SHARE'));
 			}
 		}
 		else
 		{
-			new Notice(loc('CAN_NOT_SHARE'));
+			
+			// const share = new Intent(Intent.ACTION_SEND);
+            // share.setType(blob.type);
+
+            // share.putExtra(Intent.EXTRA_SUBJECT, "abc");
+            // share.putExtra(Intent.EXTRA_TITLE, "abcd");
+
+            // const imageFileToShare = new File([blob],blob.name);
+
+            // Uri uri = FileProvider.getUriForFile(Main2Activity.this, "abc.dcf.fileprovider", imageFileToShare);
+
+            // share.putExtra(Intent.EXTRA_STREAM, uri);
+
+            // share.setPackage("com.abc.in");
+            // startActivity(Intent.createChooser(share, "Message"));
 		}
 	}
 
