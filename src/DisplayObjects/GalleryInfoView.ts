@@ -49,9 +49,9 @@ export class GalleryInfoView extends ItemView
     // Add code mirro editor
     this.editorEl = this.sourceEl.createEl('textarea', { cls: 'image-info-cm-editor' })
 
-    this.render = this.render.bind(this)
-    this.clear = this.clear.bind(this)
-    this.updateInfoDisplay = this.updateInfoDisplay.bind(this)
+    this.render = this.render.bind(this);
+    this.clear = this.clear.bind(this);
+    this.updateInfoDisplay = this.updateInfoDisplay.bind(this);
   }
 
   getViewType(): string
@@ -93,7 +93,13 @@ export class GalleryInfoView extends ItemView
 				state.filePath &&
 				typeof state.filePath === "string")
       {
-        this.updateInfoDisplay(state.filePath);
+        const infoFile = this.plugin.app.vault.getAbstractFileByPath(state.filePath);
+      
+        if(infoFile instanceof TFile)
+        {
+          this.infoFile = infoFile;
+          this.updateInfoDisplay(null);
+        }
 			}
 		}
     
@@ -155,13 +161,22 @@ export class GalleryInfoView extends ItemView
   {
     if(!validString(imgPath, 4))
     {
+      if(!this.infoFile)
+      {
+        return;
+      }
+    }
+    else
+    {
+      this.plugin.app.workspace.requestSaveLayout();
+
+      this.infoFile = await getImageInfo(imgPath, true, this.plugin);
+    }
+
+    if(!this.infoFile)
+    {
       return;
     }
-    this.setState
-
-    this.plugin.app.workspace.requestSaveLayout();
-
-    this.infoFile = await getImageInfo(imgPath, true, this.plugin);
 
     this.editing = false;
     this.updateToggleButton();

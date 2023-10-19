@@ -1,7 +1,7 @@
 import type { MediaGrid } from "../DisplayObjects/MediaGrid";
 import type { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, createMetaFile, getImageInfo, preprocessUri, validString } from "../utils";
+import { addEmbededTags, createMetaFile, getImageInfo, isRemoteMedia, preprocessUri, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
@@ -12,7 +12,6 @@ import { SuggestionPopup } from "./SuggestionPopup";
 import { MenuPopup } from "./MenuPopup";
 import { exec } from "child_process";
 import { CONVERSION_SUPPORT } from "../TechnicalFiles/Constants";
-import { now } from "moment";
 
 enum Options
 {
@@ -43,6 +42,7 @@ export class ImageMenu extends MenuPopup
 	#mediaGrid:MediaGrid
 	#infoView:GalleryInfoView
 	#targets:(HTMLVideoElement|HTMLImageElement)[]
+	#isRemote:boolean
 
 
 	constructor(posX:number, posY:number, targets:(HTMLVideoElement|HTMLImageElement)[], mediaSearch:MediaSearch, mediaGrid:MediaGrid, plugin: GalleryTagsPlugin, infoView:GalleryInfoView = null)
@@ -70,10 +70,23 @@ export class ImageMenu extends MenuPopup
 		{
 			if(this.#targets.length == 1)
 			{
-				this.AddLabel(loc('IMAGE_MENU_SINGLE',this.#plugin.getImgResources()[this.#targets[0].src]));
+				let path = this.#targets[0].src
+				if(isRemoteMedia(path))
+				{
+					this.#isRemote = true;
+				}
+				else
+				{
+					this.#isRemote = false;
+					path = this.#plugin.getImgResources()[this.#targets[0].src];
+				}
+				this.AddLabel(loc('IMAGE_MENU_SINGLE', path));
 				this.addSeparator();
 
-				this.#createItem(Options.OpenImageFile);
+				if(!this.#isRemote)
+				{
+					this.#createItem(Options.OpenImageFile);
+				}
 				this.#createItem(Options.OpenMetaFile);
 			}
 
@@ -95,7 +108,7 @@ export class ImageMenu extends MenuPopup
 			}
 			
 			this.addSeparator();
-			if(this.#targets.length == 1)
+			if(this.#targets.length == 1 && !this.#isRemote)
 			{
 				if(Platform.isMobile)
 				{
@@ -110,24 +123,37 @@ export class ImageMenu extends MenuPopup
 				}
 			}
 
-			this.#createItem(Options.CopyImageLinks);
+			if(!this.#isRemote)
+			{
+				this.#createItem(Options.CopyImageLinks);
+			}
 			this.#createItem(Options.CopyMetaLinks);
 			
 			this.addSeparator();
 
 			this.#createItem(Options.AddTag);
-			this.#createItem(Options.PullMetaFromFile);
-			this.#createItem(Options.RemoveTag);
-			this.#createItem(Options.MoveImages);
-			
-			if(this.#targets.length == 1)
+			if(!this.#isRemote)
 			{
-				this.#createItem(Options.Rename);
+				this.#createItem(Options.PullMetaFromFile);
+			}
+			this.#createItem(Options.RemoveTag);
+			
+			if(!this.#isRemote)
+			{
+				this.#createItem(Options.MoveImages);
+			
+				if(this.#targets.length == 1)
+				{
+					this.#createItem(Options.Rename);
+				}
 			}
 			
 			this.addSeparator();
 
-			this.#createItem(Options.DeleteImage);
+			if(!this.#isRemote)
+			{
+				this.#createItem(Options.DeleteImage);
+			}
 			this.#createItem(Options.DeleteMeta);
 		}
 
@@ -223,7 +249,7 @@ export class ImageMenu extends MenuPopup
 		}
 
 		const source = this.#getSource(this.#targets[0]);
-		const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
+		const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
 		if (infoFile instanceof TFile)
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
@@ -444,7 +470,7 @@ export class ImageMenu extends MenuPopup
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
+			const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
 			if(infoFile)
 			{
 				links += `[${infoFile.basename}](${preprocessUri(infoFile.path)})\n`
@@ -481,7 +507,7 @@ export class ImageMenu extends MenuPopup
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
+				const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -579,7 +605,7 @@ export class ImageMenu extends MenuPopup
 				progress.updateProgress(i);
 	
 				const source = this.#getSource(this.#targets[i]);
-				const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], true, this.#plugin);
+				const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
 				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
 					let tags = frontmatter.tags ?? []
 					if (!Array.isArray(tags)) 
@@ -723,7 +749,7 @@ export class ImageMenu extends MenuPopup
 			progress.updateProgress(i);
 
 			const source = this.#getSource(this.#targets[i]);
-			const infoFile = await getImageInfo(this.#plugin.getImgResources()[source], false, this.#plugin);
+			const infoFile = await getImageInfo(this.#getPath(source), false, this.#plugin);
 			if(infoFile)
 			{
 				await this.#plugin.app.vault.delete(infoFile);
@@ -783,6 +809,16 @@ export class ImageMenu extends MenuPopup
 
 		await this.#mediaSearch.updateData();
 		await this.#mediaGrid.updateDisplay();
+	}
+
+	#getPath(source:string)
+	{
+		if(this.#isRemote)
+		{
+			return source;
+		}
+
+		return this.#plugin.getImgResources()[source];
 	}
 
 	#getSource(target: (HTMLVideoElement | HTMLImageElement)) : string

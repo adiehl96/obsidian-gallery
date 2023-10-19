@@ -174,6 +174,11 @@ export class GalleryView extends ItemView
 
     this.filter.filterFill();
     
+    if(!(await this.plugin.strapped()))
+    {
+      return;
+    }
+
     await this.filter.updateData();
     await this.filter.updateDisplay();
 

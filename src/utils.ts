@@ -167,6 +167,7 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
     return null;
   }
 
+  let remote = false;
   if(imgPath.contains("app://") || imgPath.contains("http://localhost"))
   {
     imgPath = plugin.getImgResources()[imgPath];
@@ -177,6 +178,11 @@ export const getImageInfo = async (imgPath:string, create:boolean, plugin: Galle
       new Notice(warning);
       return;
     }
+  }
+  else if(imgPath.contains("http://") || imgPath.contains("https://"))
+  {
+    remote = true;
+    //return null;
   }
   
   let infoFile = null
@@ -281,6 +287,103 @@ export const getimageLink = async (info: TFile, plugin: GalleryTagsPlugin) : Pro
   }
 
   return imgLink;
+}
+
+export const isRemoteMedia = (source:string): boolean =>
+{
+  return source.contains("http://")
+  || source.contains("https://");
+}
+
+/**
+ * Attempt to scrape the remote target for info and add them to the meta
+ * @param imgPath path of media to target
+ * @param infoTFile meta file to add tags to
+ * @param plugin reference to the plugin
+ */
+export const addRemoteMeta = async (imgPath: string, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<boolean> =>
+{
+  let keywords: string[];
+  const data = plugin.app.metadataCache.getFileCache(infoTFile)
+  if(!data)
+  {
+    return false;
+  }
+
+  // if(!plugin.settings.skipMetadataOverwrite || !(data.frontmatter && data.frontmatter.tags && data.frontmatter.tags.length > 0 ))
+  // {
+  //   keywords = await getJpgTags(imgTFile, plugin);
+  // }
+  const shouldColor =(!imgPath.match(VIDEO_REGEX) 
+  && Platform.isDesktopApp
+  && !(data.frontmatter && data.frontmatter.Palette && data.frontmatter.Palette.length > 0))
+  
+  const shouldLink = !(data.frontmatter && data.frontmatter.targetImage && data.frontmatter.targetImage.length > 0)
+  let colors: FinalColor[]
+
+  // if(shouldColor)
+  // {
+  //   const measureEl = new Image();
+  //   measureEl.src = imgPath;
+
+  //   colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
+  // }
+
+  if(shouldLink || keywords || shouldColor)
+  {
+    await plugin.app.fileManager.processFrontMatter(infoTFile, async (frontmatter) => 
+    {
+      if(shouldLink)
+      {
+        frontmatter.targetImage = imgPath;
+      }
+
+      if(keywords)
+      {
+        let tags = frontmatter.tags ?? []
+        if (!Array.isArray(tags)) 
+        { 
+          tags = [tags]; 
+        }
+        let newTags = false;
+        for (let i = 0; i < keywords.length; i++) 
+        {
+          const tag = keywords[i].trim();
+          if(!validString(tag))
+          {
+            continue;
+          }
+          if(tags.contains(tag))
+          {
+            continue;
+          }
+          
+          newTags = true;
+          tags.push(tag);
+        }
+        if(newTags)
+        {
+          frontmatter.tags = tags;
+        }
+      }
+      
+      // Get image colors
+      if (shouldColor)
+      {
+        const hexList: string[] = [];
+        
+        for(let i = 0; i < colors.length; i++)
+        {
+          hexList.push(colors[i].hex);
+        }
+        
+        frontmatter.Palette = hexList;
+      }
+    });
+    return true;
+  }
+
+  return false;
 }
 
 /**

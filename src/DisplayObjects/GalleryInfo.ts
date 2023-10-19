@@ -12,6 +12,7 @@ export class GalleryInfo
 	doc: HTMLElement
 	parent: HTMLElement
 	imgFile: TFile
+	imgPath: string
 	imgInfo: TFile
 	dimensions: HTMLVideoElement
 	width: number
@@ -42,7 +43,7 @@ export class GalleryInfo
 		let current: HTMLDivElement;
 		let currentVal: HTMLDivElement;
 
-		if(!this.infoList.contains("name"))
+		if(!this.infoList.contains("name") && this.imgFile)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_NAME');
@@ -54,18 +55,18 @@ export class GalleryInfo
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_PATH');
 			const imgLink = current.createDiv({ cls: 'gallery-info-section-value' }).createEl("a", { cls: 'internal-link' }); 
-			imgLink.dataset.href = this.imgFile.path;
-			imgLink.textContent = this.imgFile.path;
+			imgLink.dataset.href = this.imgPath;
+			imgLink.textContent = this.imgPath;
 		}
 
-		if(!this.infoList.contains("extension"))
+		if(!this.infoList.contains("extension") && this.imgFile)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_EXTENSION');
 			current.createDiv({ cls: 'gallery-info-section-value' }).textContent = this.imgFile.extension;
 		}
 
-		if(!this.infoList.contains("size"))
+		if(!this.infoList.contains("size") && this.imgFile)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_SIZE');
@@ -86,7 +87,7 @@ export class GalleryInfo
 			}
 		}
 
-		if(!this.infoList.contains("date"))
+		if(!this.infoList.contains("date") && this.imgFile)
 		{
 			current = block.createDiv({ cls: 'gallery-info-section' });
 			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = loc('IMAGE_INFO_FIELD_DATE');

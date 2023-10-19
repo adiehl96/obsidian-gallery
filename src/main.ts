@@ -1,5 +1,5 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile, Platform } from 'obsidian'
-import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage } from './utils'
+import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage, addRemoteMeta, isRemoteMedia } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
@@ -25,10 +25,13 @@ export default class GalleryTagsPlugin extends Plugin
   tagCache:string[] = [];
 	imgResources: ImageResources = {}
 	metaResources: ImageResources = {}
+  #bootstrapped: boolean;
   
 
   async onload()
   {
+    this.#bootstrapped = false;
+    this.strapped = this.strapped.bind(this);
     // Load message
     await this.loadSettings();
     console.log(loc("LOADED_PLUGIN_MESSAGE", loc('PLUGIN_NAME')));
@@ -109,7 +112,15 @@ export default class GalleryTagsPlugin extends Plugin
     await this.buildCaches();
     this.#refreshColors();
     this.#registerEvents();
-    this.#refreshViewTrigger();
+    
+    const options =  {capture: true}
+    this.register(() => document.off('contextmenu', this.#imgSelector, this.clickImage, options));
+    document.on('contextmenu', this.#imgSelector, this.clickImage, options);
+
+    this.register(() => document.off('mousedown', this.#imgSelector, this.auxClick));
+    document.on('mousedown', this.#imgSelector, this.auxClick);
+
+    this.#bootstrapped = true;
   }
 
   async buildCaches()
@@ -117,6 +128,17 @@ export default class GalleryTagsPlugin extends Plugin
     this.#buildTagCache();
     this.#buildImageCache();
     await this.#buildMetaCache();
+  }
+
+  // wait for thing to finish loading up
+  async strapped(): Promise<boolean>
+  {
+    while(this.#bootstrapped !== true) 
+    {
+      await new Promise(f => setTimeout(f, 300));
+    }
+    
+    return Promise.resolve(true);
   }
 
   #registerCodeBlocks()
@@ -161,15 +183,27 @@ export default class GalleryTagsPlugin extends Plugin
         // Used for reacting to meta file creation events in real time
         if(this.embedQueue[file.path])
         {
-          const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]);
-          
-          if(imgTFile instanceof TFile)
+          if(isRemoteMedia(this.embedQueue[file.path]))
           {
-            this.finalizedQueue[file.path] = this.embedQueue[file.path];
+            const path = this.embedQueue[file.path]
+            this.finalizedQueue[file.path] = path;
             delete this.embedQueue[file.path];
             
-            this.metaResources[imgTFile.path] = file.path;
-            await addEmbededTags(imgTFile, file, this);
+            this.metaResources[path] = file.path;
+            await addRemoteMeta(path, file, this);
+          }
+          else
+          {
+            const imgTFile = this.app.vault.getAbstractFileByPath(this.embedQueue[file.path]);
+            
+            if(imgTFile instanceof TFile)
+            {
+              this.finalizedQueue[file.path] = this.embedQueue[file.path];
+              delete this.embedQueue[file.path];
+              
+              this.metaResources[imgTFile.path] = file.path;
+              await addEmbededTags(imgTFile, file, this);
+            }
           }
         }
         else if(this.finalizedQueue[file.path])
@@ -227,12 +261,12 @@ export default class GalleryTagsPlugin extends Plugin
     //     new Notice("file Menu")
     //   }));
 
-		// this.registerEvent(
-		// 	this.app.workspace.on(
-		// 		"editor-menu",
-		// 		this.testOption
-		// 	)
-		// );
+		this.registerEvent(
+			this.app.workspace.on(
+				'editor-menu',
+				this.testOption
+			)
+		);
   }
 
   #imageRegister(file:TAbstractFile)
@@ -328,24 +362,6 @@ export default class GalleryTagsPlugin extends Plugin
                               +`.community-modal-details video,`
                               +`.video-stream video`
                               +`#sr-flashcard-view video`;
-                              
-  /**
-   * Refresh image context events for main container
-   * This feels gross, but I currently don't know another way to get right click events on all images and videos
-   */
-  #refreshViewTrigger = (doc?: Document) => 
-  {
-    if (!doc) 
-    {
-      doc = document;
-    }
-
-    doc.off('contextmenu', this.#imgSelector, this.clickImage);
-    doc.on('contextmenu', this.#imgSelector, this.clickImage);
-
-    doc.off('mousedown', this.#imgSelector, this.auxClick);
-    doc.on('mousedown', this.#imgSelector, this.auxClick);
-  }
   
   private clickImage = (event: MouseEvent) => 
   {
@@ -371,7 +387,7 @@ export default class GalleryTagsPlugin extends Plugin
     }
   }
 
-  async auxClick(event: MouseEvent)
+  auxClick = async(event: MouseEvent) =>
   {
     if(event.button != 1)
     {
@@ -385,13 +401,16 @@ export default class GalleryTagsPlugin extends Plugin
     }
 
     const infoFile = await getImageInfo(targetEl.src, true, this);
-
-    this.app.workspace.getLeaf(true).openFile(infoFile as TFile);
+    if(infoFile instanceof TFile)
+    {
+      this.app.workspace.getLeaf(true).openFile(infoFile);
+    }
   }
   
   testOption (menu: Menu, editor: Editor, info: MarkdownView | MarkdownFileInfo)
   {
-    menu.addItem((item: MenuItem) => {
+    menu.addItem((item: MenuItem) => 
+    {
       item.setTitle("Test Option")
         //.setIcon("plus-circle")
         //.setSection("cmdr")
@@ -420,9 +439,6 @@ export default class GalleryTagsPlugin extends Plugin
   onunload()
   {
     console.log(loc("UNLOADING_PLUGIN_MESSAGE", loc('PLUGIN_NAME')))
-    
-    document.off('contextmenu', this.#imgSelector, this.clickImage);
-    document.off('mousedown', this.#imgSelector, this.auxClick);
     
     this.embedQueue = {};
     this.finalizedQueue = {};

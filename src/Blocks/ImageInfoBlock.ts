@@ -4,6 +4,7 @@ import { extractColors } from '../../node_modules/extract-colors'
 import
 {
   getImageInfo,
+  isRemoteMedia,
   searchForFile,
   validString
 } from '../utils'
@@ -31,6 +32,11 @@ export class ImageInfoBlock
       imgPath: '',
       ignoreInfo: ''
     };
+    
+    if(!(await plugin.strapped()))
+    {
+      return;
+    }
 
     source.split('\n').map(e =>
     {
@@ -51,50 +57,71 @@ export class ImageInfoBlock
       .map(param => param.trim().toLowerCase())
     }
 
-    args.imgPath = normalizePath(args.imgPath);
-    const imgName = args.imgPath.split('/').slice(-1)[0]
     const elCanvas = el.createDiv({
       cls: 'ob-gallery-info-block',
       attr: { style: 'width: 100%; height: auto; float: left' }
     })
 
-    // Handle problematic arg
-    if(!args.imgPath)
+    let imgTFile: TFile;
+    let imgURL: string;
+    if(isRemoteMedia(args.imgPath))
     {
-      MarkdownRenderer.render(plugin.app, loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
-      return;
+      imgURL = args.imgPath;
     }
-
-    let imgTFile = plugin.app.vault.getAbstractFileByPath(args.imgPath);
-
-    if (!(imgTFile instanceof TFile))
+    else
     {
-      const found = await searchForFile(args.imgPath, plugin);
+      args.imgPath = normalizePath(args.imgPath);
 
-      if(found.length == 0)
+      // Handle problematic arg
+      if(!args.imgPath)
       {
-        MarkdownRenderer.render(plugin.app,loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
+        MarkdownRenderer.render(plugin.app, loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
         return;
+      }
+      
+      const mightFile = plugin.app.vault.getAbstractFileByPath(args.imgPath);
+      if (!(mightFile instanceof TFile))
+      {
+        const found = await searchForFile(args.imgPath, plugin);
+
+        if(found.length == 0)
+        {
+          MarkdownRenderer.render(plugin.app,loc('GALLERY_INFO_USAGE'), elCanvas, '/', plugin)
+          return;
+        }
+        else
+        {
+          // too many options, tell the user about it
+          let output = loc('IMAGE_PATH_FAILED_FIND_WARNING');
+          for(let i = 0; i < found.length; i++)
+          {
+            output += "- imgPath="+found[i]+"\n";
+          }
+          
+          MarkdownRenderer.render(plugin.app, output, elCanvas, '/', plugin)
+          return;
+        }
       }
       else
       {
-        // too many options, tell the user about it
-        let output = loc('IMAGE_PATH_FAILED_FIND_WARNING');
-        for(let i = 0; i < found.length; i++)
+        imgTFile = mightFile;
+
+        if(!EXTENSIONS.contains(imgTFile.extension))
         {
-          output += "- imgPath="+found[i]+"\n";
+          // TODO: warn that we don't handle this file type
+          return;
         }
-        
-        MarkdownRenderer.render(plugin.app, output, elCanvas, '/', plugin)
-        return;
+
+        imgURL = plugin.app.vault.getResourcePath(imgTFile)
       }
     }
+    
+    const imgName = args.imgPath.split('/').slice(-1)[0];
 
-    let imgURL = plugin.app.vault.getResourcePath(imgTFile)
     let measureEl, isVideo
     let hexList: string[] = [];
     // Get image dimensions
-    if (imgTFile.path.match(VIDEO_REGEX))
+    if (args.imgPath.match(VIDEO_REGEX))
     {
       measureEl = document.createElement('video')
       measureEl.src = imgURL
@@ -105,7 +132,7 @@ export class ImageInfoBlock
       measureEl = new Image()
       measureEl.src = imgURL;
       
-      if(Platform.isDesktopApp)
+      if(Platform.isDesktopApp && imgTFile)
       {
         let colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
         
@@ -119,7 +146,7 @@ export class ImageInfoBlock
     }
 
     // Handle disabled img info functionality or missing info block
-    const imgInfo = await getImageInfo(imgTFile.path, false, plugin);
+    const imgInfo = await getImageInfo(args.imgPath, false, plugin);
     let imgTags = null
     let start:string = null;
     let prev:string = null;
@@ -128,42 +155,44 @@ export class ImageInfoBlock
     let imgInfoCache = null
     if (imgInfo)
     {
-      imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
-      if (imgInfoCache)
+
+    }
+
+    imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
+    if (imgInfoCache)
+    {
+      imgTags = getAllTags(imgInfoCache)
+
+      // get paging info if there is any
+      if(imgInfoCache.frontmatter)
       {
-        imgTags = getAllTags(imgInfoCache)
-
-        // get paging info if there is any
-        if(imgInfoCache.frontmatter)
+        if(imgInfoCache.frontmatter.start)
         {
-          if(imgInfoCache.frontmatter.start)
-          {
-            start = imgInfoCache.frontmatter.start.trim();
-          }
-          if(imgInfoCache.frontmatter.prev)
-          {
-            prev = imgInfoCache.frontmatter.prev.trim();
-          }
-          if(imgInfoCache.frontmatter.next)
-          {
-            next = imgInfoCache.frontmatter.next.trim();
-          }
+          start = imgInfoCache.frontmatter.start.trim();
         }
-
-        // add colors if we got them
-        if(hexList.length > 0)
+        if(imgInfoCache.frontmatter.prev)
         {
-          if(!(imgInfoCache.frontmatter?.Palette))
+          prev = imgInfoCache.frontmatter.prev.trim();
+        }
+        if(imgInfoCache.frontmatter.next)
+        {
+          next = imgInfoCache.frontmatter.next.trim();
+        }
+      }
+
+      // add colors if we got them
+      if(hexList.length > 0)
+      {
+        if(!(imgInfoCache.frontmatter?.Palette))
+        {
+          await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => 
           {
-            await plugin.app.fileManager.processFrontMatter(imgInfo, frontmatter => 
-            {
-              if (frontmatter.Palette && frontmatter.Palette.length > 0) 
-              { 
-                return;
-              }
-              frontmatter.Palette = hexList
-            });
-          }
+            if (frontmatter.Palette && frontmatter.Palette.length > 0) 
+            { 
+              return;
+            }
+            frontmatter.Palette = hexList
+          });
         }
       }
     }
@@ -207,18 +236,21 @@ export class ImageInfoBlock
     }
 
     const relatedFiles: Array<{path : string, name: string}> = []
-    const nearFiles = imgTFile.parent.children;
-    for (let i = 0; i < nearFiles.length; i++) 
+    if(imgTFile)
     {
-      const file = nearFiles[i];
-      
-      if(file instanceof TFile)
+      const nearFiles = imgTFile.parent.children;
+      for (let i = 0; i < nearFiles.length; i++) 
       {
-        if(file != imgTFile
-          && (file.basename.toLocaleLowerCase().contains(imgTFile.basename.toLocaleLowerCase())
-          || imgTFile.basename.toLocaleLowerCase().contains(file.basename.toLocaleLowerCase())))
+        const file = nearFiles[i];
+        
+        if(file instanceof TFile)
         {
-          relatedFiles.push({ path: file.path, name: file.name });
+          if(file != imgTFile
+            && (file.basename.toLocaleLowerCase().contains(imgTFile.basename.toLocaleLowerCase())
+            || imgTFile.basename.toLocaleLowerCase().contains(file.basename.toLocaleLowerCase())))
+          {
+            relatedFiles.push({ path: file.path, name: file.name });
+          }
         }
       }
     }
@@ -243,10 +275,13 @@ export class ImageInfoBlock
       vid = measureEl;
     }
 
-    if (imgTFile instanceof TFile && EXTENSIONS.contains(imgTFile.extension))
     {
       const info = new GalleryInfo(elCanvas, el.parentElement, plugin);
-      info.imgFile = imgTFile;
+      if(imgTFile)
+      {
+        info.imgFile = imgTFile;
+      }
+      info.imgPath = args.imgPath;
       info.imgInfo = imgInfo;
       info.width = width;
       info.height = height;
