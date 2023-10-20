@@ -671,7 +671,7 @@ export class ImageMenu extends MenuPopup
 				{
 					const newPath = s+"/"+file.name
 					delete this.#plugin.getImgResources()[source];
-					await this.#plugin.app.vault.rename(file, newPath);
+					await this.#plugin.app.fileManager.renameFile(file, newPath);
 				}
 			}
 	
@@ -718,7 +718,7 @@ export class ImageMenu extends MenuPopup
 				if(file)
 				{
 					delete this.#plugin.getImgResources()[this.#targets[0].src];
-					await this.#plugin.app.vault.rename(file, newName);
+					await this.#plugin.app.fileManager.renameFile(file, newName);
 				}
 				new Notice(loc('MOVED_IMAGE'));
 	
