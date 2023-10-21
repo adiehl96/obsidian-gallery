@@ -27,6 +27,30 @@
 ## [Tenative Roadmap](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_Roadmap.md)
 
 # Release Notes
+## 1.5.5
+ - Switching from vault.rename to fileManager.renameFile as suggested by chat
+ - Fixing a bug that caused the app to hang if you closed and reopened the vault with the gallery window already open
+ - Fixed a bug where you could delete an image but it would still show in searches
+
+## 1.5.4
+ - Fixing more bugs with middle and context click
+ - Fixing bug with leaving the sidebar open and reloading
+ - gallery resumes state more correctly
+ - partial support for remote media(only images so far and they don't show in the gallery yet)
+
+## 1.5.3
+Fixing a bug I didn't test propperly before releasing, sorry about that
+
+## 1.5.2
+ - Assumes paging is wants an MD file unless there is an extension
+ - Middle click to open meta file in new window
+
+## 1.5.1
+ - Context menu item to copy media to clipboard
+ - Partial support for a mobile share menu item on devices that support it (newest versions of android don't and I haven't figured that out yet)
+ - Better handling of internal links in sidebar
+ - Paging info item added for image sequences
+
 ## 1.5.0
 NOTE: As of version 1.5.0 Gallery Blocks have switched from using '=' to using ':' this is for better parody with the advanced filter. Any gallery blocks in your vault will be broken until you update these signs. (info blocks are unaffected)
  - Fixed bug where somethings width scale would break and you couldn't resize it
@@ -37,26 +61,6 @@ NOTE: As of version 1.5.0 Gallery Blocks have switched from using '=' to using '
  - new modifier for match case ^
  - Enabled multi name search
  - Fixed regex for paths
-
-## 1.4.0
- - Added system for saving and reusing filters
- - Added Setting to manage the saved filters
- - Added setting to pick a default filter to load when opening the main gallery
- - Added an option for the default filter to be the last filter you used in the main gallery
- - Gallery blocks have new argument filter that takes a saved filter name or LAST_USED and applies the filter before applying any other details in the block
-
-## 1.3.0
- - Added both a setting and a menu to change search bar types
- - New search bar type Simple Filter, which only has ignore case tag searches as an option(and takes up less screen real estate)
- - Fixing some issues with pasting filters and unifying string validation
- NOTE: there was an issue with the settings update and will not adhere to the previous show or hide setting. Going to settings and switching to classic will be the equivilent of the old show on open setting.
-
-## 1.2.1
- - Added info links for similarly named files in the same folder(this helps for if you want to make a preview image for a file type that isn't supported, like PSD files)
- - Fixing a bug where the side panel would not display properly if obsidian was closed with the gallery open
- - GH#17 Added a sort menu to the gallery and sorting options should be supported elsewhere too
- - Added toggle to switch side panel to source editing mode(since I haven't figured out a way to draw a markdown preview and edit it at the  - same time)
- - Learned an important detail about typescript under the hood that may have caused errors in some places under the wrong circumstances
 
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
