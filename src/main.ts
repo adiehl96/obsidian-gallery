@@ -112,13 +112,6 @@ export default class GalleryTagsPlugin extends Plugin
     await this.buildCaches();
     this.#refreshColors();
     this.#registerEvents();
-    
-    const options =  {capture: true}
-    this.register(() => document.off('contextmenu', this.#imgSelector, this.clickImage, options));
-    document.on('contextmenu', this.#imgSelector, this.clickImage, options);
-
-    this.register(() => document.off('mousedown', this.#imgSelector, this.auxClick));
-    document.on('mousedown', this.#imgSelector, this.auxClick);
 
     this.#bootstrapped = true;
   }
@@ -261,12 +254,19 @@ export default class GalleryTagsPlugin extends Plugin
     //     new Notice("file Menu")
     //   }));
 
-		this.registerEvent(
-			this.app.workspace.on(
-				'editor-menu',
-				this.testOption
-			)
-		);
+		// this.registerEvent(
+		// 	this.app.workspace.on(
+		// 		'editor-menu',
+		// 		this.testOption
+		// 	)
+		// );
+    
+    const options =  {capture: true}
+    this.register(() => document.off('contextmenu', this.#imgSelector, this.clickImage, options));
+    document.on('contextmenu', this.#imgSelector, this.clickImage, options);
+
+    this.register(() => document.off('mousedown', this.#imgSelector, this.auxClick));
+    document.on('mousedown', this.#imgSelector, this.auxClick);
   }
 
   #imageRegister(file:TAbstractFile)

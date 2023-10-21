@@ -786,6 +786,7 @@ export class ImageMenu extends MenuPopup
 			if(file)
 			{
 				await this.#plugin.app.vault.delete(file);
+				delete this.#plugin.getImgResources()[source];
 			}
 			if(infoFile)
 			{
