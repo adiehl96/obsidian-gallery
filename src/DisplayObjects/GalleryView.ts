@@ -174,6 +174,17 @@ export class GalleryView extends ItemView
 
     this.filter.filterFill();
     
+    const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
+    
+    // Add listener to change active file
+    this.mediaGrid.setupClickEvents(infoView);
+
+    this.loadResults();
+  }
+
+  async loadResults()
+  {
+    
     if(!(await this.plugin.strapped()))
     {
       return;
@@ -181,10 +192,5 @@ export class GalleryView extends ItemView
 
     await this.filter.updateData();
     await this.filter.updateDisplay();
-
-    const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
-    
-    // Add listener to change active file
-    this.mediaGrid.setupClickEvents(infoView);
   }
 }
