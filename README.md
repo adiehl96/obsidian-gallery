@@ -27,6 +27,15 @@
 ## [Tenative Roadmap](https://github.com/TomNCatz/obsidian-gallery/blob/main/docs/README_Roadmap.md)
 
 # Release Notes
+## 1.6.1
+ - Fixing a bug with alternative tag fields that prevented proper search
+ - Menu option to open the info panel when the info panel would not open automatically
+ - Now remembers the last choice on the info panel toggle
+
+## 1.6.0
+ - GH#19 allow re-targeting tags field
+ - GH#20 toggle for opening the info panel on click in the gallery
+
 ## 1.5.5
  - Switching from vault.rename to fileManager.renameFile as suggested by chat
  - Fixing a bug that caused the app to hang if you closed and reopened the vault with the gallery window already open
@@ -37,30 +46,6 @@
  - Fixing bug with leaving the sidebar open and reloading
  - gallery resumes state more correctly
  - partial support for remote media(only images so far and they don't show in the gallery yet)
-
-## 1.5.3
-Fixing a bug I didn't test propperly before releasing, sorry about that
-
-## 1.5.2
- - Assumes paging is wants an MD file unless there is an extension
- - Middle click to open meta file in new window
-
-## 1.5.1
- - Context menu item to copy media to clipboard
- - Partial support for a mobile share menu item on devices that support it (newest versions of android don't and I haven't figured that out yet)
- - Better handling of internal links in sidebar
- - Paging info item added for image sequences
-
-## 1.5.0
-NOTE: As of version 1.5.0 Gallery Blocks have switched from using '=' to using ':' this is for better parody with the advanced filter. Any gallery blocks in your vault will be broken until you update these signs. (info blocks are unaffected)
- - Fixed bug where somethings width scale would break and you couldn't resize it
- - Fixing a mobile specific bug for video files
- - Fixing some edge detection issues with menus
- - Plugin now attempts to reopen side panel to what was open on close
- - Advanced search option with a new regex override option and frontmatter filters
- - new modifier for match case ^
- - Enabled multi name search
- - Fixed regex for paths
 
 
 This is a continuation of developement from Darakah's obsidian-gallery, found here https://github.com/Darakah/obsidian-gallery
