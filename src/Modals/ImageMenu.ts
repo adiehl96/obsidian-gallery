@@ -3,7 +3,7 @@ import type { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from "../main";
 import { addEmbededTags, addTag, createMetaFile, getImageInfo, isRemoteMedia, preprocessUri, removeTag, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
-import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
+import { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
 import { ConfirmModal } from "./ConfirmPopup";
 import { ProgressModal } from "./ProgressPopup";
@@ -32,7 +32,8 @@ enum Options
 	DeleteImage = 14,
 	DeleteMeta = 15,
 	CopyImage = 16,
-	ShareMedia = 17
+	ShareMedia = 17,
+	OpenInfoLeaf = 18
 }
 
 export class ImageMenu extends MenuPopup
@@ -87,6 +88,13 @@ export class ImageMenu extends MenuPopup
 				{
 					this.#createItem(Options.OpenImageFile);
 				}
+
+				if((this.#mediaSearch && !this.#plugin.platformSettings().rightClickInfoGallery)
+					||(!this.#mediaSearch && !this.#plugin.platformSettings().rightClickInfo))
+				{
+					this.#createItem(Options.OpenInfoLeaf);
+				}
+
 				this.#createItem(Options.OpenMetaFile);
 			}
 
@@ -219,6 +227,7 @@ export class ImageMenu extends MenuPopup
 			case Options.DeleteMeta: this.#resultDeleteMeta(); break;
 			case Options.CopyImage: this.#resultCopyImage(); break;
 			case Options.ShareMedia: this.#resultShareMedia(); break;
+			case Options.OpenInfoLeaf: this.#resultOpenInfoLeaf(); break;
 			default: 
 				const error = loc('MENU_OPTION_FAULT', Options[result]);
 				new Notice(error);
@@ -254,6 +263,18 @@ export class ImageMenu extends MenuPopup
 		{
 			this.#plugin.app.workspace.getLeaf(false).openFile(infoFile)
 		}
+	}
+
+	async #resultOpenInfoLeaf()
+	{
+		if(this.#infoView)
+		{
+			this.#infoView.clear()
+		}
+
+		const source = this.#getSource(this.#targets[0]);
+		
+		await GalleryInfoView.OpenLeaf(this.#plugin, source);
 	}
 
 	async #resultShareMedia()

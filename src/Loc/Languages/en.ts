@@ -153,6 +153,7 @@ export default
 	IMAGE_MENU_COMMAND_15: "Delete just meta",
 	IMAGE_MENU_COMMAND_16: "Copy image",
 	IMAGE_MENU_COMMAND_17: "Share media",
+	IMAGE_MENU_COMMAND_18: "Open info panel",
 	MENU_OPTION_FAULT: "context options {0} is not accounted for",
 	MASS_CONTEXT_CONFIRM: "There are {0} files selected for '{1}' are you sure?",
 	COPIED_MEDIA: "Media copied to clipboard",
