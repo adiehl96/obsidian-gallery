@@ -3,6 +3,7 @@ import type GalleryTagsPlugin from "../main"
 import
  {
 	getImageInfo,
+	getTags,
 	validString
 } from '../utils'
 import { parseFilterInfo, type Criteria, Mods } from '../TechnicalFiles/GammarParse'
@@ -414,7 +415,7 @@ export class MediaSearch
 						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
 						if (imgInfoCache)
 						{
-							imgTags = getAllTags(imgInfoCache);
+							imgTags = getTags(imgInfoCache, this.plugin);
 							frontMatter = this.#getFrontmatter(imgInfoCache);
 						}
 					}
