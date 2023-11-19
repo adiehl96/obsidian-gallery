@@ -28,6 +28,7 @@ const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   defaultFilter: "", 
   lastFilter: "",
   rightClickInfo: true,
+  rightClickInfoGallery: true,
   rightClickMenu: true,
   width: 400,
   useMaxHeight: false,

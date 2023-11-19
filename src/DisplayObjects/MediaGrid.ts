@@ -1,8 +1,7 @@
-import { Keymap, TFile, type UserEvent } from "obsidian"
+import { Keymap, type UserEvent } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import
  {
-	 getImageInfo,
 	setLazyLoading,
 	updateFocus,
 } from '../utils'
@@ -166,16 +165,14 @@ export class MediaGrid
 		this.displayEl.scrollTop = scrollPosition;
 	}
 
-	setupClickEvents(infoView:GalleryInfoView = null)
+	setupClickEvents()
 	{
     	// Create gallery display Element		
 		this.imageFocusEl = this.displayEl.createDiv({ cls: 'ob-gallery-image-focus', attr: { style: 'display: none;' } })
 		const focusElContainer = this.imageFocusEl.createDiv({ attr: { class: 'focus-element-container' } })
 		this.focusImage = focusElContainer.createEl('img', { attr: { style: 'display: none;' } })
 		this.focusVideo = focusElContainer.createEl('video', { attr: { controls: 'controls', src: ' ', style: 'display: none; margin:auto;' } })
-	
-		this.infoView = infoView;
-		
+			
 		if ('ontouchstart' in document.documentElement === true)
 		{
 			this.displayEl.addEventListener('touchstart', (e) => {this.vidTouch(e)},true);
@@ -217,13 +214,16 @@ export class MediaGrid
 				updateFocus(this.focusImage, this.focusVideo, this.mediaSearch.imgList[this.#imgFocusIndex], false)
 			}
 			
-			if(infoView)
+			if(this.plugin.platformSettings().rightClickInfoGallery)
 			{
-				await infoView.updateInfoDisplay(this.plugin.getImgResources()[this.mediaSearch.imgList[this.#imgFocusIndex]]);
-			}
-			else
-			{
-				infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[this.mediaSearch.imgList[this.#imgFocusIndex]]);
+				if(this.infoView)
+				{
+					await this.infoView.updateInfoDisplay(this.plugin.getImgResources()[this.mediaSearch.imgList[this.#imgFocusIndex]]);
+				}
+				else
+				{
+					this.infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[this.mediaSearch.imgList[this.#imgFocusIndex]]);
+				}
 			}
 		}
 
@@ -246,10 +246,10 @@ export class MediaGrid
 
 			if (this.imageFocusEl.style.getPropertyValue('display') != 'block')
 			{
-			return;
+				return;
 			}
 
-			if (infoView && infoView.sourceEl.style.getPropertyValue('display') === 'block')
+			if (this.infoView && this.infoView.sourceEl.style.getPropertyValue('display') === 'block')
 			{
 				return;
 			}
@@ -301,13 +301,17 @@ export class MediaGrid
 			return;
 		}
 			
-		if(this.infoView)
+			
+		if(this.plugin.platformSettings().rightClickInfoGallery)
 		{
-			await this.infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
-		}
-		else
-		{
-			this.infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[visualEl.src]);
+			if(this.infoView)
+			{
+				await this.infoView.updateInfoDisplay(this.plugin.getImgResources()[visualEl.src]);
+			}
+			else
+			{
+				this.infoView = await GalleryInfoView.OpenLeaf(this.plugin, this.plugin.getImgResources()[visualEl.src]);
+			}
 		}
 
 		if(Keymap.isModifier(evt as UserEvent, 'Shift') || this.selectMode)

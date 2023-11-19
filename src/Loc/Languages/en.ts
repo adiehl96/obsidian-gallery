@@ -76,6 +76,7 @@ export default
 	GALLERY_VIEW_TITLE: "Gallery View",
 	FILTER_TOOLTIP: "Filter Actions",
 	SEARCH_TOOLTIP: "Change Search Bar",
+	INFO_TOGGLE_TOOLTIP: "Toggle the info panel",
 	SORT_ORDER_TOOLTIP: "Sort Options",
 	COUNT_TOOLTIP: "Number of files displayed by filter out of files the gallery could display",
 	FILTER_PATH_TOOLTIP: "Folder to search",

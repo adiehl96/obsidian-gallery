@@ -19,6 +19,7 @@ export interface PlatformSettings
   defaultFilter: string
   lastFilter: string
   rightClickInfo: boolean
+  rightClickInfoGallery: boolean
   rightClickMenu: boolean
   width: number
   useMaxHeight: boolean

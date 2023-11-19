@@ -1,4 +1,4 @@
-import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile, Platform } from 'obsidian'
+import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, TFolder, TAbstractFile, Platform } from 'obsidian'
 import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage, addRemoteMeta, isRemoteMedia, getTags } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'

@@ -49,7 +49,7 @@ export class GalleryView extends ItemView
     // Create Search Control Element
     this.filterEl = this.viewEl.createDiv({ cls: 'ob-gallery-filter', attr: { style: 'display: none;' } })
 
-    // Add action button to hide / show filter panel
+    // Add button to open the filter menu
     const filterButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('FILTER_TOOLTIP') } })
     setIcon(filterButton, 'filter')
 
@@ -58,13 +58,38 @@ export class GalleryView extends ItemView
 		  new FilterMenu(event.pageX, event.pageY, this.filter, this.mediaSearch, this.plugin );
 		});
     
-    // Add action button to hide / show filter panel
+    // Add button to open the search bar menu
     const searchButton = viewActionsEl?.createEl('a', { cls: 'view-action', attr: { 'aria-label': loc('SEARCH_TOOLTIP') } })
     setIcon(searchButton, 'fa-search')
 
 		searchButton.addEventListener('click', (event) =>
 		{
 		  new FilterTypeMenu(event.pageX, event.pageY, this.filterType, this.plugin.accentColor, (filterType) => this.setFilter(filterType));
+		});
+    
+    // Add toggle for opening the info panel
+    const infoToggle = viewActionsEl?.createDiv({
+		  cls: 'icon-toggle',
+		  attr: { 'aria-label': loc('INFO_TOGGLE_TOOLTIP')}
+		})
+    setIcon(infoToggle, 'contact')
+
+    if(plugin.platformSettings().rightClickInfoGallery)
+    {
+      infoToggle.addClass("icon-checked");
+    }
+
+		infoToggle.addEventListener('click', (event) =>
+		{
+      plugin.platformSettings().rightClickInfoGallery = !plugin.platformSettings().rightClickInfoGallery;
+		  if(plugin.platformSettings().rightClickInfoGallery)
+		  {
+        infoToggle.addClass("icon-checked");
+		  }
+		  else
+		  {
+        infoToggle.removeClass("icon-checked");
+		  }
 		});
     
     // mover the context menu to the end of the action list
@@ -173,11 +198,9 @@ export class GalleryView extends ItemView
     }
 
     this.filter.filterFill();
-    
-    const infoView = await GalleryInfoView.OpenLeaf(this.plugin);
-    
+        
     // Add listener to change active file
-    this.mediaGrid.setupClickEvents(infoView);
+    this.mediaGrid.setupClickEvents();
 
     this.loadResults();
   }
