@@ -79,9 +79,11 @@ export class GalleryView extends ItemView
       infoToggle.addClass("icon-checked");
     }
 
-		infoToggle.addEventListener('click', (event) =>
+		infoToggle.addEventListener('click', async (event) =>
 		{
       plugin.platformSettings().rightClickInfoGallery = !plugin.platformSettings().rightClickInfoGallery;
+      await this.plugin.saveSettings();
+
 		  if(plugin.platformSettings().rightClickInfoGallery)
 		  {
         infoToggle.addClass("icon-checked");
