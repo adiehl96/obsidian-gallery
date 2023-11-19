@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: GallerySettings = {
   desktop: DEFAULT_PLATFORM_SETTINGS,
   mobile: DEFAULT_PLATFORM_SETTINGS,
   skipMetadataOverwrite: false,
+  alternativeTags: null,
   namedFilters: []
 }
 

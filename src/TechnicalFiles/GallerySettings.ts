@@ -9,6 +9,7 @@ export interface GallerySettings
   desktop: PlatformSettings
   mobile: PlatformSettings
   skipMetadataOverwrite: boolean
+  alternativeTags: string
   namedFilters: NamedFilter[]
 }
 

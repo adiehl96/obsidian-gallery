@@ -1,5 +1,5 @@
 import { Plugin, type WorkspaceLeaf, addIcon, Menu, Editor, MarkdownView, type MarkdownFileInfo, MenuItem, Notice, TFile, getAllTags, TFolder, TAbstractFile, Platform } from 'obsidian'
-import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage, addRemoteMeta, isRemoteMedia } from './utils'
+import { scaleColor, type ImageResources, addEmbededTags, getimageLink, getImageInfo, preprocessUri, ToastMessage, addRemoteMeta, isRemoteMedia, getTags } from './utils'
 import { GallerySettingTab } from './settings'
 import { GalleryBlock } from './Blocks/GalleryBlock'
 import { ImageInfoBlock } from './Blocks/ImageInfoBlock'
@@ -118,7 +118,7 @@ export default class GalleryTagsPlugin extends Plugin
 
   async buildCaches()
   {
-    this.#buildTagCache();
+    this.buildTagCache();
     this.#buildImageCache();
     await this.#buildMetaCache();
   }
@@ -204,9 +204,10 @@ export default class GalleryTagsPlugin extends Plugin
           GalleryInfoView.OpenLeaf(this, this.finalizedQueue[file.path]);
           delete this.finalizedQueue[file.path];
         }
+
         
         // try to catch and cache any new tags
-        const newTags = getAllTags(cache);
+        const newTags = getTags(cache, this);
         for(let k = 0; k < newTags.length; k++)
         {
           if(!this.tagCache.contains(newTags[k]))
@@ -283,14 +284,14 @@ export default class GalleryTagsPlugin extends Plugin
     this.getImgResources()[this.app.vault.getResourcePath(file)] = file.path;
   }
 
-  #buildTagCache()
+  buildTagCache()
   {
     this.tagCache = [];
     
 		const files = this.app.vault.getMarkdownFiles();
 		for(let i = 0; i < files.length; i++)
 		{
-			const tags = getAllTags(this.app.metadataCache.getFileCache(files[i]));
+			const tags = getTags(this.app.metadataCache.getFileCache(files[i]), this);
 			for(let k = 0; k < tags.length; k++)
 			{
 				if(!this.tagCache.contains(tags[k]))

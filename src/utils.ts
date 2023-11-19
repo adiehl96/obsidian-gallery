@@ -1,5 +1,5 @@
-import type { App, TAbstractFile } from 'obsidian'
-import { TFile, normalizePath, Notice, Platform } from 'obsidian'
+import type { App, CachedMetadata, FrontMatterCache, TAbstractFile } from 'obsidian'
+import { TFile, normalizePath, Notice, Platform, getAllTags } from 'obsidian'
 import type GalleryTagsPlugin from './main'
 import { ExifData, ExifParserFactory } from 'ts-exif-parser'
 import { extractColors, type FinalColor } from '../node_modules/extract-colors'
@@ -298,86 +298,26 @@ export const isRemoteMedia = (source:string): boolean =>
 /**
  * Attempt to scrape the remote target for info and add them to the meta
  * @param imgPath path of media to target
- * @param infoTFile meta file to add tags to
+ * @param infoTFile meta file to add info to
  * @param plugin reference to the plugin
  */
 export const addRemoteMeta = async (imgPath: string, infoTFile: TFile, plugin: GalleryTagsPlugin): Promise<boolean> =>
 {
-  let keywords: string[];
   const data = plugin.app.metadataCache.getFileCache(infoTFile)
   if(!data)
   {
     return false;
   }
-
-  // if(!plugin.settings.skipMetadataOverwrite || !(data.frontmatter && data.frontmatter.tags && data.frontmatter.tags.length > 0 ))
-  // {
-  //   keywords = await getJpgTags(imgTFile, plugin);
-  // }
-  const shouldColor =(!imgPath.match(VIDEO_REGEX) 
-  && Platform.isDesktopApp
-  && !(data.frontmatter && data.frontmatter.Palette && data.frontmatter.Palette.length > 0))
   
   const shouldLink = !(data.frontmatter && data.frontmatter.targetImage && data.frontmatter.targetImage.length > 0)
-  let colors: FinalColor[]
 
-  // if(shouldColor)
-  // {
-  //   const measureEl = new Image();
-  //   measureEl.src = imgPath;
-
-  //   colors = await extractColors(measureEl, EXTRACT_COLORS_OPTIONS)
-  // }
-
-  if(shouldLink || keywords || shouldColor)
+  if(shouldLink)
   {
     await plugin.app.fileManager.processFrontMatter(infoTFile, async (frontmatter) => 
     {
       if(shouldLink)
       {
         frontmatter.targetImage = imgPath;
-      }
-
-      if(keywords)
-      {
-        let tags = frontmatter.tags ?? []
-        if (!Array.isArray(tags)) 
-        { 
-          tags = [tags]; 
-        }
-        let newTags = false;
-        for (let i = 0; i < keywords.length; i++) 
-        {
-          const tag = keywords[i].trim();
-          if(!validString(tag))
-          {
-            continue;
-          }
-          if(tags.contains(tag))
-          {
-            continue;
-          }
-          
-          newTags = true;
-          tags.push(tag);
-        }
-        if(newTags)
-        {
-          frontmatter.tags = tags;
-        }
-      }
-      
-      // Get image colors
-      if (shouldColor)
-      {
-        const hexList: string[] = [];
-        
-        for(let i = 0; i < colors.length; i++)
-        {
-          hexList.push(colors[i].hex);
-        }
-        
-        frontmatter.Palette = hexList;
       }
     });
     return true;
@@ -431,11 +371,7 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
 
       if(keywords)
       {
-        let tags = frontmatter.tags ?? []
-        if (!Array.isArray(tags)) 
-        { 
-          tags = [tags]; 
-        }
+        let tags = getTags(data, plugin);
         let newTags = false;
         for (let i = 0; i < keywords.length; i++) 
         {
@@ -452,8 +388,10 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
           newTags = true;
           tags.push(tag);
         }
+
         if(newTags)
         {
+          setTags(frontmatter, tags, plugin);
           frontmatter.tags = tags;
         }
       }
@@ -475,6 +413,132 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
   }
 
   return false;
+}
+
+export const addTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin ): Promise<void> =>
+{
+  await plugin.app.fileManager.processFrontMatter(imageInfo, (frontmatter) => 
+  {
+    let tags = getFrontTags(frontmatter, plugin);
+    if (!Array.isArray(tags)) 
+    { 
+      tags = [tags]; 
+    }
+
+    if(tags.contains(tag))
+    {
+      return;
+    }
+
+    tags.push(tag);
+    setTags(frontmatter, tags, plugin);
+  });
+}
+
+export const removeTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin ): Promise<void> =>
+{
+  await plugin.app.fileManager.processFrontMatter(imageInfo, frontmatter => 
+  {
+    let tags = getFrontTags(frontmatter, plugin);
+    if (!Array.isArray(tags)) 
+    { 
+      tags = [tags]; 
+    }
+
+    let change = false;
+    const tagNoHash = tag.replace('#','');
+    const tagAddHash = '#'+tag;
+
+    if(tags.contains(tagNoHash))
+    {
+      tags.remove(tagNoHash);
+      change = true;
+    }
+    if(tags.contains(tag))
+    {
+      tags.remove(tag);
+      change = true;
+    }
+    if(tags.contains(tagAddHash))
+    {
+      tags.remove(tagAddHash);
+      change = true;
+    }
+
+    if(change)
+    {
+      setTags(frontmatter, tags, plugin);
+    }
+  });
+}
+
+const getFrontTags = (frontmatter:FrontMatterCache, plugin:GalleryTagsPlugin): string[] =>
+{
+  let tags :string[]
+  let found;
+  if(validString(plugin.settings.alternativeTags))
+  {
+    found = frontmatter[plugin.settings.alternativeTags] ?? []
+  }
+  else
+  {
+    found = frontmatter?.tags ?? []
+  }
+
+  if (!Array.isArray(found)) 
+  { 
+    tags = [found]; 
+  }
+  else
+  {
+    tags = found;
+  }
+
+  return tags;
+}
+
+export const getTags = (metaCache:CachedMetadata, plugin:GalleryTagsPlugin): string[] =>
+{
+  let tags :string[]
+  let found;
+  if(validString(plugin.settings.alternativeTags))
+  {
+    if(metaCache.frontmatter)
+    {
+      found = metaCache.frontmatter[plugin.settings.alternativeTags] ?? [];
+    }
+    else
+    {
+      found = [];
+    }
+  }
+  else
+  {
+    found = getAllTags(metaCache)
+  }
+
+  if (!Array.isArray(found)) 
+  { 
+    tags = [found]; 
+  }
+  else
+  {
+    tags = found;
+  }
+
+  return tags;
+}
+
+export const setTags = (frontmatter:FrontMatterCache, tags:string[], plugin:GalleryTagsPlugin) =>
+{
+  if(validString(plugin.settings.alternativeTags))
+  {
+    frontmatter[plugin.settings.alternativeTags] = tags;
+  }
+  else
+  {
+    frontmatter.tags = tags
+  }
 }
 
 const getJpgTags = async (imgTFile: TFile, plugin: GalleryTagsPlugin): Promise<string[]> =>

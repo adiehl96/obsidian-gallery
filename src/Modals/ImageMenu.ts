@@ -1,7 +1,7 @@
 import type { MediaGrid } from "../DisplayObjects/MediaGrid";
 import type { MediaSearch } from "../TechnicalFiles/MediaSearch"
 import type GalleryTagsPlugin from "../main";
-import { addEmbededTags, createMetaFile, getImageInfo, isRemoteMedia, preprocessUri, validString } from "../utils";
+import { addEmbededTags, addTag, createMetaFile, getImageInfo, isRemoteMedia, preprocessUri, removeTag, validString } from "../utils";
 import { Notice, Platform, TFile } from "obsidian";
 import type { GalleryInfoView } from "../DisplayObjects/GalleryInfoView";
 import { FuzzyFolders, FuzzyTags } from "./FuzzySearches";
@@ -508,21 +508,7 @@ export class ImageMenu extends MenuPopup
 	
 				const source = this.#getSource(this.#targets[i]);
 				const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
-				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
-					let tags = frontmatter.tags ?? []
-					if (!Array.isArray(tags)) 
-					{ 
-						tags = [tags]; 
-					}
-
-					if(tags.contains(tag))
-					{
-						return;
-					}
-
-					tags.push(tag);
-					frontmatter.tags = tags;
-				});
+				addTag(infoFile, tag, this.#plugin);
 			}
 			
 			new Notice(loc('ADDED_TAG'));
@@ -606,38 +592,7 @@ export class ImageMenu extends MenuPopup
 	
 				const source = this.#getSource(this.#targets[i]);
 				const infoFile = await getImageInfo(this.#getPath(source), true, this.#plugin);
-				this.#plugin.app.fileManager.processFrontMatter(infoFile, frontmatter => {
-					let tags = frontmatter.tags ?? []
-					if (!Array.isArray(tags)) 
-					{ 
-						tags = [tags]; 
-					}
-
-					let change = false;
-					const tagNoHash = tag.replace('#','');
-					const tagAddHash = '#'+tag;
-
-					if(tags.contains(tagNoHash))
-					{
-						tags.remove(tagNoHash);
-						change = true;
-					}
-					if(tags.contains(tag))
-					{
-						tags.remove(tag);
-						change = true;
-					}
-					if(tags.contains(tagAddHash))
-					{
-						tags.remove(tagAddHash);
-						change = true;
-					}
-
-					if(change)
-					{
-						frontmatter.tags = tags;
-					}
-				});
+				removeTag(infoFile, tag, this.#plugin);
 			}
 			
 			new Notice(loc('REMOVED_TAG'));

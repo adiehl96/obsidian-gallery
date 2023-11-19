@@ -1,7 +1,7 @@
 import { type FrontMatterCache, TFile, getAllTags, setIcon } from "obsidian"
 import type GalleryTagsPlugin from "../main"
 import { SuggestionDropdown } from "../Modals/SuggestionDropdown"
-import { getSearch, validString } from "../utils"
+import { addTag, getSearch, removeTag, validString } from "../utils"
 import { loc } from '../Loc/Localizer'
 import { basename } from "path"
 
@@ -116,19 +116,9 @@ export class GalleryInfo
 					setIcon(removal, 'x')
 					removal.addEventListener('click', 
 					async (s) =>{
-						await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, frontmatter => {
-							let tags = frontmatter.tags ?? [];
-							if (!Array.isArray(tags)) 
-							{ 
-								tags = [tags]; 
-							}
-		
-							tags.remove(this.tagList[i]);
-							tags.remove(this.tagList[i].replace("#",""));
-							frontmatter.tags = tags;
-							this.tagList.remove(this.tagList[i])
-							this.updateDisplay();
-						});
+						await removeTag(this.imgInfo,this.tagList[i],this.plugin);
+						this.tagList.remove(this.tagList[i])
+						this.updateDisplay();
 					});
 				}
 			}
@@ -143,25 +133,12 @@ export class GalleryInfo
 					{
 						return;
 					}
-					await this.plugin.app.fileManager.processFrontMatter(this.imgInfo, (frontmatter) => {
-						let tags = frontmatter.tags ?? []
-						if (!Array.isArray(tags)) 
-						{ 
-							tags = [tags]; 
-						}
+					await addTag(this.imgInfo, tag, this.plugin);
+					
+					this.tagList.push(tag)
+					this.updateDisplay();
 
-						if(tags.contains(tag))
-						{
-							return;
-						}
-
-						tags.push(tag);
-						frontmatter.tags = tags;
-						this.tagList.push(tag)
-						this.updateDisplay();
-
-						(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
-						});
+					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
 				});
 			suggetions.ignoreList = this.tagList;
 		}

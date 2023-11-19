@@ -4,6 +4,7 @@ import { extractColors } from '../../node_modules/extract-colors'
 import
 {
   getImageInfo,
+  getTags,
   isRemoteMedia,
   searchForFile,
   validString
@@ -155,13 +156,12 @@ export class ImageInfoBlock
     let imgInfoCache = null
     if (imgInfo)
     {
-
+      imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
     }
-
-    imgInfoCache = plugin.app.metadataCache.getFileCache(imgInfo)
+    
     if (imgInfoCache)
     {
-      imgTags = getAllTags(imgInfoCache)
+      imgTags = getTags(imgInfoCache, plugin);
 
       // get paging info if there is any
       if(imgInfoCache.frontmatter)

@@ -53,6 +53,8 @@ export default
 	SETTING_META_TEMPLATE_DESC7: "<% IMG PATH %> : Path to the image(including file name)",
 	SETTING_META_TEMPLATE_DESC8: "<% IMG NAME %> : File name for the image",
 	SETTING_QUICK_IMPORT_TITLE: "Skip Keyword import for existing keys",
+	SETTING_ALTERNATIVE_TAGS_TITLE: "Alternative tags",
+	SETTING_ALTERNATIVE_TAGS_DESC: "Name of frontmatter field to use for tags instead of tags. Leave blank to used tags.",
 	SETTING_QUICK_IMPORT_DESC: "If this is toggled then when pulling metadata from the image file, it will be skipped if there is already an internal metadate file with keywords. This saves time on imports, but if you change the meta in the original files those changes will not be reflected.",
 	SETTING_HIDDEN_INFO_TITLE: "Default hidden info",
 	SETTING_HIDDEN_INFO_DESC: "When no hidden info items are specified in an image info block these info items will be hidden.",

@@ -234,6 +234,22 @@ export class GallerySettingTab extends PluginSettingTab
     infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC4'), attr: { style: 'font-weight: 900;' } })
     infoPathSetting.descEl.createDiv({ text: loc('SETTING_META_FOLDER_DESC5') })
     
+    // Alternative tags field
+    new Setting(containerEl)
+      .setName(loc('SETTING_ALTERNATIVE_TAGS_TITLE'))
+      .setDesc(loc('SETTING_ALTERNATIVE_TAGS_DESC'))
+      .addText(text =>
+        {
+          text
+          .setValue(this.plugin.settings.alternativeTags)
+          .onChange(async value =>
+            {
+              this.plugin.settings.alternativeTags = value;
+              await this.plugin.saveSettings();
+              this.plugin.buildTagCache();
+            });
+        })
+        
     // Should add keys even if they already exist
     new Setting(containerEl)
       .setName(loc('SETTING_QUICK_IMPORT_TITLE'))
