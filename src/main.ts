@@ -23,6 +23,7 @@ export default class GalleryTagsPlugin extends Plugin
   embedQueue: ImageResources = {};
   finalizedQueue: ImageResources = {};
   tagCache:string[] = [];
+  propertyCache:Record<string,string[]> = {};
 	imgResources: ImageResources = {}
 	metaResources: ImageResources = {}
   #bootstrapped: boolean;
@@ -80,6 +81,16 @@ export default class GalleryTagsPlugin extends Plugin
       return [];
     }
     return this.tagCache;
+  }
+
+  getFieldTags(field:string) : string[]
+  {
+    if(this.propertyCache === undefined)
+    {
+      this.bootstrapFailed('CAUSE_TAG_CACHE');
+      return [];
+    }
+    return this.propertyCache[field];
   }
 
   getImgResources() : ImageResources
@@ -207,12 +218,32 @@ export default class GalleryTagsPlugin extends Plugin
 
         
         // try to catch and cache any new tags
-        const newTags = getTags(cache, this);
+        const newTags = getTags(cache);
         for(let k = 0; k < newTags.length; k++)
         {
           if(!this.tagCache.contains(newTags[k]))
           {
             this.tagCache.push(newTags[k])
+          }
+        }
+        
+		    const propertyList = Object.keys(this.settings.autoCompleteFields);
+        for(let i = 0; i < propertyList.length; i++)
+        {
+          const field = propertyList[i];
+          
+          if(!this.propertyCache[field])
+          {
+            this.propertyCache[field] = [];
+          }
+
+          const newTags = getTags(cache, field);
+          for(let k = 0; k < newTags.length; k++)
+          {
+            if(!this.propertyCache[field].contains(newTags[k]))
+            {
+              this.propertyCache[field].push(newTags[k]);
+            }
           }
         }
       }));
@@ -287,11 +318,19 @@ export default class GalleryTagsPlugin extends Plugin
   buildTagCache()
   {
     this.tagCache = [];
+    this.propertyCache = {};
+    const propertyList = Object.keys(this.settings.autoCompleteFields);
+    for(let m = 0; m < propertyList.length; m++)
+    {
+      this.propertyCache[propertyList[m]] = [];
+    }
+
     
 		const files = this.app.vault.getMarkdownFiles();
 		for(let i = 0; i < files.length; i++)
 		{
-			const tags = getTags(this.app.metadataCache.getFileCache(files[i]), this);
+      const cache = this.app.metadataCache.getFileCache(files[i]);
+			const tags = getTags(cache);
 			for(let k = 0; k < tags.length; k++)
 			{
 				if(!this.tagCache.contains(tags[k]))
@@ -299,7 +338,23 @@ export default class GalleryTagsPlugin extends Plugin
 					this.tagCache.push(tags[k])
 				}
 			}
-		}
+
+      for(let m = 0; m < propertyList.length; m++)
+      {
+        const field = propertyList[m];
+
+        const newTags = getTags(cache, field);
+        for(let k = 0; k < newTags.length; k++)
+        {
+          if(!this.propertyCache[field].contains(newTags[k]))
+          {
+            this.propertyCache[field].push(newTags[k]);
+          }
+        }
+      }
+    }
+
+    new Notice(this.propertyCache['artist'].length.toString());
   }
 
   #buildImageCache()

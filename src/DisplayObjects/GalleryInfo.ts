@@ -18,6 +18,7 @@ export class GalleryInfo
 	width: number
 	height: number
     tagList: string[]
+    autoCompleteList: Record<string,string[]>
     colorList: string[]
     isVideo: boolean
     imgLinks: Array<{path : string, name: string}>
@@ -141,6 +142,59 @@ export class GalleryInfo
 					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
 				});
 			suggetions.ignoreList = this.tagList;
+		}
+
+		const propertyList = Object.keys(this.autoCompleteList);
+		for (let index = 0; index < propertyList.length; index++) 
+		{
+			const field = propertyList[index];
+			const items = this.autoCompleteList[field];
+			
+			current = block.createDiv({ cls: 'gallery-info-section' });
+			current.createSpan({ cls: 'gallery-info-section-label' }).textContent = field;
+			currentVal = current.createDiv({ cls: 'gallery-info-section-value' });
+			
+			if(items != null)
+			{
+				for(let i = 0; i < items.length; i++)
+				{
+					const pill = currentVal.createDiv("gallery-info-section-pill");	
+					pill.style.backgroundColor = this.plugin.accentColorDark+"44";
+					const currentTag = pill.createSpan("multi-select-pill-content")
+					currentTag.textContent = items[i];
+					currentTag.addEventListener('click', 
+					async (s) =>{
+						getSearch("["+field+":"+items[i].replace("#","")+"]", this.plugin.app)
+					});
+					const removal = pill.createDiv("multi-select-pill-remove-button")
+					setIcon(removal, 'x')
+					removal.addEventListener('click', 
+					async (s) =>{
+						await removeTag(this.imgInfo,items[i],this.plugin, field);
+						items.remove(items[i])
+						this.updateDisplay();
+					});
+				}
+			}
+			const newTagEl = currentVal.createEl("input", {cls: "new-tag-input"});
+			newTagEl.name = "new-tag";
+			newTagEl.placeholder = loc('IMAGE_INFO_FIELD_NEW_TAG');
+			const suggetions = new SuggestionDropdown(newTagEl, 
+				() =>{return this.plugin.getFieldTags(field);},
+				async(s) =>{
+					const tag = s.trim();
+					if(!validString(tag))
+					{
+						return;
+					}
+					await addTag(this.imgInfo, tag, this.plugin, field);
+					
+					items.push(tag)
+					this.updateDisplay();
+
+					(document.querySelector("input[name='new-tag']") as HTMLInputElement).focus();
+				});
+			suggetions.ignoreList = items;
 		}
 
 		if(!this.infoList.contains("backlinks"))

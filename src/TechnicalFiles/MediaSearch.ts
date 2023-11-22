@@ -415,7 +415,7 @@ export class MediaSearch
 						let imgInfoCache = this.plugin.app.metadataCache.getFileCache(infoFile)
 						if (imgInfoCache)
 						{
-							imgTags = getTags(imgInfoCache, this.plugin);
+							imgTags = getTags(imgInfoCache);
 							frontMatter = this.#getFrontmatter(imgInfoCache);
 						}
 					}

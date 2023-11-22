@@ -39,6 +39,7 @@ export const DEFAULT_SETTINGS: GallerySettings = {
   imgDataFolder: null,
   imgmetaTemplatePath: null,
   hiddenInfoTicker: DEFAULT_HIDDEN_INFO,
+  autoCompleteFields: {},
   uniqueMobileSettings: false,
   desktop: DEFAULT_PLATFORM_SETTINGS,
   mobile: DEFAULT_PLATFORM_SETTINGS,

@@ -5,6 +5,7 @@ export interface GallerySettings
   imgDataFolder: string | null
   imgmetaTemplatePath: string | null
   hiddenInfoTicker: Record<string, boolean>
+  autoCompleteFields: Record<string, boolean>
   uniqueMobileSettings: boolean
   desktop: PlatformSettings
   mobile: PlatformSettings

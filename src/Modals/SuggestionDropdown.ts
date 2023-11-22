@@ -168,7 +168,7 @@ export class SuggestionDropdown
 		
 		input = input.toLowerCase();
 		const matches: [string,number][] = []
-		for (let i = 1; i < items.length; i++) 
+		for (let i = 0; i < items.length; i++) 
 		{
 			if(this.ignoreList.contains(items[i]))
 			{

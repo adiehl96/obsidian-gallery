@@ -149,6 +149,7 @@ export class ImageInfoBlock
     // Handle disabled img info functionality or missing info block
     const imgInfo = await getImageInfo(args.imgPath, false, plugin);
     let imgTags = null
+    let imgFields:Record<string,string[]> = {}
     let start:string = null;
     let prev:string = null;
     let next:string = null;
@@ -161,7 +162,16 @@ export class ImageInfoBlock
     
     if (imgInfoCache)
     {
-      imgTags = getTags(imgInfoCache, plugin);
+      imgTags = getTags(imgInfoCache);
+
+		  const propertyList = Object.keys(plugin.settings.autoCompleteFields);
+      for (let i = 0; i < propertyList.length; i++) 
+      {
+        if(plugin.settings.autoCompleteFields[propertyList[i]])
+        {
+          imgFields[propertyList[i]] = getTags(imgInfoCache, propertyList[i]);
+        }
+      }
 
       // get paging info if there is any
       if(imgInfoCache.frontmatter)
@@ -288,6 +298,7 @@ export class ImageInfoBlock
       info.dimensions = vid;
       info.colorList = hexList;
       info.tagList = imgTags;
+      info.autoCompleteList = imgFields;
       info.isVideo = isVideo;
       info.imgLinks = imgLinks;
       info.infoLinks = infoLinks;

@@ -321,7 +321,41 @@ export class GallerySettingTab extends PluginSettingTab
           this.display();
         }));
       
-    this.drawInfoLists(hiddenInfoSetting.descEl);
+    this.drawToggleLists(hiddenInfoSetting.descEl, this.plugin.settings.hiddenInfoTicker);
+
+    // Auto complete fields
+    const autoCompleteSetting = new Setting(containerEl)
+      .setName(loc('SETTING_AUTO_COMPLETE_TITLE'))
+      .setTooltip(loc('SETTING_AUTO_COMPLETE_DESC'))
+      .setDesc(``)
+      .addText(text => text
+        .setPlaceholder(loc('SETTING_AUTO_COMPLETE_PLACEHOLDER'))
+        .onChange(async (value) =>
+        {
+          value = value.trim();
+          hiddenInfoInput = value;
+        }))
+      .addButton(text => text
+        .setIcon("plus")
+        .setTooltip(loc('SETTING_AUTO_COMPLETE_ADD'))
+        .onClick(() =>
+        {
+          this.plugin.settings.autoCompleteFields[hiddenInfoInput] = true;
+          hiddenInfoInput = '';
+          this.plugin.saveSettings();
+          this.display();
+        }))
+      .addButton(text => text
+        .setIcon('rotate-ccw')
+        .setTooltip(loc('SETTING_AUTO_COMPLETE_RESET'))
+        .onClick(() =>
+        {
+          this.plugin.settings.autoCompleteFields = {};
+          this.plugin.saveSettings();
+          this.display();
+        }));
+      
+    this.drawToggleLists(autoCompleteSetting.descEl, this.plugin.settings.autoCompleteFields);
     
     // Gallery Meta Section
     containerEl.createEl('h2', { text: loc('SETTING_METADATA_HEADER') })
@@ -359,20 +393,20 @@ export class GallerySettingTab extends PluginSettingTab
     }
   }
 
-  drawInfoLists(containerEl:HTMLElement)
+  drawToggleLists(containerEl:HTMLElement, records:Record<string, boolean>)
   {
-    const fields = Object.keys(this.plugin.settings.hiddenInfoTicker)
+    const fields = Object.keys(records)
     for (let i = 0; i < fields.length; i++) 
     {
       const element = fields[i];
       new Setting(containerEl)
-        .setName(fields[i])
+        .setName(element)
         .addToggle((toggle) =>
         {
-          toggle.setValue(this.plugin.settings.hiddenInfoTicker[fields[i]])
+          toggle.setValue(records[element])
           toggle.onChange(async (value) =>
           {
-            this.plugin.settings.hiddenInfoTicker[fields[i]] = value;
+            records[element] = value;
             await this.plugin.saveSettings();
           });
         })
@@ -383,12 +417,11 @@ export class GallerySettingTab extends PluginSettingTab
           .setTooltip(loc('SETTING_HIDDEN_INFO_REMOVE'))
           .onClick(async () => 
           {
-            delete this.plugin.settings.hiddenInfoTicker[fields[i]];
+            delete records[element];
             await this.plugin.saveSettings();
             this.display();
           })
         })
     }
-    
   }
 }

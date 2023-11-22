@@ -371,7 +371,17 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
 
       if(keywords)
       {
-        let tags = getTags(data, plugin);
+        let field:string;
+        if(validString(plugin.settings.alternativeTags))
+        {
+          field = plugin.settings.alternativeTags;
+        }
+        else
+        {
+          field = 'tags';
+        }
+        
+        let tags = getTags(data, field);
         let newTags = false;
         for (let i = 0; i < keywords.length; i++) 
         {
@@ -391,7 +401,7 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
 
         if(newTags)
         {
-          setTags(frontmatter, tags, plugin);
+          setTags(frontmatter, tags, field);
           frontmatter.tags = tags;
         }
       }
@@ -415,11 +425,11 @@ export const addEmbededTags = async (imgTFile: TFile, infoTFile: TFile, plugin: 
   return false;
 }
 
-export const addTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin ): Promise<void> =>
+export const addTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin, field:string = 'tags' ): Promise<void> =>
 {
   await plugin.app.fileManager.processFrontMatter(imageInfo, (frontmatter) => 
   {
-    let tags = getFrontTags(frontmatter, plugin);
+    let tags = getFrontTags(frontmatter, field);
     if (!Array.isArray(tags)) 
     { 
       tags = [tags]; 
@@ -431,15 +441,15 @@ export const addTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlug
     }
 
     tags.push(tag);
-    setTags(frontmatter, tags, plugin);
+    setTags(frontmatter, tags, field);
   });
 }
 
-export const removeTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin ): Promise<void> =>
+export const removeTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsPlugin, field:string = 'tags' ): Promise<void> =>
 {
   await plugin.app.fileManager.processFrontMatter(imageInfo, frontmatter => 
   {
-    let tags = getFrontTags(frontmatter, plugin);
+    let tags = getFrontTags(frontmatter, field);
     if (!Array.isArray(tags)) 
     { 
       tags = [tags]; 
@@ -467,23 +477,21 @@ export const removeTag = async (imageInfo:TFile, tag:string, plugin:GalleryTagsP
 
     if(change)
     {
-      setTags(frontmatter, tags, plugin);
+      setTags(frontmatter, tags, field);
     }
   });
 }
 
-const getFrontTags = (frontmatter:FrontMatterCache, plugin:GalleryTagsPlugin): string[] =>
+const getFrontTags = (frontmatter:FrontMatterCache, field:string = 'tags'): string[] =>
 {
-  let tags :string[]
+  let tags:string[]
   let found;
-  if(validString(plugin.settings.alternativeTags))
+  if(!validString(field))
   {
-    found = frontmatter[plugin.settings.alternativeTags] ?? []
+    return tags;
   }
-  else
-  {
-    found = frontmatter?.tags ?? []
-  }
+
+  found = frontmatter[field] ?? []
 
   if (!Array.isArray(found)) 
   { 
@@ -497,25 +505,30 @@ const getFrontTags = (frontmatter:FrontMatterCache, plugin:GalleryTagsPlugin): s
   return tags;
 }
 
-export const getTags = (metaCache:CachedMetadata, plugin:GalleryTagsPlugin): string[] =>
+export const getTags = (metaCache:CachedMetadata, field:string = 'tags'): string[] =>
 {
-  let tags :string[]
+  let tags:string[]
   let found;
-  if(validString(plugin.settings.alternativeTags))
+  if(!validString(field))
+  {
+    return tags;
+  }
+
+  if(field == 'tags')
+  {
+    found = getAllTags(metaCache)
+  }
+  else
   {
     if(metaCache.frontmatter)
     {
-      found = metaCache.frontmatter[plugin.settings.alternativeTags] ?? [];
+      found = metaCache.frontmatter[field] ?? [];
     }
     else
     {
       found = [];
     }
   }
-  else
-  {
-    found = getAllTags(metaCache)
-  }
 
   if (!Array.isArray(found)) 
   { 
@@ -529,15 +542,15 @@ export const getTags = (metaCache:CachedMetadata, plugin:GalleryTagsPlugin): str
   return tags;
 }
 
-export const setTags = (frontmatter:FrontMatterCache, tags:string[], plugin:GalleryTagsPlugin) =>
+export const setTags = (frontmatter:FrontMatterCache, tags:string[], field:string = 'tags') =>
 {
-  if(validString(plugin.settings.alternativeTags))
+  if(validString(field))
   {
-    frontmatter[plugin.settings.alternativeTags] = tags;
+    frontmatter[field] = tags;
   }
   else
   {
-    frontmatter.tags = tags
+    // TODO: give info about why this failed
   }
 }
 
