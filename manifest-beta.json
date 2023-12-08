@@ -1,7 +1,7 @@
 {
     "id": "obsidian-gallery",
     "name": "Obsidian Gallery",
-    "version": "v1.6.2",
+    "version": "1.6.2",
     "minAppVersion": "0.10.11",
     "description": "Main Gallery to tag / filter / add notes to images. Display blocks to embed images inside notes. Display block to an image information",
     "author": "adiehl96",
